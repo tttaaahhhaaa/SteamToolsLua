@@ -2905,6 +2905,82 @@ del "%~f0"
                        ('Segoe UI Semibold', 9))
         _snap_btn.pack(side=tk.LEFT)
 
+        # Versions list button
+        def _show_versions():
+            import requests as _req
+            _vwin = tk.Toplevel(window)
+            _vwin.title("Versions")
+            _vwin.geometry("500x380")
+            _vwin.configure(bg="#08080e")
+            _vwin.transient(window)
+            tk.Label(_vwin, text="Sürüm Listesi / Version List", font=("Bahnschrift SemiBold", 16),
+                     fg="#e0e0f0", bg="#08080e").pack(anchor="w", padx=16, pady=(14, 4))
+            _list_frame = tk.Frame(_vwin, bg="#08080e")
+            _list_frame.pack(fill="both", expand=True, padx=16, pady=(0, 10))
+            _lb = tk.Listbox(_list_frame, bg="#0a0a16", fg="#d0d0e8", selectbackground="#7c6fff",
+                             selectforeground="#ffffff", relief="flat", highlightthickness=1,
+                             highlightbackground="#7c6fff", font=("Segoe UI", 10))
+            _vsb = tk.Scrollbar(_list_frame, orient="vertical", command=_lb.yview, bg="#12122a",
+                                troughcolor="#08080e")
+            _lb.configure(yscrollcommand=_vsb.set)
+            _lb.pack(side="left", fill="both", expand=True)
+            _vsb.pack(side="right", fill="y")
+            _btn_frame = tk.Frame(_vwin, bg="#08080e")
+            _btn_frame.pack(fill="x", padx=16, pady=(0, 12))
+            _dl_btn = AB(_btn_frame, "Download", lambda: None, 120, 32,
+                         "#244363", "#315f8e", "#66c0f4", "#ffffff",
+                         ("Segoe UI Semibold", 10))
+            _dl_btn.pack(side="right")
+            _loading = tk.Label(_btn_frame, text="Yükleniyor...", fg="#686880", bg="#08080e",
+                                font=("Segoe UI", 9))
+            _loading.pack(side="left")
+            def _fetch():
+                try:
+                    _r = _req.get("https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=20", timeout=15)
+                    _rels = _r.json() if isinstance(_r.json(), list) else [_r.json()]
+                    _lb.delete(0, "end")
+                    for _rl in _rels:
+                        _tag = _rl.get("tag_name", "?")
+                        _date = _rl.get("published_at", "").split("T")[0] if _rl.get("published_at") else ""
+                        _name = _rl.get("name", "")
+                        _disp = f"{_tag}  ({_date})  {_name}"
+                        _lb.insert("end", _disp)
+                    _loading.pack_forget()
+                    def _do_dl():
+                        _sel = _lb.curselection()
+                        if not _sel: return
+                        _rl = _rels[_sel[0]]
+                        _dl_url = None
+                        for _a in _rl.get("assets", []):
+                            if _a["name"].lower() == "steamtoolslua.exe":
+                                _dl_url = _a["browser_download_url"]
+                                break
+                        if not _dl_url: return
+                        from tkinter import messagebox as _mb
+                        _tag = _rl.get("tag_name", "?")
+                        if _mb.askyesno("Download", f"{_tag} indirilsin mi? / Download {_tag}?"):
+                            _dl_btn.config(text="%", state="disabled")
+                            try:
+                                _d = _req.get(_dl_url, timeout=120)
+                                _exe_dir = Path(sys.argv[0]).resolve().parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
+                                _new = _exe_dir / "SteamToolsLua.exe.new"
+                                with open(str(_new), "wb") as _f: _f.write(_d.content)
+                                _bat = _exe_dir / "_update.bat"
+                                _bat.write_text(f'''@echo off\r\n:wait\r\ntasklist | find /i "SteamToolsLua.exe" >nul 2>&1\r\nif not errorlevel 1 (\r\n    timeout /t 1 /nobreak >nul 2>&1\r\n    goto wait\r\n)\r\ncopy /y "{_new}" "{_exe_dir / 'SteamToolsLua.exe'}" >nul 2>&1\r\ndel "{_new}" >nul 2>&1\r\nstart "" "{_exe_dir / 'SteamToolsLua.exe'}"\r\ndel "%~f0"\r\n''')
+                                import subprocess as _sp
+                                _sp.Popen(["cmd", "/c", str(_bat)], shell=True, creationflags=0x08000000)
+                                _inst.root.quit()
+                            except Exception as _e:
+                                _mb.showerror("Error", str(_e))
+                                _dl_btn.config(text="Download", state="normal")
+                    _lb.bind("<<ListboxSelect>>", lambda e: _dl_btn.config(command=_do_dl))
+                except Exception as _e:
+                    _loading.config(text=str(_e))
+            _vwin.after(200, _fetch)
+        AB(_left_frame, "Versions", _show_versions, 80, 30,
+           "#1c1c3a", "#2a2a5a", "#7c6fff", "#e0e0f0",
+           ("Segoe UI Semibold", 9)).pack(side=tk.LEFT, padx=(4, 0))
+
         # Center: Version + YouTube
         _center_frame = tk.Frame(footer, bg='#0d1724')
         _center_frame.pack(side=tk.LEFT, expand=True)
