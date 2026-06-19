@@ -26,7 +26,7 @@ def resource_path(name):
 # ---- Version & Update ----
 VERSION = "1.0.0"
 VERSION_NAME = "First Main Version"
-UPDATE_URL = ""       # e.g. "https://api.github.com/repos/user/repo/releases"
+UPDATE_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"       # e.g. "https://api.github.com/repos/user/repo/releases"
 SNAPSHOT_URL = ""     # snapshot release URL (token left blank)
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
 
