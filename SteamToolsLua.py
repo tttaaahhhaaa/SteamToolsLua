@@ -27,7 +27,7 @@ def resource_path(name):
 VERSION = "1.0.0"
 VERSION_NAME = "First Main Version"
 UPDATE_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"       # e.g. "https://api.github.com/repos/user/repo/releases"
-SNAPSHOT_URL = ""     # snapshot release URL (token left blank)
+SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"     # snapshot release URL (token left blank)
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
 
 def main():
@@ -2806,16 +2806,77 @@ A: Change language in Settings and save.
         _left_frame = tk.Frame(footer, bg='#0d1724')
         _left_frame.pack(side=tk.LEFT)
 
-        def _check_update():
-            import webbrowser
-            _url = UPDATE_URL
-            if self.settings.get('update_channel', 'stable') == 'snapshot':
-                _url = SNAPSHOT_URL or UPDATE_URL
-            if not _url:
+        def _do_update_check(self, silent=False):
+            import requests as _req, json as _json
+            _err = None
+            try:
+                _is_snap = self.settings.get('update_channel', 'stable') == 'snapshot'
+                if _is_snap and SNAPSHOT_URL:
+                    _r = _req.get(SNAPSHOT_URL, timeout=10)
+                    _releases = _r.json()
+                    _rel = _releases[0] if isinstance(_releases, list) else _releases
+                else:
+                    _r = _req.get(UPDATE_URL, timeout=10)
+                    _rel = _r.json()
+                _tag = _rel.get('tag_name', '').lstrip('v')
+                _cur = VERSION
+                _is_newer = False
+                try:
+                    _cv = tuple(map(int, _cur.split('.')))
+                    _nv = tuple(map(int, _tag.split('.')))
+                    _is_newer = _nv > _cv
+                except: pass
+                if _is_newer:
+                    _dl_url = None
+                    for _a in _rel.get('assets', []):
+                        if _a['name'].lower() == 'steamtoolslua.exe':
+                            _dl_url = _a['browser_download_url']
+                            break
+                    if _dl_url:
+                        from tkinter import messagebox as _mb
+                        _msg = _tr(self, 'update.new_found').format(v=_tag)
+                        if _mb.askyesno(_tr(self, 'update.check'), _msg):
+                            self.log(_tr(self, 'update.downloading'))
+                            _dl = _req.get(_dl_url, timeout=120)
+                            _exe_dir = Path(sys.argv[0]).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
+                            _new_path = _exe_dir / "SteamToolsLua.exe.new"
+                            with open(str(_new_path), 'wb') as _f: _f.write(_dl.content)
+                            _bat = _exe_dir / "_update.bat"
+                            _bat_content = f'''@echo off
+:wait
+tasklist | find /i "SteamToolsLua.exe" >nul 2>&1
+if not errorlevel 1 (
+    timeout /t 1 /nobreak >nul 2>&1
+    goto wait
+)
+copy /y "{_new_path}" "{_exe_dir / 'SteamToolsLua.exe'}" >nul 2>&1
+del "{_new_path}" >nul 2>&1
+start "" "{_exe_dir / 'SteamToolsLua.exe'}"
+del "%~f0"
+'''
+                            with open(str(_bat), 'w') as _f: _f.write(_bat_content)
+                            import subprocess as _sp
+                            _sp.Popen(['cmd', '/c', str(_bat)], shell=True, creationflags=0x08000000)
+                            _root = getattr(self, 'root', None)
+                            if _root: _root.quit()
+                            return True
+                    else:
+                        if not silent:
+                            from tkinter import messagebox as _mb
+                            _mb.showinfo(_tr(self, 'update.check'), _tr(self, 'update.up_to_date'))
+                else:
+                    if not silent:
+                        from tkinter import messagebox as _mb
+                        _mb.showinfo(_tr(self, 'update.check'), _tr(self, 'update.up_to_date'))
+            except Exception as e:
+                _err = e
+            if _err and not silent:
                 from tkinter import messagebox as _mb
-                _mb.showinfo(_tr(self, 'update.check'), _tr(self, 'update.up_to_date'))
-            else:
-                webbrowser.open(_url)
+                _mb.showerror(_tr(self, 'update.error'), str(_err))
+            return False
+
+        def _check_update():
+            _do_update_check(self, silent=False)
         AB(_left_frame, _tr(self, 'button.update_check'), _check_update, 90, 30,
            '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
@@ -3150,6 +3211,71 @@ A: Change language in Settings and save.
                     _save_hist(h)
                 root.after(100, _hide_hist)
             _srch_entry.bind('<Return>', _search_and_save, add='+')
+    except: pass
+
+    # ---- Startup auto-update check ----
+    try:
+        _root_app = g.get('app')
+        if _root_app:
+            def _startup_check():
+                import time as _t
+                _t.sleep(2)
+                try:
+                    _stl = g.get('SteamApp', SteamApp)
+                    _inst = _root_app
+                    _is_snap = _inst.settings.get('update_channel', 'stable') == 'snapshot'
+                    if _is_snap and SNAPSHOT_URL:
+                        _url = SNAPSHOT_URL
+                    else:
+                        _url = UPDATE_URL
+                    import requests as _req
+                    _r = _req.get(_url, timeout=10)
+                    if _is_snap:
+                        _releases = _r.json()
+                        _rel = _releases[0] if isinstance(_releases, list) else _releases
+                    else:
+                        _rel = _r.json()
+                    _tag = _rel.get('tag_name', '').lstrip('v')
+                    _cur = VERSION
+                    try:
+                        _cv = tuple(map(int, _cur.split('.')))
+                        _nv = tuple(map(int, _tag.split('.')))
+                        if _nv > _cv:
+                            _dl_url = None
+                            for _a in _rel.get('assets', []):
+                                if _a['name'].lower() == 'steamtoolslua.exe':
+                                    _dl_url = _a['browser_download_url']
+                                    break
+                            if _dl_url:
+                                _mb = __import__('tkinter.messagebox', fromlist=['messagebox'])
+                                _msg = _tr(_inst, 'update.new_found').format(v=_tag)
+                                if _mb.askyesno(_tr(_inst, 'update.check'), _msg):
+                                    _inst.log(_tr(_inst, 'update.downloading'))
+                                    _dl = _req.get(_dl_url, timeout=120)
+                                    _exe_dir = Path(sys.argv[0]).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
+                                    _new_path = _exe_dir / "SteamToolsLua.exe.new"
+                                    with open(str(_new_path), 'wb') as _f: _f.write(_dl.content)
+                                    _bat = _exe_dir / "_update.bat"
+                                    _bat_content = f'''@echo off
+:wait
+tasklist | find /i "SteamToolsLua.exe" >nul 2>&1
+if not errorlevel 1 (
+    timeout /t 1 /nobreak >nul 2>&1
+    goto wait
+)
+copy /y "{_new_path}" "{_exe_dir / 'SteamToolsLua.exe'}" >nul 2>&1
+del "{_new_path}" >nul 2>&1
+start "" "{_exe_dir / 'SteamToolsLua.exe'}"
+del "%~f0"
+'''
+                                    with open(str(_bat), 'w') as _f: _f.write(_bat_content)
+                                    import subprocess as _sp
+                                    _sp.Popen(['cmd', '/c', str(_bat)], shell=True, creationflags=0x08000000)
+                                    _inst.root.quit()
+                    except: pass
+                except: pass
+            _thr = threading.Thread(target=_startup_check, daemon=True)
+            _thr.start()
     except: pass
 
 if __name__ == '__main__':
