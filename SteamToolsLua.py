@@ -2870,7 +2870,7 @@ A: Change language in Settings and save.
                                 _bat.write_text(f'''@echo off\r\n:wait\r\ntasklist | find /i "SteamToolsLua.exe" >nul 2>&1\r\nif not errorlevel 1 (\r\n    timeout /t 1 /nobreak >nul 2>&1\r\n    goto wait\r\n)\r\ncopy /y "{_new}" "{_exe_dir / 'SteamToolsLua.exe'}" >nul 2>&1\r\ndel "{_new}" >nul 2>&1\r\nstart "" "{_exe_dir / 'SteamToolsLua.exe'}"\r\ndel "%~f0"\r\n''')
                                 import subprocess as _sp
                                 _sp.Popen(["cmd", "/c", str(_bat)], shell=True, creationflags=0x08000000)
-                                _inst.root.quit()
+                                window.master.quit()
                             except Exception as _e:
                                 _mb.showerror("Error", str(_e))
                                 _dl_btn.config(text="Download", state="normal")
