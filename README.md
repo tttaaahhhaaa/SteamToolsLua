@@ -1,6 +1,6 @@
 # SteamToolsLua
 
-Dark purple-themed desktop tool for Steam game injection management. Injects ZIP games, tracks titles via library, multilingual (TR/EN/ES/FR/DE/JP), auto-update via GitHub releases.
+Dark purple-themed desktop tool for Steam game injection management. Injects ZIP games, tracks titles via library, multilingual (TR/EN/ES/FR/DE/JP). Standalone EXE — no Python required.
 
 ## Features
 
@@ -11,14 +11,19 @@ Dark purple-themed desktop tool for Steam game injection management. Injects ZIP
 - **Search History** — Last 50 queries with purple outline
 - **Download Recall** — Saved game names from download button
 - **Red Dot** — Visual indicator for already-injected games
-- **Update Channel** — Stable + Snapshot channel with auto-update
 
-## Requirements
+## Quick Start
+
+Download `SteamToolsLua.exe` from [Releases](https://github.com/tttaaahhhaaa/SteamToolsLua/releases) and run it. No installation or Python needed.
+
+## For Developers
+
+### Requirements
 
 - Python 3.14+
-- PyInstaller (for building EXE)
+- PyInstaller
 
-## Build
+### Build
 
 ```batch
 pip install -r requirements.txt
