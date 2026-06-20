@@ -33,8 +33,8 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.0.1"
-VERSION_NAME = "SteamDB Browser & Unlock All"
+VERSION = "1.0.1.1"
+VERSION_NAME = "Online-Fix Direct Link & Improved Search"
 UPDATE_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"       # e.g. "https://api.github.com/repos/user/repo/releases"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"     # snapshot release URL (token left blank)
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
@@ -1570,8 +1570,22 @@ def install_ui_fixes(g):
             try:
                 self._set_indicator('Online-Fix sayfasi aciliyor...', 'working')
                 import re, urllib.parse, webbrowser
+                # 1) Try direct download link first
+                direct_name = game_name.strip().replace(' ', '%20')
+                direct_url = f'https://uploads.online-fix.me:2053/uploads/{direct_name}/'
                 sess = g['session']
                 sess.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
+                try:
+                    h = sess.head(direct_url, timeout=10, allow_redirects=True)
+                    if h.status_code == 200:
+                        self.log(f'[OnlineFix] Direkt link calisti: {direct_url}')
+                        webbrowser.open(direct_url)
+                        _save_dl_name(game_name)
+                        return
+                except:
+                    pass
+                self.log(f'[OnlineFix] Direkt link 404, online-fix.me taranıyor...')
+                # 2) Fall back to online-fix.me search
                 search_queries = []
                 if appid:
                     search_queries.append(appid)
@@ -1608,12 +1622,8 @@ def install_ui_fixes(g):
                             best_url = url
                     if best_url:
                         break
-                if best_url:
-                    game_url = best_url
-                else:
-                    game_url = f'https://online-fix.me/index.php?do=search&subaction=search&story={urllib.parse.quote(game_name[:60].strip())}'
+                game_url = best_url if best_url else f'https://online-fix.me/index.php?do=search&subaction=search&story={urllib.parse.quote(game_name[:60].strip())}'
                 self.log(f'[OnlineFix] Aciliyor: {game_url}')
-                self._set_indicator('Online-Fix sayfasi aciliyor...', 'working')
                 webbrowser.open(game_url)
                 _save_dl_name(game_name)
             except Exception as ex:
