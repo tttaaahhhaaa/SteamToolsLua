@@ -3570,8 +3570,75 @@ A: .zipファイルの形式を確認してください
         _center_frame.pack(side=tk.LEFT, expand=True)
         _ver_frame = tk.Frame(_center_frame, bg='#0d1724')
         _ver_frame.pack(expand=True)
-        tk.Label(_ver_frame, text="v" + VERSION, fg='#585878', bg='#0d1724',
-                 font=('Segoe UI', 9)).pack(side=tk.LEFT)
+        _lbl_v = tk.Label(_ver_frame, text="v" + VERSION, fg='#585878', bg='#0d1724',
+                 font=('Segoe UI', 9), cursor='hand2')
+        _lbl_v.pack(side=tk.LEFT)
+        def _show_versions(e=None):
+            import threading as _thr
+            def _task():
+                try:
+                    import requests as _req
+                    r = _req.get(SNAPSHOT_URL, timeout=10, headers={'Accept': 'application/vnd.github.v3+json',
+                        'User-Agent': 'SteamToolsLua/1.0'})
+                    if r.status_code != 200: return
+                    releases = r.json()
+                    if not releases: return
+                    _win = tk.Toplevel(self.root)
+                    _win.title('Versions')
+                    _win.configure(bg='#0f1b2a')
+                    _win.geometry('420x380')
+                    tk.Label(_win, text='Versions', fg='#7c6fff', bg='#0f1b2a',
+                             font=('Segoe UI', 14, 'bold')).pack(pady=(12, 6))
+                    _cf = tk.Frame(_win, bg='#0f1b2a')
+                    _cf.pack(fill=tk.BOTH, expand=True, padx=16)
+                    _canv = tk.Canvas(_cf, bg='#0f1b2a', highlightthickness=0)
+                    _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
+                    _inner = tk.Frame(_canv, bg='#0f1b2a')
+                    _inner.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
+                    _canv.create_window((0, 0), window=_inner, anchor='nw')
+                    _canv.configure(yscrollcommand=_scr.set)
+                    _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+                    _scr.pack(side=tk.RIGHT, fill=tk.Y)
+                    def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
+                    _canv.bind('<MouseWheel>', _mw)
+                    current_tag = 'v' + VERSION
+                    newer_found = False
+                    for rel in releases:
+                        tag = rel.get('tag_name', '')
+                        name = rel.get('name', tag)
+                        body = (rel.get('body', '') or '')[:80]
+                        published = rel.get('published_at', '')[:10]
+                        is_current = tag == current_tag
+                        is_newer = False
+                        if not is_current and current_tag:
+                            try:
+                                cv = tuple(int(x) for x in VERSION.split('.'))
+                                lv = tuple(int(x) for x in tag.lstrip('v').split('.'))
+                                if lv > cv: is_newer = True
+                            except: pass
+                        bg = '#0a0a16' if is_current else ('#122030' if is_newer else '#0f1b2a')
+                        row = tk.Frame(_inner, bg=bg, highlightthickness=1,
+                                       highlightbackground='#1f3448' if is_newer else '#0f1b2a')
+                        row.pack(fill=tk.X, pady=2)
+                        # Tag
+                        tk.Label(row, text=tag, fg='#7c6fff' if is_current else '#f7fafc',
+                                bg=bg, font=('Segoe UI', 11, 'bold')).pack(side=tk.LEFT, padx=8, pady=4)
+                        if is_newer:
+                            tk.Label(row, text='NEW', fg='#48bb78', bg=bg,
+                                    font=('Segoe UI', 8, 'bold')).pack(side=tk.LEFT, padx=(0, 4))
+                            newer_found = True
+                        if is_current:
+                            tk.Label(row, text='current', fg='#585878', bg=bg,
+                                    font=('Segoe UI', 8)).pack(side=tk.LEFT, padx=(0, 4))
+                        tk.Label(row, text=published, fg='#686880', bg=bg,
+                                font=('Segoe UI', 8)).pack(side=tk.RIGHT, padx=8)
+                        if body:
+                            tk.Label(row, text=body, fg='#8fb8da', bg=bg,
+                                    font=('Segoe UI', 8), anchor='w', wraplength=300).pack(side=tk.BOTTOM, fill=tk.X, padx=8, pady=(0, 4))
+                    self.root.after(0, lambda: _lbl_v.config(fg='#48bb78' if newer_found else '#585878'))
+                except: pass
+            _thr.Thread(target=_task, daemon=True).start()
+        _lbl_v.bind('<Button-1>', _show_versions)
         tk.Label(_ver_frame, text=VERSION_NAME, fg='#686880', bg='#0d1724',
                  font=('Segoe UI', 8)).pack(side=tk.LEFT, padx=(4, 0))
         def _open_yt():
