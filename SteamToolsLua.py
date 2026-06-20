@@ -33,8 +33,8 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.0.1.2"
-VERSION_NAME = "Auto Update & Online-Fix Direct Link"
+VERSION = "1.0.2"
+VERSION_NAME = "Auto Update + Online-Fix Direct + Flatten + Steam Restart Fix"
 UPDATE_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"       # e.g. "https://api.github.com/repos/user/repo/releases"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"     # snapshot release URL (token left blank)
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
