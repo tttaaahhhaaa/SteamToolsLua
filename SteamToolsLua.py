@@ -535,7 +535,7 @@ def install_ui_fixes(g):
                 si.dwFlags |= _subprocess.STARTF_USESHOWWINDOW
                 result = _subprocess.run(
                     ["powershell", "-Command", cmd],
-                    capture_output=True, text=True, timeout=180,
+                    capture_output=True, text=True, timeout=300,
                     startupinfo=si, creationflags=0x08000000
                 )
                 if result.returncode == 0:
@@ -3398,10 +3398,33 @@ A: .zipファイルの形式を確認してください
         _restart_light = tk.Label(tools_row, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 14))
         _restart_light.pack(side=tk.LEFT, padx=(0, 4))
         def _run_restart():
-            self._run_headless_powershell(
-                'taskkill /f /im steam.exe; Start-Sleep -Seconds 5; Start-Process "C:\\Program Files (x86)\\Steam\\steam.exe"',
-                "Restart Steam", _restart_light
-            )
+            def _task():
+                try:
+                    self.log("Steam kapatılıyor...")
+                    self._set_indicator(_tr(self, 'indicator.steam_stop'), 'working')
+                    _restart_light.config(fg='#f6ad55')
+                    _subprocess.run(["taskkill", "/f", "/im", "steam.exe"],
+                                    capture_output=True, timeout=15)
+                    _time.sleep(5)
+                    self.log("Steam başlatılıyor...")
+                    self._set_indicator(_tr(self, 'indicator.steam_start'), 'working')
+                    _subprocess.Popen(["C:\\Program Files (x86)\\Steam\\steam.exe"],
+                                      startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
+                    self.log("Steam yeniden başlatıldı.")
+                    self._set_indicator('Steam OK', 'online')
+                    _restart_light.config(fg='#48bb78')
+                    _play_sound('done')
+                except _subprocess.TimeoutExpired:
+                    self.log("Steam kapatılırken zaman aşımı")
+                    self._set_indicator('Steam timeout', 'offline')
+                    _restart_light.config(fg='#f56565')
+                except Exception as e:
+                    self.log(f"Restart Steam hata: {e}")
+                    self._set_indicator('Steam hata', 'offline')
+                    _restart_light.config(fg='#f56565')
+                    _play_sound('error')
+            threading.Thread(target=_task, daemon=True).start()
+            _play_sound('start')
         AB(tools_row, _tr(self, 'button.restart_steam'), _run_restart,
            150, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
