@@ -1,9 +1,9 @@
 # Build output
-SteamToolsLua.exe
 *.spec
 build_temp/
 __pycache__/
 *.pyc
+create_release.py
 
 # Windows
 Thumbs.db
