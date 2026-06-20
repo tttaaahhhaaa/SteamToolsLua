@@ -1572,42 +1572,46 @@ def install_ui_fixes(g):
                 import re, urllib.parse, webbrowser
                 sess = g['session']
                 sess.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
-                search_q = game_name[:60].strip()
-                r = sess.get('https://online-fix.me/index.php', params={
-                    'do': 'search', 'subaction': 'search', 'story': f'{search_q} {appid}'
-                }, timeout=15)
-                # Extract links with their visible text
-                all_matches = []
-                for m in re.finditer(
-                    r'<a[^>]*href=[\'"](https?://[^\'"]*games/[^\'"]+\.html)[\'"][^>]*>(.*?)</a>',
-                    r.text, re.I | re.DOTALL):
-                    url = m.group(1)
-                    text = re.sub(r'<[^>]+>', '', m.group(2)).strip()
-                    all_matches.append((url, text))
-                if not all_matches:
-                    for m in re.finditer(
-                        r'<a[^>]*href=[\'"](/[^\'"]*games/[^\'"]+\.html)[\'"][^>]*>(.*?)</a>',
-                        r.text, re.I | re.DOTALL):
-                        url = 'https://online-fix.me' + m.group(1)
-                        text = re.sub(r'<[^>]+>', '', m.group(2)).strip()
-                        all_matches.append((url, text))
-                self.log(f'[OnlineFix] Bulunan: {len(all_matches)} link')
-                # Score each match by how well it matches the game name
-                search_words = set(re.findall(r'[a-z0-9]+', search_q.lower()))
+                search_queries = []
+                if appid:
+                    search_queries.append(appid)
+                search_queries.append(f'{game_name[:60].strip()} {appid}' if appid else game_name[:60].strip())
+                search_queries.append(game_name[:60].strip())
                 best_url = None
                 best_score = 0
-                for url, text in all_matches:
-                    url_words = set(re.findall(r'[a-z0-9]+',
-                        url.split('/')[-1].replace('.html', '').replace('-', ' ').lower()))
-                    text_words = set(re.findall(r'[a-z0-9]+', text.lower()))
-                    score = len(search_words & url_words) + len(search_words & text_words) * 2
-                    if score > best_score:
-                        best_score = score
-                        best_url = url
-                if best_url and best_score >= 3:
+                for q in search_queries:
+                    r = sess.get('https://online-fix.me/index.php', params={
+                        'do': 'search', 'subaction': 'search', 'story': q
+                    }, timeout=15)
+                    all_matches = []
+                    for m in re.finditer(
+                        r'<a[^>]*href=[\'"](https?://[^\'"]*games/[^\'"]+\.html)[\'"][^>]*>(.*?)</a>',
+                        r.text, re.I | re.DOTALL):
+                        url = m.group(1)
+                        text = re.sub(r'<[^>]+>', '', m.group(2)).strip()
+                        all_matches.append((url, text))
+                    if not all_matches:
+                        for m in re.finditer(
+                            r'<a[^>]*href=[\'"](/[^\'"]*games/[^\'"]+\.html)[\'"][^>]*>(.*?)</a>',
+                            r.text, re.I | re.DOTALL):
+                            url = 'https://online-fix.me' + m.group(1)
+                            text = re.sub(r'<[^>]+>', '', m.group(2)).strip()
+                            all_matches.append((url, text))
+                    search_words = set(re.findall(r'[a-z0-9]+', game_name[:60].lower()))
+                    for url, text in all_matches:
+                        url_words = set(re.findall(r'[a-z0-9]+',
+                            url.split('/')[-1].replace('.html', '').replace('-', ' ').lower()))
+                        text_words = set(re.findall(r'[a-z0-9]+', text.lower()))
+                        score = len(search_words & url_words) + len(search_words & text_words) * 2
+                        if score > best_score:
+                            best_score = score
+                            best_url = url
+                    if best_url:
+                        break
+                if best_url:
                     game_url = best_url
                 else:
-                    game_url = f'https://online-fix.me/index.php?do=search&subaction=search&story={urllib.parse.quote(search_q)}'
+                    game_url = f'https://online-fix.me/index.php?do=search&subaction=search&story={urllib.parse.quote(game_name[:60].strip())}'
                 self.log(f'[OnlineFix] Aciliyor: {game_url}')
                 self._set_indicator('Online-Fix sayfasi aciliyor...', 'working')
                 webbrowser.open(game_url)
