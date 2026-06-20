@@ -33,8 +33,8 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.0.1.1"
-VERSION_NAME = "Online-Fix Direct Link & Improved Search"
+VERSION = "1.0.1.2"
+VERSION_NAME = "Auto Update & Online-Fix Direct Link"
 UPDATE_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"       # e.g. "https://api.github.com/repos/user/repo/releases"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"     # snapshot release URL (token left blank)
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
@@ -4230,6 +4230,75 @@ A: .zipファイルの形式を確認してください
         except: pass
     root.after(100, lambda: (_style_scrollbars(root), None))
     root.after(800, _init_steamdb_browser)
+
+    # ---- Auto update check ----
+    def _check_auto_update():
+        import threading as _thr, webbrowser
+        def _task():
+            try:
+                import requests as _req
+                lang = app.settings.get('language', 'tr')
+                is_tr = lang == 'tr'
+                r = _req.get(UPDATE_URL, timeout=10, headers={'Accept': 'application/vnd.github.v3+json',
+                    'User-Agent': 'SteamToolsLua/1.0'})
+                if r.status_code != 200: return
+                data = r.json()
+                latest = data.get('tag_name', '').lstrip('v')
+                current = VERSION
+                if not latest or latest == current: return
+                # Compare versions
+                def _parse(v):
+                    parts = v.split('.')
+                    return tuple(int(x) if x.isdigit() else 0 for x in parts) + (0,)*4
+                if _parse(latest) <= _parse(current): return
+                # New version found, ask user
+                from tkinter.simpledialog import askstring as _ask
+                msg = f'Yeni sürüm {latest} mevcut! (mevcut: {current})\nGüncelleme indirilsin mi?' if is_tr else \
+                      f'New version {latest} available! (current: {current})\nDownload update?'
+                if not _messagebox.askyesno('Güncelleme' if is_tr else 'Update', msg, parent=app.root):
+                    return
+                # Download new EXE
+                asset = None
+                for a in data.get('assets', []):
+                    if a.get('name', '').lower().endswith('.exe'):
+                        asset = a
+                        break
+                if not asset: return
+                dl_url = asset.get('browser_download_url', '')
+                if not dl_url: return
+                app.log(f'[Update] {latest} indiriliyor: {dl_url}')
+                d = _req.get(dl_url, timeout=120, stream=True)
+                if d.status_code != 200:
+                    app.log('[Update] Indirme basarisiz'); return
+                tmp_exe = Path(os.environ.get('TEMP', '.')) / f'SteamToolsLua_{latest}.exe'
+                with open(str(tmp_exe), 'wb') as f:
+                    for chunk in d.iter_content(8192):
+                        if chunk: f.write(chunk)
+                app.log(f'[Update] Indi: {tmp_exe}')
+                # Get current EXE path
+                me = Path(sys.argv[0] if getattr(sys, 'frozen', False) else __file__).resolve()
+                # Create updater script
+                ps_script = f'''
+$retry = 0
+do {{
+    Start-Sleep -Seconds 2
+    $retry++
+}} while ($retry -lt 30 -and (Get-Process -Name "{me.stem}" -ErrorAction SilentlyContinue))
+Copy-Item -LiteralPath "{tmp_exe}" -Destination "{me}" -Force
+Start-Process -LiteralPath "{me}"
+'''
+                updater = Path(os.environ.get('TEMP', '.')) / 'steamtools_update.ps1'
+                updater.write_text(ps_script.strip(), encoding='utf-8')
+                app.log(f'[Update] Guncelleniyor...')
+                import subprocess as _sp
+                _sp.Popen(['powershell', '-ExecutionPolicy', 'Bypass', '-File', str(updater)],
+                         startupinfo=_sp.STARTUPINFO(dwFlags=_sp.STARTF_USESHOWWINDOW),
+                         creationflags=0x08000000)
+                app.root.after(300, app.root.destroy)
+            except:
+                import traceback; traceback.print_exc()
+        _thr.Thread(target=_task, daemon=True).start()
+    root.after(1500, _check_auto_update)
 
 if __name__ == '__main__':
     if sys.version_info < (3, 14):
