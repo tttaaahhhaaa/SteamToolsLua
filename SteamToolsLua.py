@@ -691,8 +691,8 @@ def install_ui_fixes(g):
                     for info in zf.infolist():
                         if info.is_dir(): continue
                         target = depot_dir if info.filename.endswith('.manifest') else stplug_dir
-                        (target / info.filename).parent.mkdir(parents=True, exist_ok=True)
-                        zf.extract(info, target)
+                        flat_name = Path(info.filename).name
+                        (target / flat_name).write_bytes(zf.read(info))
                 game_name = zip_path.stem.replace('_', ' ').replace('-', ' ').strip()
                 game_name = ' '.join(w.capitalize() for w in game_name.split())
                 ts = _time.strftime('%Y-%m-%d %H:%M')
@@ -1505,6 +1505,7 @@ def install_ui_fixes(g):
         def _task():
             tmp = None
             try:
+                _flatten_stplug_lua(appid)
                 self.log(f"[Manifest] AppID {appid} başlatılıyor...")
                 self._set_indicator(_tr(self, 'indicator.manifest_dl'), 'working')
                 raw = _b64.b64decode(_MANIFESTS_PS1_B64)
@@ -1607,8 +1608,17 @@ def install_ui_fixes(g):
     SteamApp.open_onlinefix = open_onlinefix_auto
 
     # ---- Unlock All (batch unlock from ZIPs in used/) ----
+    def _flatten_stplug_lua(appid):
+        stplug_dir = Path("C:\\Program Files (x86)\\Steam\\config\\stplug-in")
+        expected = stplug_dir / f"{appid}.lua"
+        if not expected.exists():
+            candidates = list(stplug_dir.rglob(f"{appid}.lua"))
+            if candidates:
+                _shutil.copy2(str(candidates[0]), str(expected))
+
     def _download_manifest_sync(appid, log_func=None):
         try:
+            _flatten_stplug_lua(appid)
             raw = _b64.b64decode(_MANIFESTS_PS1_B64)
             script = raw.decode('utf-16-le')
             tmp = _tempfile.NamedTemporaryFile(mode='w', suffix='.ps1', delete=False, encoding='utf-8')
