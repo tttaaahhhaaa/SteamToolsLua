@@ -33,8 +33,8 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.0.2"
-VERSION_NAME = "Auto Update + Online-Fix Direct + Flatten + Steam Restart Fix"
+VERSION = "1.0.3"
+VERSION_NAME = "Lock All + AppID Lookup + Red-Light Filter + Selection UI"
 UPDATE_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"       # e.g. "https://api.github.com/repos/user/repo/releases"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"     # snapshot release URL (token left blank)
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
@@ -495,6 +495,12 @@ def install_ui_fixes(g):
     # ---- Status Indicator Helper ----
     def _set_indicator(self, text, state):
         try:
+            if not hasattr(self, '_indicator_history'):
+                self._indicator_history = []
+            ts = _time.strftime('%H:%M:%S')
+            self._indicator_history.append((ts, text, state))
+            if len(self._indicator_history) > 50:
+                self._indicator_history.pop(0)
             if hasattr(self, 'set_status'):
                 self.set_status(text, state)
             else:
@@ -503,6 +509,13 @@ def install_ui_fixes(g):
                     self.status_dot.itemconfig(self.status_oval, fill=colors.get(state, colors['idle']))
                 if hasattr(self, 'status_var'):
                     self.status_var.set(text)
+                # Update tooltip/detail
+                if hasattr(self, 'status_lbl') and self.status_lbl.winfo_exists():
+                    last_dl = [h for h in reversed(self._indicator_history) if 'downloaded' in h[1].lower() or 'unlock' in h[1].lower() or 'inject' in h[1].lower()]
+                    detail = f'Son: {text}'
+                    if last_dl:
+                        detail += f'\n{last_dl[0][0]} {last_dl[0][1]}'
+                    self.status_lbl.config(text=detail[:60])
         except Exception:
             pass
 
@@ -1823,6 +1836,114 @@ def install_ui_fixes(g):
             traceback.print_exc()
             app.log(f'[UnlockAll] {ex}')
     SteamApp.unlock_all_games = _unlock_all_games
+
+    # ---- Lock All (revert UNLOCKED zips) ----
+    def _lock_all_games(app):
+        try:
+            import json
+            _lang = app.settings.get('language', 'tr')
+            _ut = {'tr': {'title': 'Lock All', 'none': '(UNLOCKED) zip bulunamadi', 'done': 'Kilitlendi', 'err': 'Hata', 'close': 'Kapat', 'cancel': 'Iptal'},
+                   'en': {'title': 'Lock All', 'none': 'No (UNLOCKED) zips found', 'done': 'Locked', 'err': 'Error', 'close': 'Close', 'cancel': 'Cancel'},
+                   'es': {'title': 'Lock All', 'none': 'No se encontraron zips (UNLOCKED)', 'done': 'Bloqueado', 'err': 'Error', 'close': 'Cerrar', 'cancel': 'Cancelar'},
+                   'fr': {'title': 'Lock All', 'none': 'Aucun zip (UNLOCKED) trouvé', 'done': 'Verrouillé', 'err': 'Erreur', 'close': 'Fermer', 'cancel': 'Annuler'},
+                   'de': {'title': 'Lock All', 'none': 'Keine (UNLOCKED) Zips gefunden', 'done': 'Gesperrt', 'err': 'Fehler', 'close': 'Schließen', 'cancel': 'Abbrechen'},
+                   'ja': {'title': 'Lock All', 'none': '(UNLOCKED) ZIPが見つかりません', 'done': 'ロック済み', 'err': 'エラー', 'close': '閉じる', 'cancel': 'キャンセル'}}
+            _lt = _ut.get(_lang, _ut['en'])
+            _bd = Path(__file__).resolve().parent
+            _sv = app.settings.get('save_path', '') or app.settings.get('new_games_folder', '')
+            _gd = Path(_sv) if _sv and Path(_sv).exists() else _bd / "1 New Games"
+            _used = _gd / "used"
+            if not _used.exists() or not _used.is_dir():
+                app.status_var.set('used/ klasoru bulunamadi')
+                return
+            zips = sorted([f for f in _used.iterdir() if f.suffix.lower() == '.zip' and '(UNLOCKED)' in f.stem])
+            if not zips:
+                app.status_var.set(_lt.get('none', 'No (UNLOCKED) zips'))
+                return
+            # Build selection overlay
+            _parent = getattr(app, 'results_canvas', None) or getattr(app, 'cards_frame', None) or app.root
+            _sel_vars = {}
+            _ov = tk.Frame(app.root, bg='#08080e', highlightthickness=1, highlightbackground='#1a1a30')
+            _ov.place(x=0, y=0, relwidth=1, relheight=1, anchor='nw')
+            _ov.lift()
+            _top = tk.Frame(_ov, bg='#08080e')
+            _top.pack(fill=tk.X, padx=16, pady=(14, 6))
+            tk.Label(_top, text=_lt.get('title', 'Lock All'), font=('Bahnschrift SemiBold', 18),
+                     fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
+            _sel_all = tk.BooleanVar(value=True)
+            def _toggle_all():
+                v = _sel_all.get()
+                for var in _sel_vars.values(): var.set(v)
+            tk.Checkbutton(_top, text='Select All', variable=_sel_all,
+                           command=_toggle_all, bg='#08080e', activebackground='#12122a',
+                           selectcolor='#7c6fff', fg='#c0c0e0', font=('Segoe UI', 10)).pack(side=tk.RIGHT, padx=4)
+            _sep = tk.Frame(_ov, bg='#1a1a30', height=1)
+            _sep.pack(fill=tk.X, padx=16)
+            _cf = tk.Frame(_ov, bg='#0a0a16')
+            _cf.pack(fill=tk.BOTH, expand=True, padx=16, pady=(8, 10))
+            _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0)
+            _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
+            _inner = tk.Frame(_canv, bg='#0a0a16')
+            _inner.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
+            _canv.create_window((0, 0), window=_inner, anchor='nw')
+            _canv.configure(yscrollcommand=_scr.set)
+            _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            _scr.pack(side=tk.RIGHT, fill=tk.Y)
+            def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
+            _canv.bind('<MouseWheel>', _mw)
+            for i, zp in enumerate(zips):
+                var = tk.BooleanVar(value=True)
+                _sel_vars[zp] = var
+                nm = zp.stem.replace('(UNLOCKED)', '').replace('_', ' ').replace('-', ' ').strip()
+                nm = ' '.join(w.capitalize() for w in nm.split())
+                bg = '#0c0c20' if i % 2 == 0 else '#0a0a16'
+                row = tk.Frame(_inner, bg=bg)
+                row.pack(fill=tk.X, padx=6, pady=1)
+                tk.Checkbutton(row, variable=var, bg=bg, activebackground='#14142a', selectcolor='#7c6fff',
+                               fg='#d0d0e8', font=('Segoe UI', 10)).pack(side=tk.LEFT)
+                tk.Label(row, text=nm, bg=bg, fg='#d0d0e8', font=('Segoe UI', 10), anchor='w').pack(side=tk.LEFT, fill=tk.X, expand=True)
+                tk.Label(row, text=zp.name, bg=bg, fg='#686880', font=('Segoe UI', 8), anchor='e').pack(side=tk.RIGHT, padx=4)
+            _btnf = tk.Frame(_ov, bg='#08080e')
+            _btnf.pack(fill=tk.X, padx=16, pady=(0, 14))
+            _ok = [False]
+            def _confirm():
+                _ok[0] = True; _ov.destroy()
+            def _cancel():
+                _ov.destroy()
+            AB = g.get('AnimatedButton', AnimatedButton)
+            AB(_btnf, 'Lock Selected', _confirm, 140, 34,
+               '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
+               ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(8, 0))
+            AB(_btnf, _lt.get('cancel', 'Cancel'), _cancel, 110, 34,
+               '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
+               ('Segoe UI', 9)).pack(side=tk.RIGHT)
+            app.root.wait_window(_ov)
+            if not _ok[0]: return
+            chosen = [zp for zp, var in _sel_vars.items() if var.get()]
+            if not chosen:
+                app.status_var.set('Secim yapilmadi')
+                return
+            # Rename each (UNLOCKED).zip back to original
+            done = 0
+            for zp in chosen:
+                try:
+                    new_name = zp.stem.replace('(UNLOCKED)', '') + zp.suffix
+                    new_path = _used / new_name
+                    if new_path.exists():
+                        new_path.unlink()
+                    zp.rename(new_path)
+                    app.log(f'[LockAll] {zp.name} -> {new_name}')
+                    done += 1
+                except Exception as ex:
+                    app.log(f'[LockAll] {zp.name} error: {ex}')
+            app.status_var.set(f'{done}/{len(chosen)} locked')
+            if done > 0:
+                _play_sound('done')
+        except Exception as ex:
+            import traceback
+            traceback.print_exc()
+            app.log(f'[LockAll] {ex}')
+    SteamApp.lock_all_games = _lock_all_games
 
     # ---- ? Guide button on header ----
     def _open_guide(self):
@@ -3429,6 +3550,82 @@ A: .zipファイルの形式を確認してください
            150, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
 
+        # ---- Game Name Lookup (AppID) ----
+        _lookup_frame = tk.Frame(window, bg='#0d1724')
+        _lookup_frame.pack(fill=tk.X, padx=16, pady=(6, 2))
+        tk.Label(_lookup_frame, text="Game Name -> AppID", fg='#8fd3ff', bg='#0d1724',
+                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
+        _lookup_row = tk.Frame(window, bg='#0d1724')
+        _lookup_row.pack(fill=tk.X, padx=16, pady=(0, 6))
+        _gn_var = tk.StringVar()
+        tk.Entry(_lookup_row, textvariable=_gn_var, width=30, relief=tk.FLAT,
+                 bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
+                 font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=(0, 6))
+        _aid_result_var = tk.StringVar(value='')
+        _aid_lbl = tk.Label(_lookup_row, textvariable=_aid_result_var, fg='#48bb78', bg='#0d1724',
+                            font=('Segoe UI', 9, 'bold'), width=16, anchor='w')
+        _aid_lbl.pack(side=tk.LEFT, padx=(0, 6))
+        def _lookup_game_name():
+            name = _gn_var.get().strip()
+            if not name: return
+            _aid_result_var.set('Araniyor...')
+            def _task():
+                try:
+                    import json, requests as _rq
+                    _rq_ses = g['session']
+                    _applist_cache = _data_dir / "applist_cache.json"
+                    app_data = None
+                    # Try local cache first
+                    if _applist_cache.exists():
+                        try:
+                            app_data = json.loads(_applist_cache.read_text(encoding='utf-8'))
+                        except: pass
+                    if not app_data:
+                        # Try SteamDB GitHub raw
+                        url = 'https://raw.githubusercontent.com/SteamDatabase/GameTracking/master/games.json'
+                        r = _rq_ses.get(url, timeout=15)
+                        if r.status_code == 200:
+                            app_data = r.json()
+                            _applist_cache.write_text(json.dumps(app_data, ensure_ascii=False), encoding='utf-8')
+                    if app_data:
+                        q = name.lower()
+                        matches = [(str(v.get('appid', '')), k) for k, v in app_data.items() if q in k.lower() and v.get('appid')]
+                        if matches:
+                            exact = [m for m in matches if m[1].lower() == q]
+                            best = exact[0] if exact else matches[0]
+                            _aid = best[0]; _gname = best[1]
+                            self.root.after(0, lambda: _aid_result_var.set(f'AppID: {_aid}'))
+                            self.root.after(0, lambda: self.log(f'[Lookup] {_gname} -> AppID {_aid}'))
+                            return
+                    # Fallback: Steam API (no cache for this)
+                    r2 = _rq_ses.get('https://api.steampowered.com/ISteamApps/GetAppList/v2/', timeout=10)
+                    if r2.status_code == 200:
+                        apps = r2.json().get('applist', {}).get('apps', [])
+                        q = name.lower()
+                        for a in apps:
+                            if q == a.get('name', '').lower() or (len(q) > 3 and q in a.get('name', '').lower()):
+                                self.root.after(0, lambda aid=a['appid'], an=a['name']: _aid_result_var.set(f'AppID: {aid}'))
+                                self.root.after(0, lambda an=a['name'], aid=a['appid']: self.log(f'[Lookup] {an} -> AppID {aid}'))
+                                return
+                    self.root.after(0, lambda: _aid_result_var.set('Bulunamadi'))
+                except Exception as ex:
+                    self.log(f'[Lookup] Hata: {ex}')
+                    self.root.after(0, lambda: _aid_result_var.set('Hata'))
+            threading.Thread(target=_task, daemon=True).start()
+        AB(_lookup_row, 'Ara', _lookup_game_name, 50, 28,
+           '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
+        def _unlock_looked_up():
+            aid = _aid_result_var.get()
+            if not aid.startswith('AppID:'):
+                return
+            aid_num = aid.split(':')[1].strip()
+            if aid_num and aid_num.isdigit():
+                self.open_result_steamdb({'appid': aid_num, 'name': _gn_var.get().strip()})
+        AB(_lookup_row, 'Unlock Download', _unlock_looked_up, 110, 28,
+           '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
+
         # ---- Library section ----
         lib_frame = tk.Frame(window, bg='#0d1724')
         lib_frame.pack(fill=tk.X, padx=16, pady=(6, 2))
@@ -3452,33 +3649,53 @@ A: .zipファイルの形式を確認してください
             tk.Label(top, text=_tr(self, 'library.win_title'), font=('Bahnschrift SemiBold', 18),
                      fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
             _items = []
+            _status_map = {}
             try:
                 if ini_path.exists():
                     _cfg = _configparser.ConfigParser()
                     _cfg.read(str(ini_path), encoding='utf-8')
                     if 'Games' in _cfg:
                         _items = list(_cfg['Games'].items())
+                    if 'Status' in _cfg:
+                        _status_map = dict(_cfg['Status'].items())
             except: pass
             sort_frame = tk.Frame(lib_win, bg='#08080e')
             sort_frame.pack(fill=tk.X, padx=14, pady=(2, 6))
             _sort_var = tk.StringVar(value='date_d')
+            _filter_var = tk.StringVar(value='all')
             def _populate():
                 tv.delete(*tv.get_children())
                 s = _sort_var.get()
+                f = _filter_var.get()
+                filtered = _items
+                if f == 'red':
+                    red_names = {k for k, v in _status_map.items() if v in ('red', 'error', 'fail')}
+                    filtered = [(n, d) for n, d in _items if n in red_names]
                 if s == 'name':
-                    data = sorted(_items, key=lambda x: x[0].lower())
+                    data = sorted(filtered, key=lambda x: x[0].lower())
                 elif s == 'date_a':
-                    data = sorted(_items, key=lambda x: x[1])
+                    data = sorted(filtered, key=lambda x: x[1])
                 else:
-                    data = sorted(_items, key=lambda x: x[1], reverse=True)
+                    data = sorted(filtered, key=lambda x: x[1], reverse=True)
                 for i, (name, date) in enumerate(data):
                     tag = 'even' if i % 2 == 0 else 'odd'
-                    tv.insert('', tk.END, values=(date, name), tags=(tag,))
+                    is_red = name in _status_map and _status_map[name] in ('red', 'error', 'fail')
+                    if is_red:
+                        tv.insert('', tk.END, values=('🔴', date, name), tags=(tag,))
+                    else:
+                        tv.insert('', tk.END, values=('', date, name), tags=(tag,))
             AB_lib = g.get('AnimatedButton', AnimatedButton)
             for _val, _txt in [('name', _tr(self, 'library.name_az')), ('date_d', _tr(self, 'library.date_new')), ('date_a', _tr(self, 'library.date_old'))]:
                 AB_lib(sort_frame, _txt, lambda v=_val: (_sort_var.set(v), _populate()),
                        90, 26, '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
                        ('Segoe UI', 8)).pack(side=tk.LEFT, padx=(0, 4))
+            # Red-light filter toggle
+            def _toggle_red():
+                _filter_var.set('red' if _filter_var.get() == 'all' else 'all')
+                _populate()
+            AB_lib(sort_frame, '🔴 Kirmizi', _toggle_red, 90, 26,
+                   '#2a1010', '#4a2020', '#f56565', '#ffffff',
+                   ('Segoe UI', 8)).pack(side=tk.LEFT, padx=(4, 0))
             def _open_used():
                 try: _os.startfile(str(used_dir))
                 except: _subprocess.Popen(['explorer', str(used_dir)])
@@ -3497,12 +3714,14 @@ A: .zipファイルの形式を確認してください
             _style.configure('Lib.Treeview.Heading', background='#12122a', foreground='#8a80e0',
                             font=('Segoe UI Semibold', 9), borderwidth=0)
             _style.map('Lib.Treeview.Heading', background=[('active', '#1a1a3a')])
-            tv = ttk.Treeview(_tv_frame, columns=('date', 'name'), show='headings',
+            tv = ttk.Treeview(_tv_frame, columns=('status', 'date', 'name'), show='headings',
                              height=12, style='Lib.Treeview')
+            tv.heading('status', text='', anchor='center', width=30)
             tv.heading('date', text=_tr(self, 'library.col_date'), anchor='w')
             tv.heading('name', text=_tr(self, 'library.col_game'), anchor='w')
+            tv.column('status', width=30, anchor='center', minwidth=30, stretch=False)
             tv.column('date', width=140, anchor='w')
-            tv.column('name', width=440, anchor='w')
+            tv.column('name', width=410, anchor='w')
             tv.tag_configure('even', background='#0a0a16')
             tv.tag_configure('odd', background='#0c0c20')
             _vsb = tk.Scrollbar(_tv_frame, orient=tk.VERTICAL, command=tv.yview, bg='#12122a',
@@ -4262,6 +4481,14 @@ A: .zipファイルの形式を確認してください
             _unlock_btn.pack(side=tk.LEFT, padx=(0, 4))
             _unlock_btn.bind('<Enter>', lambda e: app.status_var.set('Tum injected oyunlari unlock et'))
             _unlock_btn.bind('<Leave>', lambda e: app.status_var.set(''))
+            # Lock All button
+            _lock_btn = tk.Button(sd_bar, text='\U0001f512', bg='#1f3348', fg='#f6ad55',
+                relief=tk.FLAT, padx=8, pady=1, font=('Segoe UI', 12),
+                activebackground='#2b4b68', activeforeground='#ffffff',
+                cursor='hand2', command=lambda: _lock_all_games(app))
+            _lock_btn.pack(side=tk.LEFT, padx=(0, 4))
+            _lock_btn.bind('<Enter>', lambda e: app.status_var.set('Kilidi geri al / Lock All'))
+            _lock_btn.bind('<Leave>', lambda e: app.status_var.set(''))
             sd_nav = tk.Frame(sd_bar, bg='#0f1b2a')
             sd_nav.pack(side=tk.RIGHT)
             sd_prev = tk.Button(sd_nav, text='\u25c0', bg='#1f3348', fg='#dce7f4',
@@ -4321,7 +4548,7 @@ A: .zipファイルの形式を確認してください
     root.after(100, lambda: (_style_scrollbars(root), None))
     root.after(800, _init_steamdb_browser)
 
-    # ---- Auto update check ----
+    # ---- Auto update check (with "don't show again" setting) ----
     def _check_auto_update():
         import threading as _thr, webbrowser
         def _task():
@@ -4329,6 +4556,9 @@ A: .zipファイルの形式を確認してください
                 import requests as _req
                 lang = app.settings.get('language', 'tr')
                 is_tr = lang == 'tr'
+                # Check skip flag
+                if app.settings.get('skip_update_notification', False):
+                    return
                 r = _req.get(UPDATE_URL, timeout=10, headers={'Accept': 'application/vnd.github.v3+json',
                     'User-Agent': 'SteamToolsLua/1.0'})
                 if r.status_code != 200: return
@@ -4336,39 +4566,71 @@ A: .zipファイルの形式を確認してください
                 latest = data.get('tag_name', '').lstrip('v')
                 current = VERSION
                 if not latest or latest == current: return
-                # Compare versions
                 def _parse(v):
                     parts = v.split('.')
                     return tuple(int(x) if x.isdigit() else 0 for x in parts) + (0,)*4
                 if _parse(latest) <= _parse(current): return
-                # New version found, ask user
-                from tkinter.simpledialog import askstring as _ask
-                msg = f'Yeni sürüm {latest} mevcut! (mevcut: {current})\nGüncelleme indirilsin mi?' if is_tr else \
-                      f'New version {latest} available! (current: {current})\nDownload update?'
-                if not _messagebox.askyesno('Güncelleme' if is_tr else 'Update', msg, parent=app.root):
-                    return
-                # Download new EXE
-                asset = None
-                for a in data.get('assets', []):
-                    if a.get('name', '').lower().endswith('.exe'):
-                        asset = a
-                        break
-                if not asset: return
-                dl_url = asset.get('browser_download_url', '')
-                if not dl_url: return
-                app.log(f'[Update] {latest} indiriliyor: {dl_url}')
-                d = _req.get(dl_url, timeout=120, stream=True)
-                if d.status_code != 200:
-                    app.log('[Update] Indirme basarisiz'); return
-                tmp_exe = Path(os.environ.get('TEMP', '.')) / f'SteamToolsLua_{latest}.exe'
-                with open(str(tmp_exe), 'wb') as f:
-                    for chunk in d.iter_content(8192):
-                        if chunk: f.write(chunk)
-                app.log(f'[Update] Indi: {tmp_exe}')
-                # Get current EXE path
-                me = Path(sys.argv[0] if getattr(sys, 'frozen', False) else __file__).resolve()
-                # Create updater script
-                ps_script = f'''
+                # Build custom popup with "don't show again" checkbox
+                _popup = tk.Toplevel(app.root)
+                _popup.title('Güncelleme' if is_tr else 'Update')
+                _popup.geometry('380x200')
+                _popup.configure(bg='#0d1724')
+                _popup.transient(app.root)
+                _popup.grab_set()
+                tk.Label(_popup, text='🚀 ' + ('Yeni Sürüm Mevcut!' if is_tr else 'New Version Available!'),
+                        fg='#48bb78', bg='#0d1724', font=('Bahnschrift SemiBold', 16)).pack(pady=(20, 8))
+                msg = f'v{current} → v{latest}' if is_tr else f'v{current} → v{latest}'
+                tk.Label(_popup, text=msg, fg='#dce7f4', bg='#0d1724',
+                        font=('Segoe UI', 12)).pack(pady=(0, 10))
+                _skip_var = tk.BooleanVar(value=False)
+                tk.Checkbutton(_popup, text='Bir daha gösterme' if is_tr else "Don't show again",
+                              variable=_skip_var, bg='#0d1724', activebackground='#0d1724',
+                              selectcolor='#244363', fg='#97afc6', font=('Segoe UI', 9)).pack(pady=(0, 10))
+                _btnf = tk.Frame(_popup, bg='#0d1724')
+                _btnf.pack()
+                def _do_update():
+                    if _skip_var.get():
+                        app.settings['skip_update_notification'] = True
+                        g['save_settings'](app.settings)
+                    _popup.destroy()
+                    _download_and_replace(latest, data)
+                def _skip():
+                    if _skip_var.get():
+                        app.settings['skip_update_notification'] = True
+                        g['save_settings'](app.settings)
+                    _popup.destroy()
+                AB = g.get('AnimatedButton', AnimatedButton)
+                AB(_btnf, 'Güncelle' if is_tr else 'Update', _do_update, 100, 32,
+                   '#244363', '#315f8e', '#66c0f4', '#ffffff',
+                   ('Segoe UI Semibold', 10)).pack(side=tk.LEFT, padx=4)
+                AB(_btnf, 'Daha Sonra' if is_tr else 'Later', _skip, 100, 32,
+                   '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
+                   ('Segoe UI Semibold', 10)).pack(side=tk.LEFT, padx=4)
+            except:
+                import traceback; traceback.print_exc()
+        def _download_and_replace(latest, data):
+            def _dl_task():
+                try:
+                    import requests as _req
+                    asset = None
+                    for a in data.get('assets', []):
+                        if a.get('name', '').lower().endswith('.exe'):
+                            asset = a; break
+                    if not asset: return
+                    dl_url = asset.get('browser_download_url', '')
+                    if not dl_url: return
+                    app.log(f'[Update] {latest} indiriliyor: {dl_url}')
+                    d = _req.get(dl_url, timeout=120, stream=True)
+                    if d.status_code != 200:
+                        app.log('[Update] Indirme basarisiz'); return
+                    tmp_exe = Path(os.environ.get('TEMP', '.')) / f'SteamToolsLua_{latest}.exe'
+                    with open(str(tmp_exe), 'wb') as f:
+                        for chunk in d.iter_content(8192):
+                            if chunk: f.write(chunk)
+                    app.log(f'[Update] Indi: {tmp_exe}')
+                    me = Path(sys.argv[0] if getattr(sys, 'frozen', False) else __file__).resolve()
+                    # Use direct cmd.exe move to avoid PowerShell issues
+                    ps_script = f'''
 $retry = 0
 do {{
     Start-Sleep -Seconds 2
@@ -4377,16 +4639,17 @@ do {{
 Copy-Item -LiteralPath "{tmp_exe}" -Destination "{me}" -Force
 Start-Process -LiteralPath "{me}"
 '''
-                updater = Path(os.environ.get('TEMP', '.')) / 'steamtools_update.ps1'
-                updater.write_text(ps_script.strip(), encoding='utf-8')
-                app.log(f'[Update] Guncelleniyor...')
-                import subprocess as _sp
-                _sp.Popen(['powershell', '-ExecutionPolicy', 'Bypass', '-File', str(updater)],
-                         startupinfo=_sp.STARTUPINFO(dwFlags=_sp.STARTF_USESHOWWINDOW),
-                         creationflags=0x08000000)
-                app.root.after(300, app.root.destroy)
-            except:
-                import traceback; traceback.print_exc()
+                    updater = Path(os.environ.get('TEMP', '.')) / 'steamtools_update.ps1'
+                    updater.write_text(ps_script.strip(), encoding='utf-8')
+                    app.log(f'[Update] Guncelleniyor...')
+                    import subprocess as _sp
+                    _sp.Popen(['powershell', '-ExecutionPolicy', 'Bypass', '-File', str(updater)],
+                             startupinfo=_sp.STARTUPINFO(dwFlags=_sp.STARTF_USESHOWWINDOW),
+                             creationflags=0x08000000)
+                    app.root.after(300, app.root.destroy)
+                except:
+                    import traceback; traceback.print_exc()
+            _thr.Thread(target=_dl_task, daemon=True).start()
         _thr.Thread(target=_task, daemon=True).start()
     root.after(1500, _check_auto_update)
 
