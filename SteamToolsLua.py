@@ -360,7 +360,10 @@ def install_ui_fixes(g):
         self.btn_steamdb = AnimatedButton(self, app.tr('button.unlock_download'),
             lambda: app.open_result_steamdb(result), iw, 36,
             '#1d2f43', '#2e4965', '#66c0f4', '#f7fafc', ('Segoe UI Semibold', 9))
-        self.btn_steamdb.grid(row=6, column=0, sticky='ew', padx=14, pady=(0, 14))
+        if app.settings.get('hide_unlock_download', False):
+            self.btn_steamdb.grid_forget()
+        else:
+            self.btn_steamdb.grid(row=6, column=0, sticky='ew', padx=14, pady=(0, 14))
         for widget in (self.image_label, self.title_label, self.meta_label, self.footer_label):
             widget.bind('<Enter>', self._on_enter)
             widget.bind('<Leave>', self._on_leave)
@@ -3617,6 +3620,72 @@ A: .zipファイルの形式を確認してください
            150, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
 
+        # ---- CloudRedirect download ----
+        _cr_frame = tk.Frame(window, bg='#0d1724')
+        _cr_frame.pack(fill=tk.X, padx=16, pady=(4, 2))
+        tk.Label(_cr_frame, text="CloudRedirect (No Internet Fix)", fg='#8fd3ff', bg='#0d1724',
+                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
+        _cr_row = tk.Frame(window, bg='#0d1724')
+        _cr_row.pack(fill=tk.X, padx=16, pady=(0, 4))
+        tk.Label(_cr_row, text='Bu app No Internet Connection error un fixidir cogu kullanici icin yeterlidir',
+                 fg='#8fb8da', bg='#0d1724', wraplength=800, justify='left',
+                 font=('Segoe UI', 9)).pack(anchor='w', fill=tk.X)
+        _cr_btn_row = tk.Frame(window, bg='#0d1724')
+        _cr_btn_row.pack(fill=tk.X, padx=16, pady=(2, 6))
+        def _download_cloud_redirect():
+            import threading as _thr, webbrowser
+            webbrowser.open('https://github.com/Selectively11/CloudRedirect/releases/download/v2.1.8/CloudRedirect.exe')
+        AB(_cr_btn_row, 'Indir CloudRedirect', _download_cloud_redirect, 130, 28,
+           '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 8))
+
+        # ---- Button visibility toggles ----
+        _vis_frame = tk.Frame(window, bg='#0d1724')
+        _vis_frame.pack(fill=tk.X, padx=16, pady=(2, 2))
+        tk.Label(_vis_frame, text='Button Gosterme / Gizleme', fg='#8fd3ff', bg='#0d1724',
+                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
+        _vis_row = tk.Frame(window, bg='#0d1724')
+        _vis_row.pack(fill=tk.X, padx=16, pady=(0, 6))
+        _show_unlock_dl = tk.BooleanVar(value=not self.settings.get('hide_unlock_download', False))
+        _show_lock_dl = tk.BooleanVar(value=not self.settings.get('hide_lock_download', False))
+        _show_unlock_all = tk.BooleanVar(value=not self.settings.get('hide_unlock_all_games', False))
+        def _make_toggle(key, var):
+            def _toggle():
+                self.settings[key] = not var.get()
+                g['save_settings'](self.settings)
+            return _toggle
+        for _txt, _var, _key in [
+            ('Unlock Download', _show_unlock_dl, 'hide_unlock_download'),
+            ('Lock Download', _show_lock_dl, 'hide_lock_download'),
+            ('Unlock All Games', _show_unlock_all, 'hide_unlock_all_games'),
+        ]:
+            _cb = tk.Checkbutton(_vis_row, text=_txt, variable=_var,
+                command=_make_toggle(_key, _var),
+                bg='#0d1724', activebackground='#0d1724',
+                selectcolor='#244363', fg='#dce7f4', font=('Segoe UI', 10))
+            _cb.pack(side=tk.LEFT, padx=(0, 12))
+        # Also add save_path field
+        _sv_frame = tk.Frame(window, bg='#0d1724')
+        _sv_frame.pack(fill=tk.X, padx=16, pady=(4, 2))
+        tk.Label(_sv_frame, text='Save Path', fg='#8fd3ff', bg='#0d1724',
+                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
+        _sv_row = tk.Frame(window, bg='#0d1724')
+        _sv_row.pack(fill=tk.X, padx=16, pady=(0, 6))
+        _saved = self.settings.get('save_path', '') or self.settings.get('new_games_folder', '')
+        _sv_var = tk.StringVar(value=_saved)
+        SV_AB = g.get('AnimatedButton', AnimatedButton)
+        tk.Entry(_sv_row, textvariable=_sv_var, width=60, relief=tk.FLAT,
+                 bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
+                 font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=(0, 6))
+        def _browse_sv():
+            import tkinter.filedialog as _fd
+            _d = _fd.askdirectory(title='Sec: 1 New Games', initialdir=_sv_var.get() or str(Path.home() / 'Desktop'))
+            if _d:
+                _sv_var.set(_d)
+        AB(_sv_row, 'Gözat', _browse_sv, 60, 28,
+           '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
+
         # ---- Library section ----
         lib_frame = tk.Frame(window, bg='#0d1724')
         lib_frame.pack(fill=tk.X, padx=16, pady=(6, 2))
@@ -3787,12 +3856,16 @@ A: .zipファイルの形式を確認してください
                     latest = data.get('tag_name', '').lstrip('v')
                     current = VERSION
                     if not latest or latest == current:
-                        self.log(f'[Update] Zaten guncel (v{current})'); return
+                        self.log(f'[Update] Zaten guncel (v{current})')
+                        _messagebox.showinfo('Update', _tr(self, 'update.up_to_date'))
+                        return
                     def _parse(v):
                         parts = v.split('.')
                         return tuple(int(x) if x.isdigit() else 0 for x in parts) + (0,)*4
                     if _parse(latest) <= _parse(current):
-                        self.log(f'[Update] Zaten guncel (v{current})'); return
+                        self.log(f'[Update] Zaten guncel (v{current})')
+                        _messagebox.showinfo('Update', _tr(self, 'update.up_to_date'))
+                        return
                     asset = None
                     for a in data.get('assets', []):
                         if a.get('name', '').lower().endswith('.exe'):
@@ -4506,7 +4579,10 @@ A: .zipファイルの形式を確認してください
                 relief=tk.FLAT, padx=8, pady=1, font=('Segoe UI', 12),
                 activebackground='#2b4b68', activeforeground='#ffffff',
                 cursor='hand2', command=lambda: _unlock_all_games(app))
-            _unlock_btn.pack(side=tk.LEFT, padx=(0, 4))
+            if app.settings.get('hide_unlock_all_games', False):
+                _unlock_btn.pack_forget()
+            else:
+                _unlock_btn.pack(side=tk.LEFT, padx=(0, 4))
             _unlock_btn.bind('<Enter>', lambda e: app.status_var.set('Tum injected oyunlari unlock et'))
             _unlock_btn.bind('<Leave>', lambda e: app.status_var.set(''))
             # Lock All button
@@ -4514,7 +4590,10 @@ A: .zipファイルの形式を確認してください
                 relief=tk.FLAT, padx=8, pady=1, font=('Segoe UI', 12),
                 activebackground='#2b4b68', activeforeground='#ffffff',
                 cursor='hand2', command=lambda: _lock_all_games(app))
-            _lock_btn.pack(side=tk.LEFT, padx=(0, 4))
+            if app.settings.get('hide_lock_download', False):
+                _lock_btn.pack_forget()
+            else:
+                _lock_btn.pack(side=tk.LEFT, padx=(0, 4))
             _lock_btn.bind('<Enter>', lambda e: app.status_var.set('Kilidi geri al / Lock All'))
             _lock_btn.bind('<Leave>', lambda e: app.status_var.set(''))
             sd_nav = tk.Frame(sd_bar, bg='#0f1b2a')
