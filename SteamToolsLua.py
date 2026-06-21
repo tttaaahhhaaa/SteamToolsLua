@@ -3550,82 +3550,6 @@ A: .zipファイルの形式を確認してください
            150, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
 
-        # ---- Game Name Lookup (AppID) ----
-        _lookup_frame = tk.Frame(window, bg='#0d1724')
-        _lookup_frame.pack(fill=tk.X, padx=16, pady=(6, 2))
-        tk.Label(_lookup_frame, text="Game Name -> AppID", fg='#8fd3ff', bg='#0d1724',
-                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
-        _lookup_row = tk.Frame(window, bg='#0d1724')
-        _lookup_row.pack(fill=tk.X, padx=16, pady=(0, 6))
-        _gn_var = tk.StringVar()
-        tk.Entry(_lookup_row, textvariable=_gn_var, width=30, relief=tk.FLAT,
-                 bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
-                 font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=(0, 6))
-        _aid_result_var = tk.StringVar(value='')
-        _aid_lbl = tk.Label(_lookup_row, textvariable=_aid_result_var, fg='#48bb78', bg='#0d1724',
-                            font=('Segoe UI', 9, 'bold'), width=16, anchor='w')
-        _aid_lbl.pack(side=tk.LEFT, padx=(0, 6))
-        def _lookup_game_name():
-            name = _gn_var.get().strip()
-            if not name: return
-            _aid_result_var.set('Araniyor...')
-            def _task():
-                try:
-                    import json, requests as _rq
-                    _rq_ses = g['session']
-                    _applist_cache = _data_dir / "applist_cache.json"
-                    app_data = None
-                    # Try local cache first
-                    if _applist_cache.exists():
-                        try:
-                            app_data = json.loads(_applist_cache.read_text(encoding='utf-8'))
-                        except: pass
-                    if not app_data:
-                        # Try SteamDB GitHub raw
-                        url = 'https://raw.githubusercontent.com/SteamDatabase/GameTracking/master/games.json'
-                        r = _rq_ses.get(url, timeout=15)
-                        if r.status_code == 200:
-                            app_data = r.json()
-                            _applist_cache.write_text(json.dumps(app_data, ensure_ascii=False), encoding='utf-8')
-                    if app_data:
-                        q = name.lower()
-                        matches = [(str(v.get('appid', '')), k) for k, v in app_data.items() if q in k.lower() and v.get('appid')]
-                        if matches:
-                            exact = [m for m in matches if m[1].lower() == q]
-                            best = exact[0] if exact else matches[0]
-                            _aid = best[0]; _gname = best[1]
-                            self.root.after(0, lambda: _aid_result_var.set(f'AppID: {_aid}'))
-                            self.root.after(0, lambda: self.log(f'[Lookup] {_gname} -> AppID {_aid}'))
-                            return
-                    # Fallback: Steam API (no cache for this)
-                    r2 = _rq_ses.get('https://api.steampowered.com/ISteamApps/GetAppList/v2/', timeout=10)
-                    if r2.status_code == 200:
-                        apps = r2.json().get('applist', {}).get('apps', [])
-                        q = name.lower()
-                        for a in apps:
-                            if q == a.get('name', '').lower() or (len(q) > 3 and q in a.get('name', '').lower()):
-                                self.root.after(0, lambda aid=a['appid'], an=a['name']: _aid_result_var.set(f'AppID: {aid}'))
-                                self.root.after(0, lambda an=a['name'], aid=a['appid']: self.log(f'[Lookup] {an} -> AppID {aid}'))
-                                return
-                    self.root.after(0, lambda: _aid_result_var.set('Bulunamadi'))
-                except Exception as ex:
-                    self.log(f'[Lookup] Hata: {ex}')
-                    self.root.after(0, lambda: _aid_result_var.set('Hata'))
-            threading.Thread(target=_task, daemon=True).start()
-        AB(_lookup_row, 'Ara', _lookup_game_name, 50, 28,
-           '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
-        def _unlock_looked_up():
-            aid = _aid_result_var.get()
-            if not aid.startswith('AppID:'):
-                return
-            aid_num = aid.split(':')[1].strip()
-            if aid_num and aid_num.isdigit():
-                self.open_result_steamdb({'appid': aid_num, 'name': _gn_var.get().strip()})
-        AB(_lookup_row, 'Unlock Download', _unlock_looked_up, 110, 28,
-           '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
-
         # ---- Library section ----
         lib_frame = tk.Frame(window, bg='#0d1724')
         lib_frame.pack(fill=tk.X, padx=16, pady=(6, 2))
@@ -3649,53 +3573,33 @@ A: .zipファイルの形式を確認してください
             tk.Label(top, text=_tr(self, 'library.win_title'), font=('Bahnschrift SemiBold', 18),
                      fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
             _items = []
-            _status_map = {}
             try:
                 if ini_path.exists():
                     _cfg = _configparser.ConfigParser()
                     _cfg.read(str(ini_path), encoding='utf-8')
                     if 'Games' in _cfg:
                         _items = list(_cfg['Games'].items())
-                    if 'Status' in _cfg:
-                        _status_map = dict(_cfg['Status'].items())
             except: pass
             sort_frame = tk.Frame(lib_win, bg='#08080e')
             sort_frame.pack(fill=tk.X, padx=14, pady=(2, 6))
             _sort_var = tk.StringVar(value='date_d')
-            _filter_var = tk.StringVar(value='all')
             def _populate():
                 tv.delete(*tv.get_children())
                 s = _sort_var.get()
-                f = _filter_var.get()
-                filtered = _items
-                if f == 'red':
-                    red_names = {k for k, v in _status_map.items() if v in ('red', 'error', 'fail')}
-                    filtered = [(n, d) for n, d in _items if n in red_names]
                 if s == 'name':
-                    data = sorted(filtered, key=lambda x: x[0].lower())
+                    data = sorted(_items, key=lambda x: x[0].lower())
                 elif s == 'date_a':
-                    data = sorted(filtered, key=lambda x: x[1])
+                    data = sorted(_items, key=lambda x: x[1])
                 else:
-                    data = sorted(filtered, key=lambda x: x[1], reverse=True)
+                    data = sorted(_items, key=lambda x: x[1], reverse=True)
                 for i, (name, date) in enumerate(data):
                     tag = 'even' if i % 2 == 0 else 'odd'
-                    is_red = name in _status_map and _status_map[name] in ('red', 'error', 'fail')
-                    if is_red:
-                        tv.insert('', tk.END, values=('🔴', date, name), tags=(tag,))
-                    else:
-                        tv.insert('', tk.END, values=('', date, name), tags=(tag,))
+                    tv.insert('', tk.END, values=(date, name), tags=(tag,))
             AB_lib = g.get('AnimatedButton', AnimatedButton)
             for _val, _txt in [('name', _tr(self, 'library.name_az')), ('date_d', _tr(self, 'library.date_new')), ('date_a', _tr(self, 'library.date_old'))]:
                 AB_lib(sort_frame, _txt, lambda v=_val: (_sort_var.set(v), _populate()),
                        90, 26, '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
                        ('Segoe UI', 8)).pack(side=tk.LEFT, padx=(0, 4))
-            # Red-light filter toggle
-            def _toggle_red():
-                _filter_var.set('red' if _filter_var.get() == 'all' else 'all')
-                _populate()
-            AB_lib(sort_frame, '🔴 Kirmizi', _toggle_red, 90, 26,
-                   '#2a1010', '#4a2020', '#f56565', '#ffffff',
-                   ('Segoe UI', 8)).pack(side=tk.LEFT, padx=(4, 0))
             def _open_used():
                 try: _os.startfile(str(used_dir))
                 except: _subprocess.Popen(['explorer', str(used_dir)])
@@ -3714,14 +3618,12 @@ A: .zipファイルの形式を確認してください
             _style.configure('Lib.Treeview.Heading', background='#12122a', foreground='#8a80e0',
                             font=('Segoe UI Semibold', 9), borderwidth=0)
             _style.map('Lib.Treeview.Heading', background=[('active', '#1a1a3a')])
-            tv = ttk.Treeview(_tv_frame, columns=('status', 'date', 'name'), show='headings',
+            tv = ttk.Treeview(_tv_frame, columns=('date', 'name'), show='headings',
                              height=12, style='Lib.Treeview')
-            tv.heading('status', text='', anchor='center', width=30)
             tv.heading('date', text=_tr(self, 'library.col_date'), anchor='w')
             tv.heading('name', text=_tr(self, 'library.col_game'), anchor='w')
-            tv.column('status', width=30, anchor='center', minwidth=30, stretch=False)
             tv.column('date', width=140, anchor='w')
-            tv.column('name', width=410, anchor='w')
+            tv.column('name', width=440, anchor='w')
             tv.tag_configure('even', background='#0a0a16')
             tv.tag_configure('odd', background='#0c0c20')
             _vsb = tk.Scrollbar(_tv_frame, orient=tk.VERTICAL, command=tv.yview, bg='#12122a',
