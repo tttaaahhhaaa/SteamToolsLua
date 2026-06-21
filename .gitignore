@@ -1,7 +1,11 @@
 # Build output
 *.spec
+build/
 build_temp/
+dist/
 __pycache__/
+SteamToolsLua.exe
+SteamToolsLua v1.0.3.exe
 *.pyc
 create_release.py
 

@@ -33,8 +33,8 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.0.5"
-VERSION_NAME = "Fullscreen + Tall Settings + Update Fix + Cleanup"
+VERSION = "1.1.0"
+VERSION_NAME = "Online Fix Downloader + Extraction"
 UPDATE_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"       # e.g. "https://api.github.com/repos/user/repo/releases"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"     # snapshot release URL (token left blank)
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
@@ -1542,68 +1542,173 @@ def install_ui_fixes(g):
             self._set_indicator('Oyun adi yok', 'offline')
             return
         def _task():
+            import re, urllib.parse, webbrowser, time as _time2
+            sess = requests.Session()
+            sess.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
+            game_url = None
             try:
-                self._set_indicator('Online-Fix sayfasi aciliyor...', 'working')
-                import re, urllib.parse, webbrowser
-                # 1) Try direct download link first
-                direct_name = game_name.strip().replace(' ', '%20')
-                direct_url = f'https://uploads.online-fix.me:2053/uploads/{direct_name}/'
-                sess = g['session']
-                sess.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
-                try:
-                    h = sess.head(direct_url, timeout=10, allow_redirects=True)
-                    if h.status_code == 200:
-                        self.log(f'[OnlineFix] Direkt link calisti: {direct_url}')
-                        webbrowser.open(direct_url)
-                        _save_dl_name(game_name)
-                        return
-                except:
-                    pass
-                self.log(f'[OnlineFix] Direkt link 404, online-fix.me taranıyor...')
-                # 2) Fall back to online-fix.me search
-                search_queries = []
+                self._set_indicator('Online-Fix aranıyor...', 'working')
+                # 1) Try direct game page URL from appid
                 if appid:
-                    search_queries.append(appid)
-                search_queries.append(f'{game_name[:60].strip()} {appid}' if appid else game_name[:60].strip())
-                search_queries.append(game_name[:60].strip())
-                best_url = None
-                best_score = 0
-                for q in search_queries:
-                    r = sess.get('https://online-fix.me/index.php', params={
-                        'do': 'search', 'subaction': 'search', 'story': q
-                    }, timeout=15)
-                    all_matches = []
-                    for m in re.finditer(
-                        r'<a[^>]*href=[\'"](https?://[^\'"]*games/[^\'"]+\.html)[\'"][^>]*>(.*?)</a>',
-                        r.text, re.I | re.DOTALL):
-                        url = m.group(1)
-                        text = re.sub(r'<[^>]+>', '', m.group(2)).strip()
-                        all_matches.append((url, text))
-                    if not all_matches:
-                        for m in re.finditer(
-                            r'<a[^>]*href=[\'"](/[^\'"]*games/[^\'"]+\.html)[\'"][^>]*>(.*?)</a>',
-                            r.text, re.I | re.DOTALL):
-                            url = 'https://online-fix.me' + m.group(1)
-                            text = re.sub(r'<[^>]+>', '', m.group(2)).strip()
-                            all_matches.append((url, text))
-                    search_words = set(re.findall(r'[a-z0-9]+', game_name[:60].lower()))
-                    for url, text in all_matches:
-                        url_words = set(re.findall(r'[a-z0-9]+',
-                            url.split('/')[-1].replace('.html', '').replace('-', ' ').lower()))
-                        text_words = set(re.findall(r'[a-z0-9]+', text.lower()))
-                        score = len(search_words & url_words) + len(search_words & text_words) * 2
+                    r = sess.get(f'https://online-fix.me/index.php?do=search&subaction=search&story={appid}', timeout=15)
+                    for m in re.finditer(r'href="(https://online-fix\.me/games/[^"]+\.html)"', r.text):
+                        candidate = m.group(1).split('#')[0]
+                        if candidate not in (None, ''):
+                            game_url = candidate
+                            break
+                # 2) Search by name if no direct match
+                if not game_url:
+                    q = urllib.parse.quote(game_name[:80].strip())
+                    r = sess.get(f'https://online-fix.me/index.php?do=search&subaction=search&story={q}', timeout=15)
+                    seen = set()
+                    candidates = []
+                    for m in re.finditer(r'href="(https://online-fix\.me/games/[^"]+\.html)"', r.text):
+                        u = m.group(1).split('#')[0]
+                        if u not in seen:
+                            seen.add(u)
+                            candidates.append(u)
+                    # Score each candidate by word overlap
+                    search_words = set(re.findall(r'[a-z0-9]+', game_name.lower()))
+                    best_score = 0
+                    for c in candidates:
+                        slug = c.split('/')[-1].replace('.html', '').replace('-po-seti', '').replace('-', ' ').lower()
+                        words = set(re.findall(r'[a-z0-9]+', slug))
+                        score = len(search_words & words)
                         if score > best_score:
                             best_score = score
-                            best_url = url
-                    if best_url:
+                            game_url = c
+                if not game_url:
+                    self.log('[OnlineFix] Oyun online-fix.me\'de bulunamadı.')
+                    self._set_indicator('Online-Fix: bulunamadı', 'offline')
+                    webbrowser.open(f'https://online-fix.me/index.php?do=search&subaction=search&story={urllib.parse.quote(game_name[:80].strip())}')
+                    return
+                self.log(f'[OnlineFix] Sayfa: {game_url}')
+                # 3) Fetch game page for PHPSESSID
+                r = sess.get(game_url, timeout=15)
+                phpsessid = sess.cookies.get('PHPSESSID', '')
+                # 4) Find upload/torrent URLs using same pattern as prototype
+                dl_urls = set()
+                for m in re.finditer(r'(https?://(?:uploads|hosters|drive|torrents)\.online-fix\.me:\d+/[^"\']+)', r.text):
+                    dl_urls.add(m.group(1).rstrip('/'))
+                if not dl_urls:
+                    self.log('[OnlineFix] İndirme linki bulunamadı.')
+                    self._set_indicator('Online-Fix: link yok', 'offline')
+                    return
+                _of_headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'Accept-Language': 'en-US,en;q=0.9', 'Referer': 'https://online-fix.me/'}
+                _of_cookies = {'PHPSESSID': phpsessid}
+                # 5) Try Fix Repair from uploads server
+                upload_base = None
+                for u in dl_urls:
+                    if '/uploads/' in u:
+                        upload_base = u
                         break
-                game_url = best_url if best_url else f'https://online-fix.me/index.php?do=search&subaction=search&story={urllib.parse.quote(game_name[:60].strip())}'
-                self.log(f'[OnlineFix] Aciliyor: {game_url}')
+                if upload_base:
+                    repair_url = upload_base + '/Fix%20Repair/'
+                    self.log(f'[OnlineFix] Fix Repair aranıyor: {repair_url}')
+                    hr = sess.get(repair_url, timeout=15, headers=_of_headers, cookies=_of_cookies)
+                    if hr.status_code == 200 and 'Generic.rar' in hr.text:
+                        for m2 in re.finditer(r'<a href="([^"]+Generic[^"]*\.rar)"', hr.text, re.IGNORECASE):
+                            rar_path = m2.group(1)
+                            if rar_path.startswith('http'):
+                                rar_url = rar_path
+                            else:
+                                rar_url = repair_url.rstrip('/') + '/' + rar_path
+                            rar_name = rar_path.split('/')[-1] if '/' in rar_path else rar_path
+                            # Determine download path
+                            _sv = self.settings.get('save_path', '') or ''
+                            _dl_base = Path(_sv) if _sv and Path(_sv).exists() else Path(_os.environ['TEMP']) / 'SteamToolsLua' / 'OnlineFix'
+                            _dl_base.mkdir(parents=True, exist_ok=True)
+                            _dl_path = _dl_base / rar_name
+                            self.log(f'[OnlineFix] İndiriliyor: {rar_name}')
+                            self._set_indicator('Online-Fix indiriliyor...', 'working')
+                            # Stream download with progress (same pattern as prototype)
+                            rd = sess.get(rar_url, stream=True, timeout=120, headers=_of_headers, cookies=_of_cookies)
+                            if rd.status_code != 200:
+                                self.log(f'[OnlineFix] İndirme hatası HTTP {rd.status_code}')
+                                self._set_indicator('Online-Fix: HTTP hatası', 'offline')
+                                break
+                            total = int(rd.headers.get('Content-Length', 0))
+                            downloaded = 0
+                            _t0 = _time2.time()
+                            with open(str(_dl_path), 'wb') as f:
+                                for chunk in rd.iter_content(chunk_size=65536):
+                                    if chunk:
+                                        f.write(chunk)
+                                        downloaded += len(chunk)
+                                        if total:
+                                            pct = int(downloaded * 100 / total)
+                                            elapsed = _time2.time() - _t0
+                                            speed = downloaded / elapsed / 1024 if elapsed > 0 else 0
+                                            self._set_indicator(f'OnlineFix: %{pct} ({speed:.0f} KB/s)', 'working')
+                            self.log(f'[OnlineFix] İndirme tamam: {_dl_path}')
+                            # Extract with 7-Zip (try common passwords: empty, knkm, online-fix.me)
+                            _extract_ok = False
+                            for _pw in ('', 'knkm', 'online-fix.me'):
+                                try:
+                                    _cmd = ['7z', 'x', str(_dl_path), f'-o{str(_dl_path.parent / _dl_path.stem)}', '-y']
+                                    if _pw:
+                                        _cmd.append(f'-p{_pw}')
+                                    _result = _subprocess.run(_cmd, capture_output=True, text=True, timeout=60, creationflags=0x08000000)
+                                    if _result.returncode == 0:
+                                        _extract_ok = True
+                                        break
+                                except Exception:
+                                    pass
+                            try:
+                                if _extract_ok:
+                                    self.log(f'[OnlineFix] Çıkartıldı: {_dl_path.stem}/')
+                                    self._set_indicator('OnlineFix tamam', 'online')
+                                    _os.startfile(str(_dl_path.parent / _dl_path.stem))
+                                else:
+                                    self.log(f'[OnlineFix] 7z çıkartılamadı (şifre gerekebilir)')
+                                    _os.startfile(str(_dl_path.parent))
+                            except Exception as _7ze:
+                                self.log(f'[OnlineFix] Klasör açılamadı: {_7ze}')
+                                _os.startfile(str(_dl_path.parent))
+                            _save_dl_name(game_name)
+                            return
+                # 6) No Fix Repair - try torrent
+                tor_base = None
+                for u in dl_urls:
+                    if 'torrents.' in u:
+                        tor_base = u
+                        break
+                if tor_base:
+                    self.log(f'[OnlineFix] Torrent aranıyor: {tor_base}')
+                    ht = sess.get(tor_base, timeout=15, headers=_of_headers, cookies=_of_cookies)
+                    if ht.status_code == 200:
+                        for m2 in re.finditer(r'<a href="([^"]+\.torrent)"', ht.text):
+                            tor_path = m2.group(1)
+                            if tor_path.startswith('http'):
+                                tor_url = tor_path
+                            else:
+                                tor_url = tor_base.rstrip('/') + '/' + tor_path
+                            tor_name = tor_path.split('/')[-1] if '/' in tor_path else tor_path
+                            _dl_base = Path(_os.environ['TEMP']) / 'SteamToolsLua' / 'OnlineFix'
+                            _dl_base.mkdir(parents=True, exist_ok=True)
+                            _dl_path = _dl_base / tor_name
+                            self.log(f'[OnlineFix] Torrent indiriliyor: {tor_name}')
+                            self._set_indicator('Online-Fix torrent...', 'working')
+                            rt = sess.get(tor_url, timeout=120, headers=_of_headers, cookies=_of_cookies)
+                            if rt.status_code != 200:
+                                self.log(f'[OnlineFix] Torrent HTTP {rt.status_code}')
+                                break
+                            with open(str(_dl_path), 'wb') as f:
+                                f.write(rt.content)
+                            self.log(f'[OnlineFix] Torrent kaydedildi: {_dl_path}')
+                            self._set_indicator('OnlineFix torrent hazır', 'online')
+                            _os.startfile(str(_dl_path.parent))
+                            _save_dl_name(game_name)
+                            return
+                # 7) Fallback - open search in browser
+                self.log('[OnlineFix] Fix Repair veya torrent bulunamadı, tarayıcı açılıyor.')
                 webbrowser.open(game_url)
                 _save_dl_name(game_name)
             except Exception as ex:
                 self.log(f'[OnlineFix] Hata: {ex}')
                 self._set_indicator('Online-Fix: hata', 'offline')
+                if game_url:
+                    webbrowser.open(game_url)
         threading.Thread(target=_task, daemon=True).start()
     SteamApp.open_onlinefix = open_onlinefix_auto
     SteamApp.open_result_steamdb = open_onlinefix_auto
