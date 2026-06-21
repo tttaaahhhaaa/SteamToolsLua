@@ -149,6 +149,7 @@ def install_ui_fixes(g):
     PROVIDER_ORDER = g['PROVIDER_ORDER']
     PROVIDER_LABELS = g['PROVIDER_LABELS']
     PROVIDER_DEFAULTS = g['PROVIDER_DEFAULTS']
+    app = g.get('app')
     cover_size = (460, 215)
     card_width = 488
 
@@ -308,6 +309,7 @@ def install_ui_fixes(g):
                     '#244363', '#315f8e', '#66c0f4', '#f7fafc', ('Segoe UI Semibold', 10))
                 self.btn_indir.grid(row=4, column=0, sticky='ew', padx=14, pady=(0, 8))
         self._used_dot = None
+        self.btn_steamdb = None
         try:
             if not hasattr(SteamApp, '_used_cache'):
                 _bd2 = Path(__file__).resolve().parent
@@ -477,6 +479,31 @@ def install_ui_fixes(g):
     SteamApp._image_worker = image_worker
     SteamApp._finalize_image = finalize_image
     SteamApp.set_status_key = set_status_key_with_sound
+    # Patch refresh_texts, set_busy, _on_open to skip removed btn_steamdb
+    _orig_refresh = GameCard.refresh_texts
+    def _patched_refresh(self):
+        source_key = self.result.get('source_key')
+        if source_key:
+            source_text = self.app.tr(source_key)
+        else:
+            source_text = self.result.get('source', '')
+        footer_key = 'footer.free' if self.result.get('is_free') else 'footer.verified'
+        self.meta_label.configure(text=f"App ID: {str(self.result.get('appid', ''))}  |  {source_text}")
+        self.footer_label.configure(text=self.app.tr(footer_key))
+        self.btn_indir.set_text(self.app.tr('button.download'))
+        self.btn_onlinefix.set_text(self.app.tr('button.onlinefix'))
+        self.set_busy(False)
+    GameCard.refresh_texts = _patched_refresh
+    _orig_set_busy = GameCard.set_busy
+    def _patched_set_busy(self, value):
+        global_busy = bool(getattr(self.app, 'busy', False))
+        self.btn_indir.set_enabled(not global_busy)
+        self.btn_onlinefix.set_enabled(not global_busy)
+    GameCard.set_busy = _patched_set_busy
+    _orig_on_open = GameCard._on_open
+    def _patched_on_open(self, event):
+        self.app.open_onlinefix(self.result)
+    GameCard._on_open = _patched_on_open
 
     # ---- Status Indicator Helper ----
     def _set_indicator(self, text, state):
@@ -1579,6 +1606,7 @@ def install_ui_fixes(g):
                 self._set_indicator('Online-Fix: hata', 'offline')
         threading.Thread(target=_task, daemon=True).start()
     SteamApp.open_onlinefix = open_onlinefix_auto
+    SteamApp.open_result_steamdb = open_onlinefix_auto
 
     # ---- Unlock All (batch unlock from ZIPs in used/) ----
     def _flatten_stplug_lua(appid, log_func=None):
@@ -2235,10 +2263,62 @@ PREREQUISITES
 """
 
         other_langs = {
-            'es': {'title': 'GUIA COMPLETA', 'content': f'{ul}  GUIA COMPLETA{ul}\n\nGuia completa disponible en ingles. Cambie el idioma a English en Ajustes > Idioma para ver la guia completa.\n\nLas funciones principales incluyen: busqueda de juegos, descarga de manifests, inyeccion de zips, e integracion con IA.\n\nProveedores IA: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama.\n\nEnlaces: Groq API Key -> console.groq.com/keys, OpenAI -> platform.openai.com/api-keys, Anthropic -> console.anthropic.com, Google Cloud -> console.cloud.google.com'},
-            'fr': {'title': 'GUIDE COMPLET', 'content': f'{ul}  GUIDE COMPLET{ul}\n\nGuide complet disponible en anglais. Changez la langue en English dans Parametres > Langue pour voir le guide complet.\n\nFonctionnalites principales: recherche de jeux, telechargement de manifests, injection de zips, integration IA.\n\nFournisseurs IA: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama.\n\nLiens: Groq API Key -> console.groq.com/keys, OpenAI -> platform.openai.com/api-keys, Anthropic -> console.anthropic.com'},
-            'de': {'title': 'VOLLSTANDIGE ANLEITUNG', 'content': f'{ul}  VOLLSTANDIGE ANLEITUNG{ul}\n\nVollstandige Anleitung auf Englisch verfugbar. Andern Sie die Sprache zu English in Einstellungen > Sprache.\n\nHauptfunktionen: Spielsuche, Manifest-Download, Zip-Injektion, KI-Integration.\n\nKI-Anbieter: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama.\n\nLinks: Groq API Key -> console.groq.com/keys, OpenAI -> platform.openai.com/api-keys'},
-            'ja': {'title': '完全ガイド', 'content': f'{ul}  完全ガイド{ul}\n\n詳細ガイドは英語でご利用いただけます。設定 > 言語でEnglishに変更してください。\n\n主な機能: ゲーム検索、マニフェストダウンロード、ZIP注入、AI統合。\n\nAIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama。\n\nリンク: Groq API Key -> console.groq.com/keys'},
+            'es': {'title': 'GUIA COMPLETA', 'content': f'''{ul}  GUIA COMPLETA{ul}
+
+Presione "?" en Ajustes > Tools para la guia completa en varios idiomas.
+
+Funciones principales: busqueda de juegos, descarga de manifests con Unlock Download, inyeccion de zips, integracion con IA.
+
+Botones en tarjetas de juego:
+- Download: Copia .lua a stplug-in o descarga manifests
+- OnlineFix: Abre pagina en online-fix.me
+- Unlock Download: Ejecuta manifests.ps1 para descargar manifests
+
+Proveedores IA: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama.
+
+Enlaces: Groq API Key -> console.groq.com/keys, OpenAI -> platform.openai.com/api-keys, Anthropic -> console.anthropic.com, Google Cloud -> console.cloud.google.com'''},
+            'fr': {'title': 'GUIDE COMPLET', 'content': f'''{ul}  GUIDE COMPLET{ul}
+
+Appuyez sur "?" dans Parametres > Tools pour le guide complet multilingue.
+
+Fonctionnalites principales: recherche de jeux, telechargement de manifests (Unlock Download), injection de zips, integration IA.
+
+Boutons sur les cartes de jeu:
+- Download: Copie .lua dans stplug-in ou telecharge manifests
+- OnlineFix: Ouvre page sur online-fix.me
+- Unlock Download: Execute manifests.ps1 pour telecharger manifests
+
+Fournisseurs IA: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama.
+
+Liens: Groq API Key -> console.groq.com/keys, OpenAI -> platform.openai.com/api-keys, Anthropic -> console.anthropic.com'''},
+            'de': {'title': 'VOLLSTANDIGE ANLEITUNG', 'content': f'''{ul}  VOLLSTANDIGE ANLEITUNG{ul}
+
+Drucken Sie "?" in Einstellungen > Tools fur das vollstandige mehrsprachige Handbuch.
+
+Hauptfunktionen: Spielsuche, Manifest-Download (Unlock Download), Zip-Injektion, KI-Integration.
+
+Schaltflachen auf Spielkarten:
+- Download: Kopiert .lua nach stplug-in oder ladet Manifeste herunter
+- OnlineFix: Offnet Seite auf online-fix.me
+- Unlock Download: Fuhrt manifests.ps1 aus, um Manifeste herunterzuladen
+
+KI-Anbieter: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama.
+
+Links: Groq API Key -> console.groq.com/keys, OpenAI -> platform.openai.com/api-keys'''},
+            'ja': {'title': '完全ガイド', 'content': f'''{ul}  完全ガイド{ul}
+
+設定 > Tools の "?" を押すと、多言語の完全ガイドが表示されます。
+
+主な機能: ゲーム検索、マニフェストダウンロード（Unlock Download）、ZIP注入、AI統合。
+
+ゲームカードのボタン:
+- Download: .luaをstplug-inにコピー、またはマニフェストをDL
+- OnlineFix: online-fix.meでページを開く
+- Unlock Download: manifests.ps1を実行してマニフェストをDL
+
+AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama。
+
+リンク: Groq API Key -> console.groq.com/keys'''},
         }
 
         if is_tr:
@@ -2530,6 +2610,29 @@ Ayarlar penceresindeki "Tools" bölümü:
 
 ─────────────────────────────────────────────
 
+🃏 5. ADIM: OYUN KARTLARI VE UNLOCK DOWNLOAD
+─────────────────────────────────────────────
+
+Her arama sonucu bir oyun kartı olarak gösterilir.
+Kart üzerindeki butonlar:
+
+☆ Download
+   - Oyunun .lua dosyasını stplug-in klasörüne kopyalar
+   - Oyun zaten yüklüyse Steam'de başlatır
+   - Yüklü değilse manifest dosyalarını indirir
+
+☆ OnlineFix
+   - online-fix.me'de oyun sayfasını açar
+   - Oyun dosyaları ve crack bilgileri için kullanılır
+
+☆ Unlock Download
+   - manifests.ps1 PowerShell betiğini çalıştırır
+   - GitHub Mirror modunda manifest dosyalarını indirir
+   - Steam'in oyunu tanımasını sağlar
+   - Not: .lua dosyası stplug-in klasöründe olmalıdır
+
+─────────────────────────────────────────────
+
 ⚙ AYARLAR DETAYLI ANLATIM
 ─────────────────────────────────────────────
 
@@ -2571,6 +2674,11 @@ C: Zip dosyalarının doğru formatta olduğundan
 S: Guide İngilizce açılıyor?
 C: Ayarlar'dan dil seçimini değiştirin ve
    kaydedin.
+
+S: Unlock Download çalışmıyor / hata veriyor?
+C: .lua dosyasının stplug-in klasöründe olduğundan
+   emin olun. İnternet bağlantınızı kontrol edin.
+   Manifest GitHub Mirror'da bulunamıyor olabilir.
 
 ─────────────────────────────────────────────
 
@@ -2681,6 +2789,29 @@ Located in the Settings window under "Tools":
 
 ─────────────────────────────────────────────
 
+🃏 STEP 5: GAME CARDS & UNLOCK DOWNLOAD
+─────────────────────────────────────────────
+
+Each search result is shown as a game card.
+Card buttons:
+
+☆ Download
+   - Copies the .lua file to stplug-in folder
+   - If game is installed, launches it in Steam
+   - Otherwise downloads manifest files
+
+☆ OnlineFix
+   - Opens game page on online-fix.me
+   - Used to find game files and crack info
+
+☆ Unlock Download
+   - Runs manifests.ps1 PowerShell script
+   - Downloads depot manifest files via GitHub Mirror
+   - Lets Steam recognize the game
+   - Note: .lua file must be in stplug-in folder
+
+─────────────────────────────────────────────
+
 ⚙ SETTINGS EXPLAINED
 ─────────────────────────────────────────────
 
@@ -2717,6 +2848,11 @@ A: Make sure zips are in the correct format
 
 Q: Guide shows in English?
 A: Change language in Settings and save.
+
+Q: Unlock Download error?
+A: Ensure the .lua file is in stplug-in folder. Check
+   your internet connection. The manifest may not exist
+   on the GitHub Mirror.
 
 ─────────────────────────────────────────────
 
@@ -2802,6 +2938,28 @@ todos los .zip de 1 New Games automáticamente.
 
 ─────────────────────────────────────────────
 
+🃏 PASO 5: TARJETAS DE JUEGO Y UNLOCK DOWNLOAD
+─────────────────────────────────────────────
+
+Cada resultado es una tarjeta de juego. Botones:
+
+☆ Download
+   - Copia el .lua a stplug-in
+   - Si instalado, abre en Steam
+   - Sino, descarga manifests
+
+☆ OnlineFix
+   - Abre página en online-fix.me
+   - Para archivos de juego y cracks
+
+☆ Unlock Download
+   - Ejecuta manifests.ps1 (PowerShell)
+   - Descarga manifests vía GitHub Mirror
+   - Permite que Steam reconozca el juego
+   - Nota: el .lua debe estar en stplug-in
+
+─────────────────────────────────────────────
+
 ⚙ AJUSTES DETALLADOS
 ─────────────────────────────────────────────
 
@@ -2820,6 +2978,11 @@ R: Ajustes → Tools → Launch SteamTools
 
 P: ¿Inject All no funciona?
 R: Verifica que los .zip tengan .manifest y .st/.lua
+
+P: ¿Unlock Download da error?
+R: Asegúrate de que el .lua esté en stplug-in.
+   Revisa tu conexión. El manifest puede no
+   estar en GitHub Mirror.
 
 ─────────────────────────────────────────────
 
@@ -2894,6 +3057,28 @@ automatiquement.
 
 ─────────────────────────────────────────────
 
+🃏 ÉTAPE 5: CARTES DE JEU ET UNLOCK DOWNLOAD
+─────────────────────────────────────────────
+
+Chaque résultat est affiché en carte. Boutons :
+
+☆ Download
+   - Copie le .lua dans stplug-in
+   - Si installé, lance dans Steam
+   - Sinon, télécharge les manifests
+
+☆ OnlineFix
+   - Ouvre la page sur online-fix.me
+   - Pour fichiers de jeu et cracks
+
+☆ Unlock Download
+   - Exécute manifests.ps1 (PowerShell)
+   - Télécharge les manifests via GitHub Mirror
+   - Permet à Steam de reconnaître le jeu
+   - Note : le .lua doit être dans stplug-in
+
+─────────────────────────────────────────────
+
 ⚙ PARAMÈTRES DÉTAILLÉS
 ─────────────────────────────────────────────
 ◇ Route: Ordre des fournisseurs IA
@@ -2910,6 +3095,11 @@ R: Paramètres → Tools → Launch SteamTools
 
 Q: Inject All ne fonctionne pas ?
 R: Vérifiez le format des .zip
+
+Q: Unlock Download ne marche pas ?
+R: Vérifiez que le .lua est dans stplug-in.
+   Votre connexion Internet. Le manifest peut
+   être absent du GitHub Mirror.
 
 ─────────────────────────────────────────────
 
@@ -2981,6 +3171,28 @@ automatisch.
 
 ─────────────────────────────────────────────
 
+🃏 SCHRITT 5: SPIELKARTEN & UNLOCK DOWNLOAD
+─────────────────────────────────────────────
+
+Jedes Suchergebnis wird als Karte angezeigt:
+
+☆ Download
+   - Kopiert .lua nach stplug-in
+   - Wenn installiert, startet in Steam
+   - Sonst lädt es Manifeste herunter
+
+☆ OnlineFix
+   - Öffnet Seite auf online-fix.me
+   - Für Spieldateien und Crack-Infos
+
+☆ Unlock Download
+   - Führt manifests.ps1 (PowerShell) aus
+   - Lädt Manifeste via GitHub Mirror
+   - Lässt Steam das Spiel erkennen
+   - Hinweis: .lua muss in stplug-in sein
+
+─────────────────────────────────────────────
+
 ⚙ EINSTELLUNGEN ERKLÄRT
 ─────────────────────────────────────────────
 ◇ Route: Reihenfolge der KI-Anbieter
@@ -2997,6 +3209,11 @@ A: Einstellungen → Tools → Launch SteamTools
 
 F: Inject All funktioniert nicht?
 A: Prüfen Sie das .zip-Format (.manifest + .st/.lua)
+
+F: Unlock Download Fehler?
+A: Stellen Sie sicher, dass .lua in stplug-in ist.
+   Prüfen Sie Ihre Internetverbindung. Das Manifest
+   ist möglicherweise nicht im GitHub Mirror.
 
 ─────────────────────────────────────────────
 
@@ -3066,6 +3283,28 @@ AI翻訳機能を使用するには無料のGroq APIキー
 
 ─────────────────────────────────────────────
 
+🃏 ステップ5: ゲームカードとアンロックダウンロード
+─────────────────────────────────────────────
+
+各検索結果はゲームカードとして表示されます。
+
+☆ Download
+   - .luaファイルをstplug-inにコピー
+   - インストール済みならSteamで起動
+   - 未インストールならmanifestをDL
+
+☆ OnlineFix
+   - online-fix.meでページを開く
+   - ゲームファイルやクラック情報を検索
+
+☆ Unlock Download
+   - manifests.ps1（PowerShell）を実行
+   - GitHub Mirror経由でmanifestをDL
+   - Steamがゲームを認識できるようにする
+   - 注意: .luaがstplug-inにある必要があります
+
+─────────────────────────────────────────────
+
 ⚙ 設定の説明
 ─────────────────────────────────────────────
 ◇ Route: AIプロバイダーの順序
@@ -3082,6 +3321,11 @@ A: 設定→Tools→Launch SteamTools
 
 Q: Inject Allが動作しません
 A: .zipファイルの形式を確認してください
+
+Q: Unlock Downloadでエラーが発生します
+A: .luaファイルがstplug-inフォルダにあることを
+   確認してください。インターネット接続を確認。
+   manifestがGitHub Mirrorにない可能性があります。
 
 ─────────────────────────────────────────────
 
@@ -3167,8 +3411,8 @@ A: .zipファイルの形式を確認してください
                 "Install Millenium", _mill_light
             )
         AB(tools_row, _tr(self, 'button.install_millenium'), _run_mill,
-           150, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 12))
+           120, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
         # LuaTools Installer
         _lua_light = tk.Label(tools_row, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 14))
         _lua_light.pack(side=tk.LEFT, padx=(0, 4))
@@ -3178,8 +3422,8 @@ A: .zipファイルの形式を確認してください
                 "LuaTools Installer", _lua_light
             )
         AB(tools_row, _tr(self, 'button.luatools_installer'), _run_lua,
-           150, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 12))
+           120, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
         # Launch SteamTools
         _launch_light = tk.Label(tools_row, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 14))
         _launch_light.pack(side=tk.LEFT, padx=(0, 4))
@@ -3189,8 +3433,8 @@ A: .zipファイルの形式を確認してください
                 "Launch SteamTools", _launch_light
             )
         AB(tools_row, _tr(self, 'button.launch_steamtools'), _run_launch,
-           150, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 12))
+           120, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
         # Restart Steam
         _restart_light = tk.Label(tools_row, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 14))
         _restart_light.pack(side=tk.LEFT, padx=(0, 4))
@@ -3223,27 +3467,31 @@ A: .zipファイルの形式を確認してください
             threading.Thread(target=_task, daemon=True).start()
             _play_sound('start')
         AB(tools_row, _tr(self, 'button.restart_steam'), _run_restart,
-           150, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
-
-        # ---- CloudRedirect download ----
-        _cr_frame = tk.Frame(window, bg='#0d1724')
-        _cr_frame.pack(fill=tk.X, padx=16, pady=(4, 2))
-        tk.Label(_cr_frame, text="CloudRedirect (No Internet Fix)", fg='#8fd3ff', bg='#0d1724',
-                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
-        _cr_row = tk.Frame(window, bg='#0d1724')
-        _cr_row.pack(fill=tk.X, padx=16, pady=(0, 4))
-        tk.Label(_cr_row, text='Bu app No Internet Connection error un fixidir cogu kullanici icin yeterlidir',
-                 fg='#8fb8da', bg='#0d1724', wraplength=800, justify='left',
-                 font=('Segoe UI', 9)).pack(anchor='w', fill=tk.X)
-        _cr_btn_row = tk.Frame(window, bg='#0d1724')
-        _cr_btn_row.pack(fill=tk.X, padx=16, pady=(2, 6))
-        def _download_cloud_redirect():
-            import threading as _thr, webbrowser
-            webbrowser.open('https://github.com/Selectively11/CloudRedirect/releases/download/v2.1.8/CloudRedirect.exe')
-        AB(_cr_btn_row, 'Indir CloudRedirect', _download_cloud_redirect, 130, 28,
-           '#244363', '#315f8e', '#66c0f4', '#ffffff',
-            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 8))
+           120, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
+        # CloudRedirect
+        _cr_light = tk.Label(tools_row, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 14))
+        _cr_light.pack(side=tk.LEFT, padx=(0, 4))
+        def _run_cr():
+            import threading as _thr, requests as _req, subprocess as _sp, os
+            from pathlib import Path
+            _cr_light.config(fg='#f6ad55')
+            def _dl():
+                try:
+                    url = 'https://github.com/Selectively11/CloudRedirect/releases/download/v2.1.8/CloudRedirect.exe'
+                    tmp = Path(os.environ.get('TEMP', '.')) / 'CloudRedirect.exe'
+                    r = _req.get(url, timeout=120, stream=True)
+                    if r.status_code == 200:
+                        with open(str(tmp), 'wb') as f:
+                            for chunk in r.iter_content(8192):
+                                if chunk: f.write(chunk)
+                        _sp.Popen([str(tmp)])
+                    _cr_light.config(fg='#48bb78')
+                except: pass
+            _thr.Thread(target=_dl, daemon=True).start()
+        AB(tools_row, 'CloudRedirect', _run_cr,
+           130, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
 
         # Also add save_path field
         _sv_frame = tk.Frame(window, bg='#0d1724')
@@ -3593,6 +3841,10 @@ Start-Process -LiteralPath "{me}"
                     pname, PROVIDER_DEFAULTS.get(pname, {}).copy())
                 self.settings['providers'][pname]['api_key'] = kv.get().strip()
                 self.settings['providers'][pname]['model'] = mv.get().strip()
+            sv = _sv_var.get().strip()
+            if sv:
+                self.settings['save_path'] = sv
+                self.settings['new_games_folder'] = sv
             g['save_settings'](self.settings)
             self._sync_controls_from_settings()
             self.refresh_language_ui()
@@ -4005,8 +4257,11 @@ Start-Process -LiteralPath "{me}"
 
     def _build_sidebar(app):
         try:
-            if hasattr(app, '_sidebar') and app._sidebar:
-                return
+            old = getattr(app, '_sidebar', None)
+            if old is not None:
+                try: old.destroy()
+                except: pass
+                app._sidebar = None
             sidebar = tk.Frame(app.root, bg='#06060a', width=64)
             sidebar.pack(side=tk.LEFT, fill=tk.Y)
             app._sidebar = sidebar
@@ -4332,83 +4587,22 @@ Start-Process -LiteralPath "{me}"
     root.after(1500, _check_auto_update)
 
     def _show_setup_wizard(app):
-        if app.settings.get('setup_complete', False):
+        _flag = _data_dir / ".setup_done"
+        if _flag.exists():
             return
-        import tkinter as tk, tkinter.ttk as ttk, threading as _thr, webbrowser
-        from pathlib import Path
-        _lang = app.settings.get('language', 'tr')
-        _is_tr = _lang == 'tr'
-        _steps = {'millenium': False, 'luatools': False, 'cloudredirect': False}
-        _win = tk.Toplevel(app.root)
-        _win.title('Kurulum / Setup' if _is_tr else 'Setup Wizard')
-        _win.configure(bg='#0f1b2a')
-        _win.geometry('520x420')
-        _win.resizable(False, False)
-        _win.transient(app.root)
-        _win.grab_set()
-        _win.protocol('WM_DELETE_WINDOW', lambda: None)
-        tk.Label(_win, text='Hoş Geldiniz! / Welcome!' if _is_tr else 'Welcome!',
-                 fg='#7c6fff', bg='#0f1b2a', font=('Bahnschrift SemiBold', 16)).pack(pady=(16, 4))
-        tk.Label(_win, text='Lütfen önce aşağıdaki araçları yükleyin / Please install the required tools first' if _is_tr else 'Please install the required tools first',
-                 fg='#8fb8da', bg='#0f1b2a', font=('Segoe UI', 9)).pack(pady=(0, 12))
-        _cf = tk.Frame(_win, bg='#0f1b2a')
-        _cf.pack(fill=tk.BOTH, expand=True, padx=30)
-        _rows = {}
-        def _make_row(key, label, desc, url):
-            f = tk.Frame(_cf, bg='#122030', highlightthickness=1, highlightbackground='#1f3448')
-            f.pack(fill=tk.X, pady=4)
-            tk.Label(f, text=label, fg='#f7fafc', bg='#122030',
-                     font=('Segoe UI', 11, 'bold'), anchor='w').pack(fill=tk.X, padx=10, pady=(6, 0))
-            tk.Label(f, text=desc, fg='#8fb8da', bg='#122030',
-                     font=('Segoe UI', 8), anchor='w').pack(fill=tk.X, padx=10, pady=(0, 4))
-            _btnf = tk.Frame(f, bg='#122030')
-            _btnf.pack(fill=tk.X, padx=10, pady=(0, 6))
-            _st = tk.Label(_btnf, text=' Bekleniyor... / Pending...' if _is_tr else ' Pending...',
-                           fg='#f6ad55', bg='#122030', font=('Segoe UI', 9, 'bold'))
-            _st.pack(side=tk.RIGHT)
-            AB = g.get('AnimatedButton', AnimatedButton)
-            def _do_step(k=key, st_lbl=_st):
-                if k == 'millenium':
-                    webbrowser.open('https://github.com/SteamClientHomebrew/Millenium')
-                elif k == 'luatools':
-                    _luatools_path = _data_dir.parent / 'LuaTools'
-                    if not _luatools_path.exists():
-                        import subprocess as _sp
-                        _luatools_path.mkdir(parents=True, exist_ok=True)
-                        try:
-                            _sp.run(['git', 'clone', 'https://github.com/Selectively11/LuaTools.git', str(_luatools_path)],
-                                    capture_output=True, timeout=30)
-                        except:
-                            pass
-                    webbrowser.open(str(_luatools_path))
-                elif k == 'cloudredirect':
-                    webbrowser.open('https://github.com/Selectively11/CloudRedirect/releases/download/v2.1.8/CloudRedirect.exe')
-                _steps[k] = True
-                st_lbl.config(text=' Tamamlandı / Done' if _is_tr else ' Done', fg='#48bb78')
-                _check_all_done()
-            AB(_btnf, 'Yükle / Install' if _is_tr else 'Install', _do_step, 100, 26,
-               '#244363', '#315f8e', '#66c0f4', '#ffffff', ('Segoe UI Semibold', 9))
-            _rows[key] = (_st, f)
-        _make_row('millenium', 'Millenium', 'Steam arayüzü için gerekli / Required for Steam UI',
-                  'https://github.com/SteamClientHomebrew/Millenium')
-        _make_row('luatools', 'LuaTools', 'Lua script desteği için gerekli / Required for Lua scripts',
-                  'https://github.com/Selectively11/LuaTools')
-        _make_row('cloudredirect', 'CloudRedirect', 'LuaTools + Online-Fix için gerekli / Required for LuaTools + Online-Fix',
-                  'https://github.com/Selectively11/CloudRedirect/releases/download/v2.1.8/CloudRedirect.exe')
-        _finish_btn_f = tk.Frame(_win, bg='#0f1b2a')
-        _finish_btn_f.pack(fill=tk.X, padx=30, pady=(4, 14))
-        _finish_btn = tk.Button(_finish_btn_f, text='Devam Et / Continue' if _is_tr else 'Continue',
-            bg='#1f3348', fg='#8fd3ff', relief=tk.FLAT, padx=10, pady=4,
-            font=('Segoe UI', 10, 'bold'), state=tk.DISABLED, cursor='hand2')
-        _finish_btn.pack(side=tk.RIGHT)
-        def _check_all_done():
-            if all(_steps.values()):
-                _finish_btn.config(state=tk.NORMAL, bg='#244363', fg='#ffffff',
-                                   command=lambda: _finish())
-        def _finish():
-            app.settings['setup_complete'] = True
-            g['save_settings'](app.settings)
-            _win.destroy()
+        app.open_settings_window()
+        def _finish_setup():
+            try: _flag.write_text("1", encoding='utf-8')
+            except: pass
+        _win = getattr(app, 'settings_window', None)
+        if _win and _win.winfo_exists():
+            _old_close = _win.protocol('WM_DELETE_WINDOW', None)
+            _win.protocol('WM_DELETE_WINDOW', lambda: (_finish_setup(), _win.destroy()))
+            is_tr = app.settings.get('language', 'tr') == 'tr'
+            tk.Button(_win, text='Kurulumu Tamamla / Finish Setup' if is_tr else 'Finish Setup',
+                bg='#244363', fg='#ffffff', relief=tk.FLAT, padx=12, pady=6,
+                font=('Segoe UI', 10, 'bold'), cursor='hand2',
+                command=lambda: (_finish_setup(), _win.destroy())).pack(side=tk.BOTTOM, pady=10)
 
 if __name__ == '__main__':
     if sys.version_info < (3, 14):
