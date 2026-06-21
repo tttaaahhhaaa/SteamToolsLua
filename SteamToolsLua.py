@@ -33,8 +33,8 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.0.3"
-VERSION_NAME = "Lock All + AppID Lookup + Red-Light Filter + Selection UI"
+VERSION = "1.0.4"
+VERSION_NAME = "Setup Wizard + Guide Update + Cleanup"
 UPDATE_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"       # e.g. "https://api.github.com/repos/user/repo/releases"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"     # snapshot release URL (token left blank)
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
@@ -152,16 +152,6 @@ def install_ui_fixes(g):
     cover_size = (460, 215)
     card_width = 488
 
-    # ---- Unlock All translations ----
-    unlock_all_text = {
-        'tr': {'button.unlock_all': 'Tümünü Unlock', 'unlock_all.title': 'Tüm Oyunlar Unlock Ediliyor', 'unlock_all.processing': 'İşleniyor...', 'unlock_all.status_wait': 'Bekliyor', 'unlock_all.status_ok': 'Tamam', 'unlock_all.status_err': 'Hata', 'unlock_all.cancel': 'İptal', 'unlock_all.close': 'Kapat', 'unlock_all.none': 'Eşleşen oyun bulunamadı', 'unlock_all.matched': '{n} oyun bulundu, unlock başlıyor...'},
-        'en': {'button.unlock_all': 'Unlock All', 'unlock_all.title': 'Unlocking All Games', 'unlock_all.processing': 'Processing...', 'unlock_all.status_wait': 'Waiting', 'unlock_all.status_ok': 'Done', 'unlock_all.status_err': 'Error', 'unlock_all.cancel': 'Cancel', 'unlock_all.close': 'Close', 'unlock_all.none': 'No matching games found', 'unlock_all.matched': '{n} games found, starting unlock...'},
-        'es': {'button.unlock_all': 'Desbloquear Todo', 'unlock_all.title': 'Desbloqueando Todos los Juegos', 'unlock_all.processing': 'Procesando...', 'unlock_all.status_wait': 'Esperando', 'unlock_all.status_ok': 'Hecho', 'unlock_all.status_err': 'Error', 'unlock_all.cancel': 'Cancelar', 'unlock_all.close': 'Cerrar', 'unlock_all.none': 'No se encontraron juegos', 'unlock_all.matched': '{n} juegos encontrados, desbloqueando...'},
-        'fr': {'button.unlock_all': 'Débloquer Tout', 'unlock_all.title': 'Déblocage de Tous les Jeux', 'unlock_all.processing': 'Traitement...', 'unlock_all.status_wait': 'Attente', 'unlock_all.status_ok': 'Terminé', 'unlock_all.status_err': 'Erreur', 'unlock_all.cancel': 'Annuler', 'unlock_all.close': 'Fermer', 'unlock_all.none': 'Aucun jeu trouvé', 'unlock_all.matched': '{n} jeux trouvés, déblocage...'},
-        'de': {'button.unlock_all': 'Alle Entsperren', 'unlock_all.title': 'Alle Spiele werden Entsperrt', 'unlock_all.processing': 'Verarbeitung...', 'unlock_all.status_wait': 'Warten', 'unlock_all.status_ok': 'Fertig', 'unlock_all.status_err': 'Fehler', 'unlock_all.cancel': 'Abbrechen', 'unlock_all.close': 'Schließen', 'unlock_all.none': 'Keine Spiele gefunden', 'unlock_all.matched': '{n} Spiele gefunden, entsperren...'},
-        'ja': {'button.unlock_all': 'すべてアンロック', 'unlock_all.title': 'すべてのゲームをアンロック中', 'unlock_all.processing': '処理中...', 'unlock_all.status_wait': '待機中', 'unlock_all.status_ok': '完了', 'unlock_all.status_err': 'エラー', 'unlock_all.cancel': 'キャンセル', 'unlock_all.close': '閉じる', 'unlock_all.none': '一致するゲームが見つかりません', 'unlock_all.matched': '{n} 個のゲームが見つかりました、アンロック開始...'},
-    }
-
     # ---- Multilingual ui text data ----
     extra_text = {
         'tr': {'button.onlinefix': 'OnlineFix', 'button.unlock_download': 'Unlock Download', 'button.unlock_running': '\u00c7al\u0131\u015f\u0131yor...', 'button.inject_all': 'Inject All', 'button.install_millenium': 'Millenium Kur', 'button.luatools_installer': 'LuaTools Kur', 'button.launch_steamtools': 'SteamTools A\u00e7', 'button.restart_steam': 'Steam\u2019i Yeniden Ba\u015flat', 'button.update_check': 'G\u00fcncelle', 'button.snapshot': 'Karars\u0131z', 'button.youtube': 'YouTube', 'library.title': 'Library', 'library.open': 'Library A\u00e7', 'library.desc': '(enjekte ar\u015fivi)', 'library.name_az': '\u0130sim A-Z', 'library.date_new': 'Tarih \u25bc', 'library.date_old': 'Tarih \u25b2', 'library.open_folder': 'Klas\u00f6r A\u00e7', 'library.win_title': 'Library - Enjekte Edilen Oyunlar', 'library.col_date': 'Tarih', 'library.col_game': 'Oyun Ad\u0131', 'inject.err_title': 'Hata', 'inject.err_create': '1 New Games klas\u00f6r\u00fc olu\u015fturulamad\u0131!', 'inject.info_title': 'Bilgi', 'inject.no_zips_msg': '\u0130\u015flenecek .zip dosyas\u0131 bulunamad\u0131.', 'inject.done_title': '\u0130\u015flem Tamam', 'inject.ask_restart': '{count} zip inject edildi. Steam restart edilsin?', 'inject.select_title': 'Inject Edilecek Oyunlar', 'inject.select_all': 'T\u00fcm\u00fcn\u00fc Se\u00e7', 'inject.select_inject': 'Se\u00e7ilenleri Injectle', 'indicator.scanning': "Zip'ler taran\u0131yor...", 'indicator.no_zips': 'Zip bulunamad\u0131', 'indicator.done': '\u0130\u015flem tamam', 'indicator.steam_stop': 'Steam kapat\u0131l\u0131yor...', 'indicator.steam_start': 'Steam ba\u015flat\u0131l\u0131yor...', 'indicator.no_appid': 'AppID yok', 'indicator.manifest_dl': 'Manifest indiriliyor...', 'indicator.manifest_ok': 'Manifest tamam', 'indicator.manifest_timeout': 'Manifest zaman a\u015f\u0131m\u0131', 'indicator.manifest_err': 'Manifest hata', 'indicator.working': '\u00e7al\u0131\u015f\u0131yor...', 'indicator.fail': 'ba\u015far\u0131s\u0131z', 'indicator.timeout': 'zaman a\u015f\u0131m\u0131', 'indicator.err': 'hata', 'indicator.extracting': 'Ay\u0131klan\u0131yor', 'update.new_found': 'Yeni s\u00fcr\u00fcm {v} mevcut. Ge\u00e7mek ister misiniz?', 'update.downloading': 'G\u00fcncelleme indiriliyor...', 'update.done': 'G\u00fcncelleme indirildi. Uygulamak i\u00e7in yeniden ba\u015flat\u0131n.', 'update.error': 'G\u00fcncelleme kontrol\u00fc ba\u015far\u0131s\u0131z.', 'update.up_to_date': 'Zaten g\u00fcncelsiniz!', 'update.no_new_snapshot': 'Yeni snapshot s\u00fcr\u00fcm\u00fc yok. Zaten g\u00fcncelsiniz.', 'snapshot.warning': 'Snapshot s\u00fcr\u00fcmleri karars\u0131zd\u0131r ve hatalar i\u00e7erebilir. Devam etmek istiyor musunuz?', 'snapshot.switched': 'Snapshot kanal\u0131na ge\u00e7ildi. G\u00fcncelleme butonunu kullanarak kontrol edebilirsiniz.', 'snapshot.stable_switched': 'Kararl\u0131 kanala ge\u00e7ildi.'},
@@ -225,7 +215,6 @@ def install_ui_fixes(g):
             data.setdefault(key, ui_text.get('en', {}).get(key, ui_text.get('tr', {}).get(key, key)))
         data.update(extra_text.get(lang, extra_text.get('en', {})))
         data.update(settings_text.get(lang, settings_text.get('en', {})))
-        data.update(unlock_all_text.get(lang, unlock_all_text.get('en', {})))
 
     # Language options
     language_options = [('tr', 'T\u00fcrk\u00e7e'), ('en', 'English'), ('es', 'Espa\u00f1ol'),
@@ -1701,320 +1690,6 @@ def install_ui_fixes(g):
                 if tmp and os.path.exists(tmp.name): os.unlink(tmp.name)
             except: pass
 
-    def _unlock_all_games(app):
-        try:
-            import json, zipfile
-            _lang = app.settings.get('language', 'tr')
-            _ut = unlock_all_text.get(_lang, unlock_all_text.get('en', {}))
-            _bd = Path(__file__).resolve().parent
-            _sv = app.settings.get('save_path', '') or app.settings.get('new_games_folder', '')
-            _gd = Path(_sv) if _sv and Path(_sv).exists() else _bd / "1 New Games"
-            _used = _gd / "used"
-            if not _used.exists() or not _used.is_dir():
-                app.status_var.set('used/ klasoru bulunamadi')
-                return
-            zips = sorted([f for f in _used.iterdir() if f.suffix.lower() == '.zip' and '(UNLOCKED)' not in f.stem])
-            if not zips:
-                app.status_var.set('used/ icinde ZIP bulunamadi')
-                return
-            # Load cached SteamDB games for name lookup by appid
-            _cached_by_aid = {}
-            try:
-                for g in json.loads(_steamdb_path.read_text(encoding='utf-8')).get('games', []):
-                    _cached_by_aid[str(g.get('appid', ''))] = g.get('name', '')
-            except:
-                pass
-            # Scan each ZIP for .lua files
-            matched = []
-            for zp in zips:
-                appid = ''
-                try:
-                    with zipfile.ZipFile(str(zp), 'r') as zf:
-                        for entry in zf.namelist():
-                            if entry.lower().endswith('.lua'):
-                                appid = Path(entry).stem
-                                break
-                except:
-                    pass
-                if not appid:
-                    matched.append((zp.name, None))
-                else:
-                    gname = _cached_by_aid.get(appid, '')
-                    matched.append((zp.name, appid, gname))
-            if not any(m[1] for m in matched if m[1]):
-                app.status_var.set(_ut.get('unlock_all.none', 'No lua found in ZIPs'))
-                return
-            app.status_var.set(_ut.get('unlock_all.matched', '').format(n=sum(1 for m in matched if m[1])))
-            # ---- Selection overlay like Inject All ----
-            _sel_vars = {}
-            _ov = tk.Frame(app.root, bg='#08080e', highlightthickness=1, highlightbackground='#1a1a30')
-            _ov.place(x=0, y=0, relwidth=1, relheight=1, anchor='nw')
-            _ov.lift()
-            _top = tk.Frame(_ov, bg='#08080e')
-            _top.pack(fill=tk.X, padx=16, pady=(14, 6))
-            tk.Label(_top, text=_ut.get('unlock_all.title', 'Unlock All'), font=('Bahnschrift SemiBold', 18),
-                     fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
-            _sel_all = tk.BooleanVar(value=True)
-            def _toggle_all():
-                v = _sel_all.get()
-                for var in _sel_vars.values(): var.set(v)
-            tk.Checkbutton(_top, text='Select All', variable=_sel_all,
-                           command=_toggle_all, bg='#08080e', activebackground='#12122a',
-                           selectcolor='#7c6fff', fg='#c0c0e0', font=('Segoe UI', 10)).pack(side=tk.RIGHT, padx=4)
-            _sep = tk.Frame(_ov, bg='#1a1a30', height=1)
-            _sep.pack(fill=tk.X, padx=16)
-            _cf = tk.Frame(_ov, bg='#0a0a16')
-            _cf.pack(fill=tk.BOTH, expand=True, padx=16, pady=(8, 10))
-            _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0)
-            _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
-            _inner_sel = tk.Frame(_canv, bg='#0a0a16')
-            _inner_sel.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
-            _canv.create_window((0, 0), window=_inner_sel, anchor='nw')
-            _canv.configure(yscrollcommand=_scr.set)
-            _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-            _scr.pack(side=tk.RIGHT, fill=tk.Y)
-            def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
-            _canv.bind('<MouseWheel>', _mw)
-            for i, entry in enumerate(matched):
-                zname = entry[0]
-                appid = entry[1]
-                gname = entry[2] if len(entry) > 2 else ''
-                var = tk.BooleanVar(value=True)
-                _sel_vars[zname] = var
-                display = f'{gname} (AppID: {appid})' if appid else f'{zname} (no lua)'
-                bg = '#0c0c20' if i % 2 == 0 else '#0a0a16'
-                row = tk.Frame(_inner_sel, bg=bg)
-                row.pack(fill=tk.X, padx=6, pady=1)
-                tk.Checkbutton(row, variable=var, bg=bg, activebackground='#14142a', selectcolor='#7c6fff',
-                               fg='#d0d0e8', font=('Segoe UI', 10)).pack(side=tk.LEFT)
-                tk.Label(row, text=display, bg=bg, fg='#d0d0e8', font=('Segoe UI', 10), anchor='w').pack(side=tk.LEFT, fill=tk.X, expand=True)
-                tk.Label(row, text=zname, bg=bg, fg='#686880', font=('Segoe UI', 8), anchor='e').pack(side=tk.RIGHT, padx=4)
-            _btnf = tk.Frame(_ov, bg='#08080e')
-            _btnf.pack(fill=tk.X, padx=16, pady=(0, 14))
-            _ok = [False]
-            def _confirm():
-                _ok[0] = True; _ov.destroy()
-            def _cancel():
-                _ov.destroy()
-            AB = g.get('AnimatedButton', AnimatedButton)
-            AB(_btnf, _ut.get('unlock_all.processing', 'Unlock Selected'), _confirm, 140, 34,
-               '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
-               ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(8, 0))
-            AB(_btnf, _ut.get('unlock_all.cancel', 'Cancel'), _cancel, 110, 34,
-               '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
-               ('Segoe UI', 9)).pack(side=tk.RIGHT)
-            app.root.wait_window(_ov)
-            if not _ok[0]: return
-            chosen_names = {zname for zname, var in _sel_vars.items() if var.get()}
-            if not chosen_names:
-                app.status_var.set('Secim yapilmadi'); return
-            # Filter matched to chosen ones
-            matched = [m for m in matched if m[0] in chosen_names]
-            if not any(m[1] for m in matched if m[1]):
-                app.status_var.set('Secilenlerde lua bulunamadi'); return
-            # Build progress window
-            _win = tk.Toplevel(app.root)
-            _win.title(_ut.get('unlock_all.title', 'Unlock All'))
-            _win.configure(bg='#0f1b2a')
-            _win.geometry('620x500')
-            _hdr = tk.Frame(_win, bg='#0f1b2a')
-            _hdr.pack(fill=tk.X, padx=16, pady=(12, 4))
-            tk.Label(_hdr, text=_ut.get('unlock_all.title', 'Unlock All'), fg='#7c6fff',
-                    bg='#0f1b2a', font=('Segoe UI', 12, 'bold')).pack(side=tk.LEFT)
-            _cframe = tk.Frame(_win, bg='#0f1b2a')
-            _cframe.pack(fill=tk.BOTH, expand=True, padx=16, pady=(4, 8))
-            _canvas = tk.Canvas(_cframe, bg='#0f1b2a', highlightthickness=0)
-            _scroll = ttk.Scrollbar(_cframe, orient=tk.VERTICAL, command=_canvas.yview)
-            _inner = tk.Frame(_canvas, bg='#0f1b2a')
-            _inner.bind('<Configure>', lambda e: _canvas.configure(scrollregion=_canvas.bbox('all')))
-            _canvas.create_window((0, 0), window=_inner, anchor='nw', tags='inner')
-            _canvas.configure(yscrollcommand=_scroll.set)
-            _canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-            _scroll.pack(side=tk.RIGHT, fill=tk.Y)
-            _bottom = tk.Frame(_win, bg='#0f1b2a')
-            _bottom.pack(fill=tk.X, padx=16, pady=(4, 12))
-            _total_cnt = len([m for m in matched if m[1]])
-            _done_cnt = [0]
-            _ov_prog = ttk.Progressbar(_bottom, mode='determinate', length=400, maximum=_total_cnt)
-            _ov_prog.pack(side=tk.LEFT)
-            _ov_lbl = tk.Label(_bottom, text=f'0/{_total_cnt}', fg='#8fd3ff', bg='#0f1b2a', font=('Segoe UI', 9))
-            _ov_lbl.pack(side=tk.LEFT, padx=(8, 0))
-            _close_btn = tk.Button(_bottom, text=_ut.get('unlock_all.cancel', 'Cancel'),
-                bg='#1f3348', fg='#dce7f4', relief=tk.FLAT, padx=10, pady=2,
-                font=('Segoe UI', 9, 'bold'), command=_win.destroy)
-            _close_btn.pack(side=tk.RIGHT)
-            _rows = []
-            for entry in matched:
-                zname = entry[0]
-                appid = entry[1]
-                gname = entry[2] if len(entry) > 2 else zname
-                display = f'{gname} (AppID: {appid})' if appid else f'{zname} (no lua)'
-                row = tk.Frame(_inner, bg='#122030', highlightthickness=1, highlightbackground='#1f3448')
-                row.pack(fill=tk.X, pady=2)
-                tk.Label(row, text=display, fg='#f7fafc', bg='#122030',
-                        font=('Segoe UI', 9), anchor='w').pack(side=tk.LEFT, padx=8, pady=4, fill=tk.X, expand=True)
-                _pb = ttk.Progressbar(row, mode='determinate', length=120, maximum=100)
-                _pb.pack(side=tk.LEFT, padx=4)
-                _st = tk.Label(row, text=_ut.get('unlock_all.status_wait', 'Waiting'),
-                              fg='#8fb8da', bg='#122030', font=('Segoe UI', 8), width=10, anchor='w')
-                _st.pack(side=tk.LEFT, padx=(0, 8))
-                _rows.append((zname, row, appid, _pb, _st))
-            _abort = [False]
-            def _update_row(idx, pct, status):
-                app.root.after(0, lambda: _do_update_row(idx, pct, status))
-            def _do_update_row(idx, pct, status):
-                if idx < len(_rows):
-                    _rows[idx][3]['value'] = pct
-                    _rows[idx][4].config(text=status)
-            def _update_ov():
-                _ov_prog['value'] = _done_cnt[0]
-                _ov_lbl.config(text=f'{_done_cnt[0]}/{_total_cnt}')
-            def _unlock_seq():
-                for idx, (zname, row, appid, pb, st) in enumerate(_rows):
-                    if _abort[0]:
-                        break
-                    if not appid:
-                        _update_row(idx, 0, _ut.get('unlock_all.status_err', 'Error'))
-                        _done_cnt[0] += 1
-                        app.root.after(0, _update_ov)
-                        continue
-                    _update_row(idx, 10, _ut.get('unlock_all.processing', 'Processing...'))
-                    try:
-                        ok = _download_manifest_sync(appid, log_func=app.log)
-                        if ok:
-                            try:
-                                zp_path = _used / zname
-                                if zp_path.exists():
-                                    new_name = zp_path.stem + '(UNLOCKED)' + zp_path.suffix
-                                    zp_path.rename(_used / new_name)
-                            except Exception as rex:
-                                app.log(f'[UnlockAll] rename {zname}: {rex}')
-                            _update_row(idx, 100, _ut.get('unlock_all.status_ok', 'Done'))
-                        else:
-                            _update_row(idx, 100, _ut.get('unlock_all.status_err', 'Error'))
-                    except Exception as ex:
-                        app.log(f'[UnlockAll] {zname} (appid {appid}): {ex}')
-                        _update_row(idx, 100, _ut.get('unlock_all.status_err', 'Error'))
-                    _done_cnt[0] += 1
-                    app.root.after(0, _update_ov)
-                app.root.after(0, lambda: _close_btn.config(
-                    text=_ut.get('unlock_all.close', 'Close'), command=_win.destroy))
-            _close_btn.config(command=lambda: (_abort.__setitem__(0, True), None))
-            threading.Thread(target=_unlock_seq, daemon=True).start()
-        except Exception as ex:
-            import traceback
-            traceback.print_exc()
-            app.log(f'[UnlockAll] {ex}')
-    SteamApp.unlock_all_games = _unlock_all_games
-
-    # ---- Lock All (revert UNLOCKED zips) ----
-    def _lock_all_games(app):
-        try:
-            import json
-            _lang = app.settings.get('language', 'tr')
-            _ut = {'tr': {'title': 'Lock All', 'none': '(UNLOCKED) zip bulunamadi', 'done': 'Kilitlendi', 'err': 'Hata', 'close': 'Kapat', 'cancel': 'Iptal'},
-                   'en': {'title': 'Lock All', 'none': 'No (UNLOCKED) zips found', 'done': 'Locked', 'err': 'Error', 'close': 'Close', 'cancel': 'Cancel'},
-                   'es': {'title': 'Lock All', 'none': 'No se encontraron zips (UNLOCKED)', 'done': 'Bloqueado', 'err': 'Error', 'close': 'Cerrar', 'cancel': 'Cancelar'},
-                   'fr': {'title': 'Lock All', 'none': 'Aucun zip (UNLOCKED) trouvé', 'done': 'Verrouillé', 'err': 'Erreur', 'close': 'Fermer', 'cancel': 'Annuler'},
-                   'de': {'title': 'Lock All', 'none': 'Keine (UNLOCKED) Zips gefunden', 'done': 'Gesperrt', 'err': 'Fehler', 'close': 'Schließen', 'cancel': 'Abbrechen'},
-                   'ja': {'title': 'Lock All', 'none': '(UNLOCKED) ZIPが見つかりません', 'done': 'ロック済み', 'err': 'エラー', 'close': '閉じる', 'cancel': 'キャンセル'}}
-            _lt = _ut.get(_lang, _ut['en'])
-            _bd = Path(__file__).resolve().parent
-            _sv = app.settings.get('save_path', '') or app.settings.get('new_games_folder', '')
-            _gd = Path(_sv) if _sv and Path(_sv).exists() else _bd / "1 New Games"
-            _used = _gd / "used"
-            if not _used.exists() or not _used.is_dir():
-                app.status_var.set('used/ klasoru bulunamadi')
-                return
-            zips = sorted([f for f in _used.iterdir() if f.suffix.lower() == '.zip' and '(UNLOCKED)' in f.stem])
-            if not zips:
-                app.status_var.set(_lt.get('none', 'No (UNLOCKED) zips'))
-                return
-            # Build selection overlay
-            _parent = getattr(app, 'results_canvas', None) or getattr(app, 'cards_frame', None) or app.root
-            _sel_vars = {}
-            _ov = tk.Frame(app.root, bg='#08080e', highlightthickness=1, highlightbackground='#1a1a30')
-            _ov.place(x=0, y=0, relwidth=1, relheight=1, anchor='nw')
-            _ov.lift()
-            _top = tk.Frame(_ov, bg='#08080e')
-            _top.pack(fill=tk.X, padx=16, pady=(14, 6))
-            tk.Label(_top, text=_lt.get('title', 'Lock All'), font=('Bahnschrift SemiBold', 18),
-                     fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
-            _sel_all = tk.BooleanVar(value=True)
-            def _toggle_all():
-                v = _sel_all.get()
-                for var in _sel_vars.values(): var.set(v)
-            tk.Checkbutton(_top, text='Select All', variable=_sel_all,
-                           command=_toggle_all, bg='#08080e', activebackground='#12122a',
-                           selectcolor='#7c6fff', fg='#c0c0e0', font=('Segoe UI', 10)).pack(side=tk.RIGHT, padx=4)
-            _sep = tk.Frame(_ov, bg='#1a1a30', height=1)
-            _sep.pack(fill=tk.X, padx=16)
-            _cf = tk.Frame(_ov, bg='#0a0a16')
-            _cf.pack(fill=tk.BOTH, expand=True, padx=16, pady=(8, 10))
-            _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0)
-            _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
-            _inner = tk.Frame(_canv, bg='#0a0a16')
-            _inner.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
-            _canv.create_window((0, 0), window=_inner, anchor='nw')
-            _canv.configure(yscrollcommand=_scr.set)
-            _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-            _scr.pack(side=tk.RIGHT, fill=tk.Y)
-            def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
-            _canv.bind('<MouseWheel>', _mw)
-            for i, zp in enumerate(zips):
-                var = tk.BooleanVar(value=True)
-                _sel_vars[zp] = var
-                nm = zp.stem.replace('(UNLOCKED)', '').replace('_', ' ').replace('-', ' ').strip()
-                nm = ' '.join(w.capitalize() for w in nm.split())
-                bg = '#0c0c20' if i % 2 == 0 else '#0a0a16'
-                row = tk.Frame(_inner, bg=bg)
-                row.pack(fill=tk.X, padx=6, pady=1)
-                tk.Checkbutton(row, variable=var, bg=bg, activebackground='#14142a', selectcolor='#7c6fff',
-                               fg='#d0d0e8', font=('Segoe UI', 10)).pack(side=tk.LEFT)
-                tk.Label(row, text=nm, bg=bg, fg='#d0d0e8', font=('Segoe UI', 10), anchor='w').pack(side=tk.LEFT, fill=tk.X, expand=True)
-                tk.Label(row, text=zp.name, bg=bg, fg='#686880', font=('Segoe UI', 8), anchor='e').pack(side=tk.RIGHT, padx=4)
-            _btnf = tk.Frame(_ov, bg='#08080e')
-            _btnf.pack(fill=tk.X, padx=16, pady=(0, 14))
-            _ok = [False]
-            def _confirm():
-                _ok[0] = True; _ov.destroy()
-            def _cancel():
-                _ov.destroy()
-            AB = g.get('AnimatedButton', AnimatedButton)
-            AB(_btnf, 'Lock Selected', _confirm, 140, 34,
-               '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
-               ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(8, 0))
-            AB(_btnf, _lt.get('cancel', 'Cancel'), _cancel, 110, 34,
-               '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
-               ('Segoe UI', 9)).pack(side=tk.RIGHT)
-            app.root.wait_window(_ov)
-            if not _ok[0]: return
-            chosen = [zp for zp, var in _sel_vars.items() if var.get()]
-            if not chosen:
-                app.status_var.set('Secim yapilmadi')
-                return
-            # Rename each (UNLOCKED).zip back to original
-            done = 0
-            for zp in chosen:
-                try:
-                    new_name = zp.stem.replace('(UNLOCKED)', '') + zp.suffix
-                    new_path = _used / new_name
-                    if new_path.exists():
-                        new_path.unlink()
-                    zp.rename(new_path)
-                    app.log(f'[LockAll] {zp.name} -> {new_name}')
-                    done += 1
-                except Exception as ex:
-                    app.log(f'[LockAll] {zp.name} error: {ex}')
-            app.status_var.set(f'{done}/{len(chosen)} locked')
-            if done > 0:
-                _play_sound('done')
-        except Exception as ex:
-            import traceback
-            traceback.print_exc()
-            app.log(f'[LockAll] {ex}')
-    SteamApp.lock_all_games = _lock_all_games
-
     # ---- ? Guide button on header ----
     def _open_guide(self):
         import webbrowser
@@ -2034,6 +1709,23 @@ def install_ui_fixes(g):
 
   Yapay zeka destekli ceviri, oyun bilgisi goruntuleme,
   toplu inject ve arac yonetimi ozellikleri sunar.
+
+
+{ul}
+GEREKSINIMLER / PREREQUISITES
+{ul}
+
+  Uygulama ilk acilista sizi yonlendirecektir. Asagidaki
+  3 arac zorunludur:
+
+  1. Millenium - Steam arayuzu icin
+     (github.com/SteamClientHomebrew/Millenium)
+  2. LuaTools - Lua script calistirmak icin
+     (github.com/Selectively11/LuaTools)
+  3. CloudRedirect - LuaTools + Online-Fix icin
+     (github.com/Selectively11/CloudRedirect)
+
+  Bu araclar kurulmadan uygulama kullanilamaz.
 
 
 {ul}
@@ -2323,28 +2015,6 @@ def install_ui_fixes(g):
   - OnlineFix: online-fix.me'de oyun sayfasini acar
   - Unlock Download: manifests.ps1 ile manifest indirir
 
-
-{ul}
-9. UNLOCK ALL (TOPLU UNLOCK)
-{ul}
-
-  Tümünü Unlock (\U0001f513) butonu, used/ klasorundeki tum
-  ZIP dosyalarini tarar ve her biri icin manifest indirir.
-
-  Calisma prensibi:
-  1. used/ klasorundeki .zip'ler taranir (daha once
-     (UNLOCKED) ile isaretlenenler atlanir)
-  2. Her ZIP'in icindeki .lua dosyasinin adi AppID olarak
-     alinir (ornek: 730.lua -> AppID 730)
-  3. SteamDB cache'inden oyun adi bulunur
-  4. Her oyun icin manifests.ps1 (GitHub Mirror modu)
-     calistirilir ve manifestler indirilir
-  5. Basarili olanlar (UNLOCKED) olarak isaretlenir
-  6. Gercek zamanli progress penceresi: her oyun icin
-     ayri progress bar + genel ilerleme cubugu
-
-  Not: Islem sirasinda uygulama arka planda kalabilir,
-  focus sorunu yasatmaz.
 """
 
         en = f"""{ul}  STEAMTOOLSLUA - COMPREHENSIVE USER GUIDE
@@ -2356,6 +2026,23 @@ def install_ui_fixes(g):
 
   Features: AI-powered translation, game info display,
   batch injection, and tool management.
+
+
+{ul}
+PREREQUISITES
+{ul}
+
+  On first launch the app will guide you through installing
+  these 3 required tools:
+
+  1. Millenium - Steam UI overhaul
+     (github.com/SteamClientHomebrew/Millenium)
+  2. LuaTools - Lua script execution
+     (github.com/Selectively11/LuaTools)
+  3. CloudRedirect - Required for LuaTools + Online-Fix
+     (github.com/Selectively11/CloudRedirect)
+
+  The app will not function without these tools.
 
 
 {ul}
@@ -2602,29 +2289,6 @@ def install_ui_fixes(g):
   - OnlineFix: Opens game page on online-fix.me
   - Unlock Download: Runs manifests.ps1 to download
     depot manifests
-
-
-{ul}
-9. UNLOCK ALL (BATCH UNLOCK)
-{ul}
-
-  The Unlock All (\U0001f513) button scans all ZIP files in
-  the used/ folder and downloads manifests for each one.
-
-  How it works:
-  1. Scans .zip files in used/ (skips those already
-     marked (UNLOCKED))
-  2. Gets AppID from the .lua filename inside each ZIP
-     (e.g., 730.lua -> AppID 730)
-  3. Looks up the game name from SteamDB cache
-  4. Runs manifests.ps1 (GitHub Mirror mode) for each
-     game to download depot manifests
-  5. Marks successful unlocks with (UNLOCKED) suffix
-  6. Real-time progress window with per-game and
-     overall progress bars, cancel/close button
-
-  Note: The progress window is non-modal — the app
-  stays responsive even when in the background.
 """
 
         other_langs = {
@@ -3647,8 +3311,6 @@ A: .zipファイルの形式を確認してください
         _vis_row = tk.Frame(window, bg='#0d1724')
         _vis_row.pack(fill=tk.X, padx=16, pady=(0, 6))
         _show_unlock_dl = tk.BooleanVar(value=not self.settings.get('hide_unlock_download', False))
-        _show_lock_dl = tk.BooleanVar(value=not self.settings.get('hide_lock_download', False))
-        _show_unlock_all = tk.BooleanVar(value=not self.settings.get('hide_unlock_all_games', False))
         def _make_toggle(key, var):
             def _toggle():
                 self.settings[key] = not var.get()
@@ -3656,8 +3318,6 @@ A: .zipファイルの形式を確認してください
             return _toggle
         for _txt, _var, _key in [
             ('Unlock Download', _show_unlock_dl, 'hide_unlock_download'),
-            ('Lock Download', _show_lock_dl, 'hide_lock_download'),
-            ('Unlock All Games', _show_unlock_all, 'hide_unlock_all_games'),
         ]:
             _cb = tk.Checkbutton(_vis_row, text=_txt, variable=_var,
                 command=_make_toggle(_key, _var),
@@ -4575,27 +4235,6 @@ A: .zipファイルの形式を確認してください
             _ref_btn.pack(side=tk.LEFT, padx=(0, 8))
             _ref_btn.bind('<Enter>', lambda e: app.status_var.set('Sonraki 5000 oyun / Refresh List'))
             _ref_btn.bind('<Leave>', lambda e: app.status_var.set(''))
-            _unlock_btn = tk.Button(sd_bar, text='\U0001f513', bg='#1f3348', fg='#48bb78',
-                relief=tk.FLAT, padx=8, pady=1, font=('Segoe UI', 12),
-                activebackground='#2b4b68', activeforeground='#ffffff',
-                cursor='hand2', command=lambda: _unlock_all_games(app))
-            if app.settings.get('hide_unlock_all_games', False):
-                _unlock_btn.pack_forget()
-            else:
-                _unlock_btn.pack(side=tk.LEFT, padx=(0, 4))
-            _unlock_btn.bind('<Enter>', lambda e: app.status_var.set('Tum injected oyunlari unlock et'))
-            _unlock_btn.bind('<Leave>', lambda e: app.status_var.set(''))
-            # Lock All button
-            _lock_btn = tk.Button(sd_bar, text='\U0001f512', bg='#1f3348', fg='#f6ad55',
-                relief=tk.FLAT, padx=8, pady=1, font=('Segoe UI', 12),
-                activebackground='#2b4b68', activeforeground='#ffffff',
-                cursor='hand2', command=lambda: _lock_all_games(app))
-            if app.settings.get('hide_lock_download', False):
-                _lock_btn.pack_forget()
-            else:
-                _lock_btn.pack(side=tk.LEFT, padx=(0, 4))
-            _lock_btn.bind('<Enter>', lambda e: app.status_var.set('Kilidi geri al / Lock All'))
-            _lock_btn.bind('<Leave>', lambda e: app.status_var.set(''))
             sd_nav = tk.Frame(sd_bar, bg='#0f1b2a')
             sd_nav.pack(side=tk.RIGHT)
             sd_prev = tk.Button(sd_nav, text='\u25c0', bg='#1f3348', fg='#dce7f4',
@@ -4758,7 +4397,87 @@ Start-Process -LiteralPath "{me}"
                     import traceback; traceback.print_exc()
             _thr.Thread(target=_dl_task, daemon=True).start()
         _thr.Thread(target=_task, daemon=True).start()
+    root.after(500, lambda: _show_setup_wizard(app))
     root.after(1500, _check_auto_update)
+
+    def _show_setup_wizard(app):
+        if app.settings.get('setup_complete', False):
+            return
+        import tkinter as tk, tkinter.ttk as ttk, threading as _thr, webbrowser
+        from pathlib import Path
+        _lang = app.settings.get('language', 'tr')
+        _is_tr = _lang == 'tr'
+        _steps = {'millenium': False, 'luatools': False, 'cloudredirect': False}
+        _win = tk.Toplevel(app.root)
+        _win.title('Kurulum / Setup' if _is_tr else 'Setup Wizard')
+        _win.configure(bg='#0f1b2a')
+        _win.geometry('520x420')
+        _win.resizable(False, False)
+        _win.transient(app.root)
+        _win.grab_set()
+        _win.protocol('WM_DELETE_WINDOW', lambda: None)
+        tk.Label(_win, text='Hoş Geldiniz! / Welcome!' if _is_tr else 'Welcome!',
+                 fg='#7c6fff', bg='#0f1b2a', font=('Bahnschrift SemiBold', 16)).pack(pady=(16, 4))
+        tk.Label(_win, text='Lütfen önce aşağıdaki araçları yükleyin / Please install the required tools first' if _is_tr else 'Please install the required tools first',
+                 fg='#8fb8da', bg='#0f1b2a', font=('Segoe UI', 9)).pack(pady=(0, 12))
+        _cf = tk.Frame(_win, bg='#0f1b2a')
+        _cf.pack(fill=tk.BOTH, expand=True, padx=30)
+        _rows = {}
+        def _make_row(key, label, desc, url):
+            f = tk.Frame(_cf, bg='#122030', highlightthickness=1, highlightbackground='#1f3448')
+            f.pack(fill=tk.X, pady=4)
+            tk.Label(f, text=label, fg='#f7fafc', bg='#122030',
+                     font=('Segoe UI', 11, 'bold'), anchor='w').pack(fill=tk.X, padx=10, pady=(6, 0))
+            tk.Label(f, text=desc, fg='#8fb8da', bg='#122030',
+                     font=('Segoe UI', 8), anchor='w').pack(fill=tk.X, padx=10, pady=(0, 4))
+            _btnf = tk.Frame(f, bg='#122030')
+            _btnf.pack(fill=tk.X, padx=10, pady=(0, 6))
+            _st = tk.Label(_btnf, text=' Bekleniyor... / Pending...' if _is_tr else ' Pending...',
+                           fg='#f6ad55', bg='#122030', font=('Segoe UI', 9, 'bold'))
+            _st.pack(side=tk.RIGHT)
+            AB = g.get('AnimatedButton', AnimatedButton)
+            def _do_step(k=key, st_lbl=_st):
+                if k == 'millenium':
+                    webbrowser.open('https://github.com/SteamClientHomebrew/Millenium')
+                elif k == 'luatools':
+                    _luatools_path = _data_dir.parent / 'LuaTools'
+                    if not _luatools_path.exists():
+                        import subprocess as _sp
+                        _luatools_path.mkdir(parents=True, exist_ok=True)
+                        try:
+                            _sp.run(['git', 'clone', 'https://github.com/Selectively11/LuaTools.git', str(_luatools_path)],
+                                    capture_output=True, timeout=30)
+                        except:
+                            pass
+                    webbrowser.open(str(_luatools_path))
+                elif k == 'cloudredirect':
+                    webbrowser.open('https://github.com/Selectively11/CloudRedirect/releases/download/v2.1.8/CloudRedirect.exe')
+                _steps[k] = True
+                st_lbl.config(text=' Tamamlandı / Done' if _is_tr else ' Done', fg='#48bb78')
+                _check_all_done()
+            AB(_btnf, 'Yükle / Install' if _is_tr else 'Install', _do_step, 100, 26,
+               '#244363', '#315f8e', '#66c0f4', '#ffffff', ('Segoe UI Semibold', 9))
+            _rows[key] = (_st, f)
+        _make_row('millenium', 'Millenium', 'Steam arayüzü için gerekli / Required for Steam UI',
+                  'https://github.com/SteamClientHomebrew/Millenium')
+        _make_row('luatools', 'LuaTools', 'Lua script desteği için gerekli / Required for Lua scripts',
+                  'https://github.com/Selectively11/LuaTools')
+        _make_row('cloudredirect', 'CloudRedirect', 'LuaTools + Online-Fix için gerekli / Required for LuaTools + Online-Fix',
+                  'https://github.com/Selectively11/CloudRedirect/releases/download/v2.1.8/CloudRedirect.exe')
+        _finish_btn_f = tk.Frame(_win, bg='#0f1b2a')
+        _finish_btn_f.pack(fill=tk.X, padx=30, pady=(4, 14))
+        _finish_btn = tk.Button(_finish_btn_f, text='Devam Et / Continue' if _is_tr else 'Continue',
+            bg='#1f3348', fg='#8fd3ff', relief=tk.FLAT, padx=10, pady=4,
+            font=('Segoe UI', 10, 'bold'), state=tk.DISABLED, cursor='hand2')
+        _finish_btn.pack(side=tk.RIGHT)
+        def _check_all_done():
+            if all(_steps.values()):
+                _finish_btn.config(state=tk.NORMAL, bg='#244363', fg='#ffffff',
+                                   command=lambda: _finish())
+        def _finish():
+            app.settings['setup_complete'] = True
+            g['save_settings'](app.settings)
+            _win.destroy()
 
 if __name__ == '__main__':
     if sys.version_info < (3, 14):
