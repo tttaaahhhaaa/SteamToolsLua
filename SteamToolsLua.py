@@ -1742,6 +1742,73 @@ def install_ui_fixes(g):
                 app.status_var.set(_ut.get('unlock_all.none', 'No lua found in ZIPs'))
                 return
             app.status_var.set(_ut.get('unlock_all.matched', '').format(n=sum(1 for m in matched if m[1])))
+            # ---- Selection overlay like Inject All ----
+            _sel_vars = {}
+            _ov = tk.Frame(app.root, bg='#08080e', highlightthickness=1, highlightbackground='#1a1a30')
+            _ov.place(x=0, y=0, relwidth=1, relheight=1, anchor='nw')
+            _ov.lift()
+            _top = tk.Frame(_ov, bg='#08080e')
+            _top.pack(fill=tk.X, padx=16, pady=(14, 6))
+            tk.Label(_top, text=_ut.get('unlock_all.title', 'Unlock All'), font=('Bahnschrift SemiBold', 18),
+                     fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
+            _sel_all = tk.BooleanVar(value=True)
+            def _toggle_all():
+                v = _sel_all.get()
+                for var in _sel_vars.values(): var.set(v)
+            tk.Checkbutton(_top, text='Select All', variable=_sel_all,
+                           command=_toggle_all, bg='#08080e', activebackground='#12122a',
+                           selectcolor='#7c6fff', fg='#c0c0e0', font=('Segoe UI', 10)).pack(side=tk.RIGHT, padx=4)
+            _sep = tk.Frame(_ov, bg='#1a1a30', height=1)
+            _sep.pack(fill=tk.X, padx=16)
+            _cf = tk.Frame(_ov, bg='#0a0a16')
+            _cf.pack(fill=tk.BOTH, expand=True, padx=16, pady=(8, 10))
+            _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0)
+            _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
+            _inner_sel = tk.Frame(_canv, bg='#0a0a16')
+            _inner_sel.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
+            _canv.create_window((0, 0), window=_inner_sel, anchor='nw')
+            _canv.configure(yscrollcommand=_scr.set)
+            _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            _scr.pack(side=tk.RIGHT, fill=tk.Y)
+            def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
+            _canv.bind('<MouseWheel>', _mw)
+            for i, entry in enumerate(matched):
+                zname = entry[0]
+                appid = entry[1]
+                gname = entry[2] if len(entry) > 2 else ''
+                var = tk.BooleanVar(value=True)
+                _sel_vars[zname] = var
+                display = f'{gname} (AppID: {appid})' if appid else f'{zname} (no lua)'
+                bg = '#0c0c20' if i % 2 == 0 else '#0a0a16'
+                row = tk.Frame(_inner_sel, bg=bg)
+                row.pack(fill=tk.X, padx=6, pady=1)
+                tk.Checkbutton(row, variable=var, bg=bg, activebackground='#14142a', selectcolor='#7c6fff',
+                               fg='#d0d0e8', font=('Segoe UI', 10)).pack(side=tk.LEFT)
+                tk.Label(row, text=display, bg=bg, fg='#d0d0e8', font=('Segoe UI', 10), anchor='w').pack(side=tk.LEFT, fill=tk.X, expand=True)
+                tk.Label(row, text=zname, bg=bg, fg='#686880', font=('Segoe UI', 8), anchor='e').pack(side=tk.RIGHT, padx=4)
+            _btnf = tk.Frame(_ov, bg='#08080e')
+            _btnf.pack(fill=tk.X, padx=16, pady=(0, 14))
+            _ok = [False]
+            def _confirm():
+                _ok[0] = True; _ov.destroy()
+            def _cancel():
+                _ov.destroy()
+            AB = g.get('AnimatedButton', AnimatedButton)
+            AB(_btnf, _ut.get('unlock_all.processing', 'Unlock Selected'), _confirm, 140, 34,
+               '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
+               ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(8, 0))
+            AB(_btnf, _ut.get('unlock_all.cancel', 'Cancel'), _cancel, 110, 34,
+               '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
+               ('Segoe UI', 9)).pack(side=tk.RIGHT)
+            app.root.wait_window(_ov)
+            if not _ok[0]: return
+            chosen_names = {zname for zname, var in _sel_vars.items() if var.get()}
+            if not chosen_names:
+                app.status_var.set('Secim yapilmadi'); return
+            # Filter matched to chosen ones
+            matched = [m for m in matched if m[0] in chosen_names]
+            if not any(m[1] for m in matched if m[1]):
+                app.status_var.set('Secilenlerde lua bulunamadi'); return
             # Build progress window
             _win = tk.Toplevel(app.root)
             _win.title(_ut.get('unlock_all.title', 'Unlock All'))
@@ -3696,7 +3763,7 @@ A: .zipファイルの形式を確認してください
         # Footer
         footer = tk.Frame(window, bg='#0d1724')
 
-        # Left: Versions button
+        # Left: Versions button + Check Update
         _left_frame = tk.Frame(footer, bg='#0d1724')
         _left_frame.pack(side=tk.LEFT)
 
@@ -3706,6 +3773,65 @@ A: .zipファイルの形式を確認してください
         AB(_left_frame, "Versions", _open_releases, 90, 30,
            "#1c1c3a", "#2a2a5a", "#7c6fff", "#e0e0f0",
            ("Segoe UI Semibold", 9)).pack(side=tk.LEFT)
+
+        def _check_update_now():
+            import threading as _thr
+            def _task():
+                try:
+                    import requests as _req
+                    r = _req.get(UPDATE_URL, timeout=10, headers={'Accept': 'application/vnd.github.v3+json',
+                        'User-Agent': 'SteamToolsLua/1.0'})
+                    if r.status_code != 200:
+                        self.log('[Update] API hatasi'); return
+                    data = r.json()
+                    latest = data.get('tag_name', '').lstrip('v')
+                    current = VERSION
+                    if not latest or latest == current:
+                        self.log(f'[Update] Zaten guncel (v{current})'); return
+                    def _parse(v):
+                        parts = v.split('.')
+                        return tuple(int(x) if x.isdigit() else 0 for x in parts) + (0,)*4
+                    if _parse(latest) <= _parse(current):
+                        self.log(f'[Update] Zaten guncel (v{current})'); return
+                    asset = None
+                    for a in data.get('assets', []):
+                        if a.get('name', '').lower().endswith('.exe'):
+                            asset = a; break
+                    if not asset: return
+                    dl_url = asset.get('browser_download_url', '')
+                    if not dl_url: return
+                    self.log(f'[Update] {latest} indiriliyor...')
+                    d = _req.get(dl_url, timeout=120, stream=True)
+                    if d.status_code != 200:
+                        self.log('[Update] Indirme basarisiz'); return
+                    tmp_exe = Path(os.environ.get('TEMP', '.')) / f'SteamToolsLua_{latest}.exe'
+                    with open(str(tmp_exe), 'wb') as f:
+                        for chunk in d.iter_content(8192):
+                            if chunk: f.write(chunk)
+                    self.log(f'[Update] Indi, degistiriliyor...')
+                    me = Path(sys.argv[0] if getattr(sys, 'frozen', False) else __file__).resolve()
+                    ps_script = f'''
+        $retry = 0
+        do {{
+            Start-Sleep -Seconds 2
+            $retry++
+        }} while ($retry -lt 30 -and (Get-Process -Name "{me.stem}" -ErrorAction SilentlyContinue))
+        Copy-Item -LiteralPath "{tmp_exe}" -Destination "{me}" -Force
+        Start-Process -LiteralPath "{me}"
+        '''
+                    updater = Path(os.environ.get('TEMP', '.')) / 'steamtools_update.ps1'
+                    updater.write_text(ps_script.strip(), encoding='utf-8')
+                    import subprocess as _sp
+                    _sp.Popen(['powershell', '-ExecutionPolicy', 'Bypass', '-File', str(updater)],
+                             startupinfo=_sp.STARTUPINFO(dwFlags=_sp.STARTF_USESHOWWINDOW),
+                             creationflags=0x08000000)
+                    self.root.after(300, self.root.destroy)
+                except:
+                    import traceback; traceback.print_exc()
+            _thr.Thread(target=_task, daemon=True).start()
+        AB(_left_frame, _tr(self, 'button.update_check'), _check_update_now, 90, 30,
+           "#1c1c3a", "#2a2a5a", "#7c6fff", "#e0e0f0",
+           ("Segoe UI Semibold", 9)).pack(side=tk.LEFT, padx=(6, 0))
 
         # Center: Version + YouTube
 
