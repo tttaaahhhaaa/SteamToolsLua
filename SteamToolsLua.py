@@ -34,7 +34,7 @@ def resource_path(name):
 
 # ---- Version & Update ----
 VERSION = "1.0.5"
-VERSION_NAME = "Fullscreen + Scrollable Settings + Update Fix + Cleanup"
+VERSION_NAME = "Fullscreen + Tall Settings + Update Fix + Cleanup"
 UPDATE_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"       # e.g. "https://api.github.com/repos/user/repo/releases"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"     # snapshot release URL (token left blank)
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
@@ -2344,7 +2344,7 @@ PREREQUISITES
         window = tk.Toplevel(self.root)
         self.settings_window = window
         window.title(self.tr('settings.window_title'))
-        window.geometry('1040x680')
+        window.geometry('1040x900')
         window.configure(bg='#0d1724')
         window.transient(self.root)
 
@@ -2352,20 +2352,6 @@ PREREQUISITES
         tk.Label(window, text=self.tr('settings.title'),
                  font=('Bahnschrift SemiBold', 20), fg='#f7fafc', bg='#0d1724',
                  anchor='w').pack(anchor='w', padx=16, pady=(16, 4))
-
-        # Scrollable content area
-        _sc_canvas = tk.Canvas(window, bg='#0d1724', highlightthickness=0)
-        _sc_scroll = ttk.Scrollbar(window, orient=tk.VERTICAL, command=_sc_canvas.yview)
-        _sc_inner = tk.Frame(_sc_canvas, bg='#0d1724')
-        _sc_inner.bind('<Configure>', lambda e: _sc_canvas.configure(scrollregion=_sc_canvas.bbox('all')))
-        _sc_canvas.create_window((0, 0), window=_sc_inner, anchor='nw', tags='inner')
-        _sc_canvas.configure(yscrollcommand=_sc_scroll.set)
-        _sc_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 0))
-        _sc_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-        def _mw(e): _sc_canvas.yview('scroll', -e.delta//30, 'units')
-        _sc_canvas.bind('<MouseWheel>', _mw)
-        # Redirect all children of window into _sc_inner
-        window = _sc_inner
 
         tk.Label(window, text=self.tr('settings.chain_info'),
                  font=('Segoe UI', 10), fg='#97afc6', bg='#0d1724',
