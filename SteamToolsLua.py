@@ -33,8 +33,8 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.0.4"
-VERSION_NAME = "Setup Wizard + Guide Update + Cleanup"
+VERSION = "1.0.5"
+VERSION_NAME = "Fullscreen + Scrollable Settings + Update Fix + Cleanup"
 UPDATE_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"       # e.g. "https://api.github.com/repos/user/repo/releases"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"     # snapshot release URL (token left blank)
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
@@ -154,12 +154,12 @@ def install_ui_fixes(g):
 
     # ---- Multilingual ui text data ----
     extra_text = {
-        'tr': {'button.onlinefix': 'OnlineFix', 'button.unlock_download': 'Unlock Download', 'button.unlock_running': '\u00c7al\u0131\u015f\u0131yor...', 'button.inject_all': 'Inject All', 'button.install_millenium': 'Millenium Kur', 'button.luatools_installer': 'LuaTools Kur', 'button.launch_steamtools': 'SteamTools A\u00e7', 'button.restart_steam': 'Steam\u2019i Yeniden Ba\u015flat', 'button.update_check': 'G\u00fcncelle', 'button.snapshot': 'Karars\u0131z', 'button.youtube': 'YouTube', 'library.title': 'Library', 'library.open': 'Library A\u00e7', 'library.desc': '(enjekte ar\u015fivi)', 'library.name_az': '\u0130sim A-Z', 'library.date_new': 'Tarih \u25bc', 'library.date_old': 'Tarih \u25b2', 'library.open_folder': 'Klas\u00f6r A\u00e7', 'library.win_title': 'Library - Enjekte Edilen Oyunlar', 'library.col_date': 'Tarih', 'library.col_game': 'Oyun Ad\u0131', 'inject.err_title': 'Hata', 'inject.err_create': '1 New Games klas\u00f6r\u00fc olu\u015fturulamad\u0131!', 'inject.info_title': 'Bilgi', 'inject.no_zips_msg': '\u0130\u015flenecek .zip dosyas\u0131 bulunamad\u0131.', 'inject.done_title': '\u0130\u015flem Tamam', 'inject.ask_restart': '{count} zip inject edildi. Steam restart edilsin?', 'inject.select_title': 'Inject Edilecek Oyunlar', 'inject.select_all': 'T\u00fcm\u00fcn\u00fc Se\u00e7', 'inject.select_inject': 'Se\u00e7ilenleri Injectle', 'indicator.scanning': "Zip'ler taran\u0131yor...", 'indicator.no_zips': 'Zip bulunamad\u0131', 'indicator.done': '\u0130\u015flem tamam', 'indicator.steam_stop': 'Steam kapat\u0131l\u0131yor...', 'indicator.steam_start': 'Steam ba\u015flat\u0131l\u0131yor...', 'indicator.no_appid': 'AppID yok', 'indicator.manifest_dl': 'Manifest indiriliyor...', 'indicator.manifest_ok': 'Manifest tamam', 'indicator.manifest_timeout': 'Manifest zaman a\u015f\u0131m\u0131', 'indicator.manifest_err': 'Manifest hata', 'indicator.working': '\u00e7al\u0131\u015f\u0131yor...', 'indicator.fail': 'ba\u015far\u0131s\u0131z', 'indicator.timeout': 'zaman a\u015f\u0131m\u0131', 'indicator.err': 'hata', 'indicator.extracting': 'Ay\u0131klan\u0131yor', 'update.new_found': 'Yeni s\u00fcr\u00fcm {v} mevcut. Ge\u00e7mek ister misiniz?', 'update.downloading': 'G\u00fcncelleme indiriliyor...', 'update.done': 'G\u00fcncelleme indirildi. Uygulamak i\u00e7in yeniden ba\u015flat\u0131n.', 'update.error': 'G\u00fcncelleme kontrol\u00fc ba\u015far\u0131s\u0131z.', 'update.up_to_date': 'Zaten g\u00fcncelsiniz!', 'update.no_new_snapshot': 'Yeni snapshot s\u00fcr\u00fcm\u00fc yok. Zaten g\u00fcncelsiniz.', 'snapshot.warning': 'Snapshot s\u00fcr\u00fcmleri karars\u0131zd\u0131r ve hatalar i\u00e7erebilir. Devam etmek istiyor musunuz?', 'snapshot.switched': 'Snapshot kanal\u0131na ge\u00e7ildi. G\u00fcncelleme butonunu kullanarak kontrol edebilirsiniz.', 'snapshot.stable_switched': 'Kararl\u0131 kanala ge\u00e7ildi.'},
-        'en': {'button.onlinefix': 'OnlineFix', 'button.unlock_download': 'Unlock Download', 'button.unlock_running': 'Running...', 'button.inject_all': 'Inject All', 'button.install_millenium': 'Install Millenium', 'button.luatools_installer': 'LuaTools Installer', 'button.launch_steamtools': 'Launch SteamTools', 'button.restart_steam': 'Restart Steam', 'button.update_check': 'Update', 'button.snapshot': 'Snapshot', 'button.youtube': 'YouTube', 'library.title': 'Library', 'library.open': 'Open Library', 'library.desc': '(injected games archive)', 'library.name_az': 'Name A-Z', 'library.date_new': 'Date \u25bc', 'library.date_old': 'Date \u25b2', 'library.open_folder': 'Open Folder', 'library.win_title': 'Library - Injected Games', 'library.col_date': 'Date', 'library.col_game': 'Game Name', 'inject.err_title': 'Error', 'inject.err_create': 'Could not create 1 New Games folder!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'No .zip files to process.', 'inject.done_title': 'Done', 'inject.ask_restart': '{count} zip(s) injected. Restart Steam?', 'inject.select_title': 'Select Games to Inject', 'inject.select_all': 'Select All', 'inject.select_inject': 'Inject Selected', 'indicator.scanning': 'Scanning zips...', 'indicator.no_zips': 'No zips found', 'indicator.done': 'Done', 'indicator.steam_stop': 'Stopping Steam...', 'indicator.steam_start': 'Starting Steam...', 'indicator.no_appid': 'No AppID', 'indicator.manifest_dl': 'Downloading manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest timeout', 'indicator.manifest_err': 'Manifest error', 'indicator.working': 'working...', 'indicator.fail': 'failed', 'indicator.timeout': 'timeout', 'indicator.err': 'error', 'indicator.extracting': 'Extracting', 'update.new_found': 'New version {v} available. Switch to it?', 'update.downloading': 'Downloading update...', 'update.done': 'Update downloaded. Restart to apply.', 'update.error': 'Update check failed.', 'update.up_to_date': 'You are up to date!', 'update.no_new_snapshot': 'No new snapshot version. Already up to date.', 'snapshot.warning': 'Snapshot versions are unstable and may contain bugs. Do you want to continue?', 'snapshot.switched': 'Switched to snapshot channel. Use Update button to check.', 'snapshot.stable_switched': 'Switched to stable channel.'},
-        'es': {'button.onlinefix': 'OnlineFix', 'button.unlock_download': 'Unlock Download', 'button.unlock_running': 'En curso...', 'button.inject_all': 'Inyectar Todo', 'button.install_millenium': 'Instalar Millenium', 'button.luatools_installer': 'Instalador LuaTools', 'button.launch_steamtools': 'Iniciar SteamTools', 'button.restart_steam': 'Reiniciar Steam', 'button.update_check': 'Actualizar', 'button.snapshot': 'Inestable', 'button.youtube': 'YouTube', 'library.title': 'Biblioteca', 'library.open': 'Abrir Biblioteca', 'library.desc': '(archivo de juegos inyectados)', 'library.name_az': 'Nombre A-Z', 'library.date_new': 'Fecha \u25bc', 'library.date_old': 'Fecha \u25b2', 'library.open_folder': 'Abrir Carpeta', 'library.win_title': 'Biblioteca - Juegos Inyectados', 'library.col_date': 'Fecha', 'library.col_game': 'Nombre', 'inject.err_title': 'Error', 'inject.err_create': 'No se pudo crear la carpeta 1 New Games!', 'inject.info_title': 'Informaci\u00f3n', 'inject.no_zips_msg': 'No hay archivos .zip para procesar.', 'inject.done_title': 'Hecho', 'inject.ask_restart': '{count} zip(s) inyectados. \u00bfReiniciar Steam?', 'inject.select_title': 'Seleccionar Juegos a Inyectar', 'inject.select_all': 'Seleccionar Todo', 'inject.select_inject': 'Inyectar Seleccionados', 'indicator.scanning': 'Escaneando zips...', 'indicator.no_zips': 'Sin zips', 'indicator.done': 'Hecho', 'indicator.steam_stop': 'Deteniendo Steam...', 'indicator.steam_start': 'Iniciando Steam...', 'indicator.no_appid': 'Sin AppID', 'indicator.manifest_dl': 'Descargando manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest tiempo de espera', 'indicator.manifest_err': 'Error manifest', 'indicator.working': 'en curso...', 'indicator.fail': 'fall\u00f3', 'indicator.timeout': 'tiempo de espera', 'indicator.err': 'error', 'indicator.extracting': 'Extrayendo', 'update.new_found': '\u00a1Nueva versi\u00f3n {v} disponible! \u00bfDescargar?', 'update.downloading': 'Descargando actualizaci\u00f3n...', 'update.done': 'Actualizaci\u00f3n descargada. Reinicie para aplicar.', 'update.error': 'Error al buscar actualizaci\u00f3n.', 'update.up_to_date': '\u00a1Ya est\u00e1 actualizado!', 'snapshot.warning': 'Las versiones inestables pueden ser inestables. \u00bfContinuar?', 'snapshot.switched': 'Cambiado al canal inestable.', 'snapshot.stable_switched': 'Cambiado al canal estable.'},
-        'fr': {'button.onlinefix': 'OnlineFix', 'button.unlock_download': 'Unlock Download', 'button.unlock_running': 'En cours...', 'button.inject_all': 'Tout Injecter', 'button.install_millenium': 'Installer Millenium', 'button.luatools_installer': 'Installateur LuaTools', 'button.launch_steamtools': 'Lancer SteamTools', 'button.restart_steam': 'Red\u00e9marrer Steam', 'button.update_check': 'Mettre \u00e0 jour', 'button.snapshot': 'Instable', 'button.youtube': 'YouTube', 'library.title': 'Biblioth\u00e8que', 'library.open': 'Ouvrir Biblioth\u00e8que', 'library.desc': '(archive des jeux inject\u00e9s)', 'library.name_az': 'Nom A-Z', 'library.date_new': 'Date \u25bc', 'library.date_old': 'Date \u25b2', 'library.open_folder': 'Ouvrir Dossier', 'library.win_title': 'Biblioth\u00e8que - Jeux Inject\u00e9s', 'library.col_date': 'Date', 'library.col_game': 'Nom', 'inject.err_title': 'Erreur', 'inject.err_create': 'Impossible de cr\u00e9er le dossier 1 New Games!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'Aucun fichier .zip \u00e0 traiter.', 'inject.done_title': 'Termin\u00e9', 'inject.ask_restart': '{count} zip(s) inject\u00e9s. Red\u00e9marrer Steam?', 'inject.select_title': 'S\u00e9lectionner les jeux \u00e0 injecter', 'inject.select_all': 'Tout S\u00e9lectionner', 'inject.select_inject': 'Injecter la S\u00e9lection', 'indicator.scanning': 'Analyse des zips...', 'indicator.no_zips': 'Aucun zip', 'indicator.done': 'Termin\u00e9', 'indicator.steam_stop': 'Arr\u00eat de Steam...', 'indicator.steam_start': 'D\u00e9marrage de Steam...', 'indicator.no_appid': 'Pas d\'AppID', 'indicator.manifest_dl': 'T\u00e9l\u00e9chargement manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest d\u00e9lai d\u00e9pass\u00e9', 'indicator.manifest_err': 'Erreur manifest', 'indicator.working': 'en cours...', 'indicator.fail': '\u00e9chou\u00e9', 'indicator.timeout': 'd\u00e9lai d\u00e9pass\u00e9', 'indicator.err': 'erreur', 'indicator.extracting': 'Extraction', 'update.new_found': 'Nouvelle version {v} disponible. T\u00e9l\u00e9charger?', 'update.downloading': 'T\u00e9l\u00e9chargement de la mise \u00e0 jour...', 'update.done': 'Mise \u00e0 jour t\u00e9l\u00e9charg\u00e9e. Red\u00e9marrez pour appliquer.', 'update.error': '\u00c9chec de la v\u00e9rification de mise \u00e0 jour.', 'update.up_to_date': 'Vous \u00eates \u00e0 jour!', 'snapshot.warning': 'Les versions instables sont instables. Continuer?', 'snapshot.switched': 'Pass\u00e9 au canal instable.', 'snapshot.stable_switched': 'Pass\u00e9 au canal stable.'},
-        'de': {'button.onlinefix': 'OnlineFix', 'button.unlock_download': 'Unlock Download', 'button.unlock_running': 'L\u00e4uft...', 'button.inject_all': 'Alle Injizieren', 'button.install_millenium': 'Millenium Installieren', 'button.luatools_installer': 'LuaTools Installer', 'button.launch_steamtools': 'SteamTools Starten', 'button.restart_steam': 'Steam Neustarten', 'button.update_check': 'Aktualisieren', 'button.snapshot': 'Instabil', 'button.youtube': 'YouTube', 'library.title': 'Bibliothek', 'library.open': 'Bibliothek \u00d6ffnen', 'library.desc': '(Archiv injizierter Spiele)', 'library.name_az': 'Name A-Z', 'library.date_new': 'Datum \u25bc', 'library.date_old': 'Datum \u25b2', 'library.open_folder': 'Ordner \u00d6ffnen', 'library.win_title': 'Bibliothek - Injizierte Spiele', 'library.col_date': 'Datum', 'library.col_game': 'Spielname', 'inject.err_title': 'Fehler', 'inject.err_create': '1 New Games Ordner konnte nicht erstellt werden!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'Keine .zip-Dateien zu verarbeiten.', 'inject.done_title': 'Erledigt', 'inject.ask_restart': '{count} zip(s) injiziert. Steam neustarten?', 'inject.select_title': 'Spiele zum Injizieren ausw\u00e4hlen', 'inject.select_all': 'Alle Ausw\u00e4hlen', 'inject.select_inject': 'Ausgew\u00e4hlte Injizieren', 'indicator.scanning': 'Scanne Zips...', 'indicator.no_zips': 'Keine Zips', 'indicator.done': 'Erledigt', 'indicator.steam_stop': 'Stoppe Steam...', 'indicator.steam_start': 'Starte Steam...', 'indicator.no_appid': 'Keine AppID', 'indicator.manifest_dl': 'Lade Manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest Zeit\u00fcberschreitung', 'indicator.manifest_err': 'Manifest Fehler', 'indicator.working': 'l\u00e4uft...', 'indicator.fail': 'fehlgeschlagen', 'indicator.timeout': 'Zeit\u00fcberschreitung', 'indicator.err': 'Fehler', 'indicator.extracting': 'Extrahiere', 'update.new_found': 'Neue Version {v} verf\u00fcgbar. Herunterladen?', 'update.downloading': 'Lade Update herunter...', 'update.done': 'Update heruntergeladen. Zum Anwenden neu starten.', 'update.error': 'Update-Pr\u00fcfung fehlgeschlagen.', 'update.up_to_date': 'Sie sind auf dem neuesten Stand!', 'update.no_new_snapshot': 'Keine neue Snapshot-Version. Bereits auf dem neuesten Stand.', 'snapshot.warning': 'Snapshot-Versionen sind instabil und können Fehler enthalten. Möchten Sie fortfahren?', 'snapshot.switched': 'Zu Snapshot-Kanal gewechselt. Verwenden Sie Update zum Prüfen.', 'snapshot.stable_switched': 'Zu stabilem Kanal gewechselt.'},
-        'ja': {'button.onlinefix': 'OnlineFix', 'button.unlock_download': 'Unlock Download', 'button.unlock_running': '実行中...', 'button.inject_all': 'すべて注入', 'button.install_millenium': 'Milleniumをインストール', 'button.luatools_installer': 'LuaToolsインストーラ', 'button.launch_steamtools': 'SteamToolsを起動', 'button.restart_steam': 'Steamを再起動', 'button.update_check': 'アップデート', 'button.snapshot': '不安定版', 'button.youtube': 'YouTube', 'library.title': 'ライブラリ', 'library.open': 'ライブラリを開く', 'library.desc': '(注入されたゲームのアーカイブ)', 'library.name_az': '名前 A-Z', 'library.date_new': '日付 ▼', 'library.date_old': '日付 ▲', 'library.open_folder': 'フォルダを開く', 'library.win_title': 'ライブラリ - 注入済ゲーム', 'library.col_date': '日付', 'library.col_game': 'ゲーム名', 'inject.err_title': 'エラー', 'inject.err_create': '1 New Gamesフォルダを作成できませんでした!', 'inject.info_title': '情報', 'inject.no_zips_msg': '処理する.zipファイルがありません。', 'inject.done_title': '完了', 'inject.ask_restart': '{count}個のZIPを注入しました。Steamを再起動しますか？', 'inject.select_title': '注入するゲームを選択', 'inject.select_all': 'すべて選択', 'inject.select_inject': '選択したものを注入', 'indicator.scanning': 'ZIPをスキャン中...', 'indicator.no_zips': 'ZIPが見つかりません', 'indicator.done': '完了', 'indicator.steam_stop': 'Steamを停止中...', 'indicator.steam_start': 'Steamを起動中...', 'indicator.no_appid': 'AppIDがありません', 'indicator.manifest_dl': 'マニフェストをダウンロード中...', 'indicator.manifest_ok': 'マニフェストOK', 'indicator.manifest_timeout': 'マニフェストタイムアウト', 'indicator.manifest_err': 'マニフェストエラー', 'indicator.working': '実行中...', 'indicator.fail': '失敗', 'indicator.timeout': 'タイムアウト', 'indicator.err': 'エラー', 'indicator.extracting': '抽出中', 'update.new_found': '新バージョン {v} が利用可能です。ダウンロードしますか？', 'update.downloading': 'アップデートをダウンロード中...', 'update.done': 'アップデートをダウンロードしました。再起動して適用してください。', 'update.error': 'アップデート確認に失敗しました。', 'update.up_to_date': '最新バージョンです！', 'update.no_new_snapshot': '新しいスナップショットバージョンはありません。既に最新です。', 'snapshot.warning': 'スナップショット版は不安定でバグが含まれる可能性があります。続行しますか？', 'snapshot.switched': 'スナップショットチャンネルに切り替えました。Updateボタンで確認できます。', 'snapshot.stable_switched': '安定チャンネルに切り替えました。'},
+        'tr': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': '\u00c7al\u0131\u015f\u0131yor...', 'button.inject_all': 'Inject All', 'button.install_millenium': 'Millenium Kur', 'button.luatools_installer': 'LuaTools Kur', 'button.launch_steamtools': 'SteamTools A\u00e7', 'button.restart_steam': 'Steam\u2019i Yeniden Ba\u015flat', 'button.update_check': 'G\u00fcncelle', 'button.snapshot': 'Karars\u0131z', 'button.youtube': 'YouTube', 'library.title': 'Library', 'library.open': 'Library A\u00e7', 'library.desc': '(enjekte ar\u015fivi)', 'library.name_az': '\u0130sim A-Z', 'library.date_new': 'Tarih \u25bc', 'library.date_old': 'Tarih \u25b2', 'library.open_folder': 'Klas\u00f6r A\u00e7', 'library.win_title': 'Library - Enjekte Edilen Oyunlar', 'library.col_date': 'Tarih', 'library.col_game': 'Oyun Ad\u0131', 'inject.err_title': 'Hata', 'inject.err_create': '1 New Games klas\u00f6r\u00fc olu\u015fturulamad\u0131!', 'inject.info_title': 'Bilgi', 'inject.no_zips_msg': '\u0130\u015flenecek .zip dosyas\u0131 bulunamad\u0131.', 'inject.done_title': '\u0130\u015flem Tamam', 'inject.ask_restart': '{count} zip inject edildi. Steam restart edilsin?', 'inject.select_title': 'Inject Edilecek Oyunlar', 'inject.select_all': 'T\u00fcm\u00fcn\u00fc Se\u00e7', 'inject.select_inject': 'Se\u00e7ilenleri Injectle', 'indicator.scanning': "Zip'ler taran\u0131yor...", 'indicator.no_zips': 'Zip bulunamad\u0131', 'indicator.done': '\u0130\u015flem tamam', 'indicator.steam_stop': 'Steam kapat\u0131l\u0131yor...', 'indicator.steam_start': 'Steam ba\u015flat\u0131l\u0131yor...', 'indicator.no_appid': 'AppID yok', 'indicator.manifest_dl': 'Manifest indiriliyor...', 'indicator.manifest_ok': 'Manifest tamam', 'indicator.manifest_timeout': 'Manifest zaman a\u015f\u0131m\u0131', 'indicator.manifest_err': 'Manifest hata', 'indicator.working': '\u00e7al\u0131\u015f\u0131yor...', 'indicator.fail': 'ba\u015far\u0131s\u0131z', 'indicator.timeout': 'zaman a\u015f\u0131m\u0131', 'indicator.err': 'hata', 'indicator.extracting': 'Ay\u0131klan\u0131yor', 'update.new_found': 'Yeni s\u00fcr\u00fcm {v} mevcut. Ge\u00e7mek ister misiniz?', 'update.downloading': 'G\u00fcncelleme indiriliyor...', 'update.done': 'G\u00fcncelleme indirildi. Uygulamak i\u00e7in yeniden ba\u015flat\u0131n.', 'update.error': 'G\u00fcncelleme kontrol\u00fc ba\u015far\u0131s\u0131z.', 'update.up_to_date': 'Zaten g\u00fcncelsiniz!', 'update.no_new_snapshot': 'Yeni snapshot s\u00fcr\u00fcm\u00fc yok. Zaten g\u00fcncelsiniz.', 'snapshot.warning': 'Snapshot s\u00fcr\u00fcmleri karars\u0131zd\u0131r ve hatalar i\u00e7erebilir. Devam etmek istiyor musunuz?', 'snapshot.switched': 'Snapshot kanal\u0131na ge\u00e7ildi. G\u00fcncelleme butonunu kullanarak kontrol edebilirsiniz.', 'snapshot.stable_switched': 'Kararl\u0131 kanala ge\u00e7ildi.'},
+        'en': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'Running...', 'button.inject_all': 'Inject All', 'button.install_millenium': 'Install Millenium', 'button.luatools_installer': 'LuaTools Installer', 'button.launch_steamtools': 'Launch SteamTools', 'button.restart_steam': 'Restart Steam', 'button.update_check': 'Update', 'button.snapshot': 'Snapshot', 'button.youtube': 'YouTube', 'library.title': 'Library', 'library.open': 'Open Library', 'library.desc': '(injected games archive)', 'library.name_az': 'Name A-Z', 'library.date_new': 'Date \u25bc', 'library.date_old': 'Date \u25b2', 'library.open_folder': 'Open Folder', 'library.win_title': 'Library - Injected Games', 'library.col_date': 'Date', 'library.col_game': 'Game Name', 'inject.err_title': 'Error', 'inject.err_create': 'Could not create 1 New Games folder!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'No .zip files to process.', 'inject.done_title': 'Done', 'inject.ask_restart': '{count} zip(s) injected. Restart Steam?', 'inject.select_title': 'Select Games to Inject', 'inject.select_all': 'Select All', 'inject.select_inject': 'Inject Selected', 'indicator.scanning': 'Scanning zips...', 'indicator.no_zips': 'No zips found', 'indicator.done': 'Done', 'indicator.steam_stop': 'Stopping Steam...', 'indicator.steam_start': 'Starting Steam...', 'indicator.no_appid': 'No AppID', 'indicator.manifest_dl': 'Downloading manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest timeout', 'indicator.manifest_err': 'Manifest error', 'indicator.working': 'working...', 'indicator.fail': 'failed', 'indicator.timeout': 'timeout', 'indicator.err': 'error', 'indicator.extracting': 'Extracting', 'update.new_found': 'New version {v} available. Switch to it?', 'update.downloading': 'Downloading update...', 'update.done': 'Update downloaded. Restart to apply.', 'update.error': 'Update check failed.', 'update.up_to_date': 'You are up to date!', 'update.no_new_snapshot': 'No new snapshot version. Already up to date.', 'snapshot.warning': 'Snapshot versions are unstable and may contain bugs. Do you want to continue?', 'snapshot.switched': 'Switched to snapshot channel. Use Update button to check.', 'snapshot.stable_switched': 'Switched to stable channel.'},
+        'es': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'En curso...', 'button.inject_all': 'Inyectar Todo', 'button.install_millenium': 'Instalar Millenium', 'button.luatools_installer': 'Instalador LuaTools', 'button.launch_steamtools': 'Iniciar SteamTools', 'button.restart_steam': 'Reiniciar Steam', 'button.update_check': 'Actualizar', 'button.snapshot': 'Inestable', 'button.youtube': 'YouTube', 'library.title': 'Biblioteca', 'library.open': 'Abrir Biblioteca', 'library.desc': '(archivo de juegos inyectados)', 'library.name_az': 'Nombre A-Z', 'library.date_new': 'Fecha \u25bc', 'library.date_old': 'Fecha \u25b2', 'library.open_folder': 'Abrir Carpeta', 'library.win_title': 'Biblioteca - Juegos Inyectados', 'library.col_date': 'Fecha', 'library.col_game': 'Nombre', 'inject.err_title': 'Error', 'inject.err_create': 'No se pudo crear la carpeta 1 New Games!', 'inject.info_title': 'Informaci\u00f3n', 'inject.no_zips_msg': 'No hay archivos .zip para procesar.', 'inject.done_title': 'Hecho', 'inject.ask_restart': '{count} zip(s) inyectados. \u00bfReiniciar Steam?', 'inject.select_title': 'Seleccionar Juegos a Inyectar', 'inject.select_all': 'Seleccionar Todo', 'inject.select_inject': 'Inyectar Seleccionados', 'indicator.scanning': 'Escaneando zips...', 'indicator.no_zips': 'Sin zips', 'indicator.done': 'Hecho', 'indicator.steam_stop': 'Deteniendo Steam...', 'indicator.steam_start': 'Iniciando Steam...', 'indicator.no_appid': 'Sin AppID', 'indicator.manifest_dl': 'Descargando manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest tiempo de espera', 'indicator.manifest_err': 'Error manifest', 'indicator.working': 'en curso...', 'indicator.fail': 'fall\u00f3', 'indicator.timeout': 'tiempo de espera', 'indicator.err': 'error', 'indicator.extracting': 'Extrayendo', 'update.new_found': '\u00a1Nueva versi\u00f3n {v} disponible! \u00bfDescargar?', 'update.downloading': 'Descargando actualizaci\u00f3n...', 'update.done': 'Actualizaci\u00f3n descargada. Reinicie para aplicar.', 'update.error': 'Error al buscar actualizaci\u00f3n.', 'update.up_to_date': '\u00a1Ya est\u00e1 actualizado!', 'snapshot.warning': 'Las versiones inestables pueden ser inestables. \u00bfContinuar?', 'snapshot.switched': 'Cambiado al canal inestable.', 'snapshot.stable_switched': 'Cambiado al canal estable.'},
+        'fr': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'En cours...', 'button.inject_all': 'Tout Injecter', 'button.install_millenium': 'Installer Millenium', 'button.luatools_installer': 'Installateur LuaTools', 'button.launch_steamtools': 'Lancer SteamTools', 'button.restart_steam': 'Red\u00e9marrer Steam', 'button.update_check': 'Mettre \u00e0 jour', 'button.snapshot': 'Instable', 'button.youtube': 'YouTube', 'library.title': 'Biblioth\u00e8que', 'library.open': 'Ouvrir Biblioth\u00e8que', 'library.desc': '(archive des jeux inject\u00e9s)', 'library.name_az': 'Nom A-Z', 'library.date_new': 'Date \u25bc', 'library.date_old': 'Date \u25b2', 'library.open_folder': 'Ouvrir Dossier', 'library.win_title': 'Biblioth\u00e8que - Jeux Inject\u00e9s', 'library.col_date': 'Date', 'library.col_game': 'Nom', 'inject.err_title': 'Erreur', 'inject.err_create': 'Impossible de cr\u00e9er le dossier 1 New Games!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'Aucun fichier .zip \u00e0 traiter.', 'inject.done_title': 'Termin\u00e9', 'inject.ask_restart': '{count} zip(s) inject\u00e9s. Red\u00e9marrer Steam?', 'inject.select_title': 'S\u00e9lectionner les jeux \u00e0 injecter', 'inject.select_all': 'Tout S\u00e9lectionner', 'inject.select_inject': 'Injecter la S\u00e9lection', 'indicator.scanning': 'Analyse des zips...', 'indicator.no_zips': 'Aucun zip', 'indicator.done': 'Termin\u00e9', 'indicator.steam_stop': 'Arr\u00eat de Steam...', 'indicator.steam_start': 'D\u00e9marrage de Steam...', 'indicator.no_appid': 'Pas d\'AppID', 'indicator.manifest_dl': 'T\u00e9l\u00e9chargement manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest d\u00e9lai d\u00e9pass\u00e9', 'indicator.manifest_err': 'Erreur manifest', 'indicator.working': 'en cours...', 'indicator.fail': '\u00e9chou\u00e9', 'indicator.timeout': 'd\u00e9lai d\u00e9pass\u00e9', 'indicator.err': 'erreur', 'indicator.extracting': 'Extraction', 'update.new_found': 'Nouvelle version {v} disponible. T\u00e9l\u00e9charger?', 'update.downloading': 'T\u00e9l\u00e9chargement de la mise \u00e0 jour...', 'update.done': 'Mise \u00e0 jour t\u00e9l\u00e9charg\u00e9e. Red\u00e9marrez pour appliquer.', 'update.error': '\u00c9chec de la v\u00e9rification de mise \u00e0 jour.', 'update.up_to_date': 'Vous \u00eates \u00e0 jour!', 'snapshot.warning': 'Les versions instables sont instables. Continuer?', 'snapshot.switched': 'Pass\u00e9 au canal instable.', 'snapshot.stable_switched': 'Pass\u00e9 au canal stable.'},
+        'de': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'L\u00e4uft...', 'button.inject_all': 'Alle Injizieren', 'button.install_millenium': 'Millenium Installieren', 'button.luatools_installer': 'LuaTools Installer', 'button.launch_steamtools': 'SteamTools Starten', 'button.restart_steam': 'Steam Neustarten', 'button.update_check': 'Aktualisieren', 'button.snapshot': 'Instabil', 'button.youtube': 'YouTube', 'library.title': 'Bibliothek', 'library.open': 'Bibliothek \u00d6ffnen', 'library.desc': '(Archiv injizierter Spiele)', 'library.name_az': 'Name A-Z', 'library.date_new': 'Datum \u25bc', 'library.date_old': 'Datum \u25b2', 'library.open_folder': 'Ordner \u00d6ffnen', 'library.win_title': 'Bibliothek - Injizierte Spiele', 'library.col_date': 'Datum', 'library.col_game': 'Spielname', 'inject.err_title': 'Fehler', 'inject.err_create': '1 New Games Ordner konnte nicht erstellt werden!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'Keine .zip-Dateien zu verarbeiten.', 'inject.done_title': 'Erledigt', 'inject.ask_restart': '{count} zip(s) injiziert. Steam neustarten?', 'inject.select_title': 'Spiele zum Injizieren ausw\u00e4hlen', 'inject.select_all': 'Alle Ausw\u00e4hlen', 'inject.select_inject': 'Ausgew\u00e4hlte Injizieren', 'indicator.scanning': 'Scanne Zips...', 'indicator.no_zips': 'Keine Zips', 'indicator.done': 'Erledigt', 'indicator.steam_stop': 'Stoppe Steam...', 'indicator.steam_start': 'Starte Steam...', 'indicator.no_appid': 'Keine AppID', 'indicator.manifest_dl': 'Lade Manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest Zeit\u00fcberschreitung', 'indicator.manifest_err': 'Manifest Fehler', 'indicator.working': 'l\u00e4uft...', 'indicator.fail': 'fehlgeschlagen', 'indicator.timeout': 'Zeit\u00fcberschreitung', 'indicator.err': 'Fehler', 'indicator.extracting': 'Extrahiere', 'update.new_found': 'Neue Version {v} verf\u00fcgbar. Herunterladen?', 'update.downloading': 'Lade Update herunter...', 'update.done': 'Update heruntergeladen. Zum Anwenden neu starten.', 'update.error': 'Update-Pr\u00fcfung fehlgeschlagen.', 'update.up_to_date': 'Sie sind auf dem neuesten Stand!', 'update.no_new_snapshot': 'Keine neue Snapshot-Version. Bereits auf dem neuesten Stand.', 'snapshot.warning': 'Snapshot-Versionen sind instabil und können Fehler enthalten. Möchten Sie fortfahren?', 'snapshot.switched': 'Zu Snapshot-Kanal gewechselt. Verwenden Sie Update zum Prüfen.', 'snapshot.stable_switched': 'Zu stabilem Kanal gewechselt.'},
+        'ja': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': '実行中...', 'button.inject_all': 'すべて注入', 'button.install_millenium': 'Milleniumをインストール', 'button.luatools_installer': 'LuaToolsインストーラ', 'button.launch_steamtools': 'SteamToolsを起動', 'button.restart_steam': 'Steamを再起動', 'button.update_check': 'アップデート', 'button.snapshot': '不安定版', 'button.youtube': 'YouTube', 'library.title': 'ライブラリ', 'library.open': 'ライブラリを開く', 'library.desc': '(注入されたゲームのアーカイブ)', 'library.name_az': '名前 A-Z', 'library.date_new': '日付 ▼', 'library.date_old': '日付 ▲', 'library.open_folder': 'フォルダを開く', 'library.win_title': 'ライブラリ - 注入済ゲーム', 'library.col_date': '日付', 'library.col_game': 'ゲーム名', 'inject.err_title': 'エラー', 'inject.err_create': '1 New Gamesフォルダを作成できませんでした!', 'inject.info_title': '情報', 'inject.no_zips_msg': '処理する.zipファイルがありません。', 'inject.done_title': '完了', 'inject.ask_restart': '{count}個のZIPを注入しました。Steamを再起動しますか？', 'inject.select_title': '注入するゲームを選択', 'inject.select_all': 'すべて選択', 'inject.select_inject': '選択したものを注入', 'indicator.scanning': 'ZIPをスキャン中...', 'indicator.no_zips': 'ZIPが見つかりません', 'indicator.done': '完了', 'indicator.steam_stop': 'Steamを停止中...', 'indicator.steam_start': 'Steamを起動中...', 'indicator.no_appid': 'AppIDがありません', 'indicator.manifest_dl': 'マニフェストをダウンロード中...', 'indicator.manifest_ok': 'マニフェストOK', 'indicator.manifest_timeout': 'マニフェストタイムアウト', 'indicator.manifest_err': 'マニフェストエラー', 'indicator.working': '実行中...', 'indicator.fail': '失敗', 'indicator.timeout': 'タイムアウト', 'indicator.err': 'エラー', 'indicator.extracting': '抽出中', 'update.new_found': '新バージョン {v} が利用可能です。ダウンロードしますか？', 'update.downloading': 'アップデートをダウンロード中...', 'update.done': 'アップデートをダウンロードしました。再起動して適用してください。', 'update.error': 'アップデート確認に失敗しました。', 'update.up_to_date': '最新バージョンです！', 'update.no_new_snapshot': '新しいスナップショットバージョンはありません。既に最新です。', 'snapshot.warning': 'スナップショット版は不安定でバグが含まれる可能性があります。続行しますか？', 'snapshot.switched': 'スナップショットチャンネルに切り替えました。Updateボタンで確認できます。', 'snapshot.stable_switched': '安定チャンネルに切り替えました。'},
     }
 
     settings_text = {
@@ -296,7 +296,7 @@ def install_ui_fixes(g):
             self._installed = _installed
             if _installed:
                 _aid_launch = result.get('appid', '')
-                self.btn_indir = AnimatedButton(self, app.tr('button.unlock_download'),
+                self.btn_indir = AnimatedButton(self, app.tr('button.download'),
                     lambda: (__import__('subprocess').Popen(['cmd', '/c', 'start', f'steam://rungameid/{_aid_launch}'])), iw, 38,
                     '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc', ('Segoe UI Semibold', 10))
                 self.btn_indir.grid(row=4, column=0, sticky='ew', padx=14, pady=(0, 8))
@@ -346,13 +346,7 @@ def install_ui_fixes(g):
             lambda: app.open_onlinefix(result), iw, 36,
             '#2d4a3e', '#3d6b56', '#66c0f4', '#f7fafc', ('Segoe UI Semibold', 9))
         self.btn_onlinefix.grid(row=5, column=0, sticky='ew', padx=14, pady=(0, 8))
-        self.btn_steamdb = AnimatedButton(self, app.tr('button.unlock_download'),
-            lambda: app.open_result_steamdb(result), iw, 36,
-            '#1d2f43', '#2e4965', '#66c0f4', '#f7fafc', ('Segoe UI Semibold', 9))
-        if app.settings.get('hide_unlock_download', False):
-            self.btn_steamdb.grid_forget()
-        else:
-            self.btn_steamdb.grid(row=6, column=0, sticky='ew', padx=14, pady=(0, 14))
+
         for widget in (self.image_label, self.title_label, self.meta_label, self.footer_label):
             widget.bind('<Enter>', self._on_enter)
             widget.bind('<Leave>', self._on_leave)
@@ -1512,58 +1506,7 @@ def install_ui_fixes(g):
         "ZQAtAEgAbwBzAHQAIAAiACIACgAKAH0AIAAjACAAZQBuAGQAIAB3AGgAaQBsAGUAIAAoACQAdAByAHUA"
         "ZQApAAoACgBlAHgAaQB0ACAAMAAKAA=="
     )
-    def open_result_steamdb(self, result):
-        appid = str(result.get('appid', ''))
-        if not appid:
-            self._set_indicator(_tr(self, 'indicator.no_appid'), 'offline')
-            return
-        def _task():
-            tmp = None
-            try:
-                self.log(f"[Manifest] AppID {appid} lua flatten kontrol...")
-                _flatten_stplug_lua(appid, log_func=self.log)
-                self.log(f"[Manifest] AppID {appid} powershell başlatılıyor...")
-                self._set_indicator(_tr(self, 'indicator.manifest_dl'), 'working')
-                raw = _b64.b64decode(_MANIFESTS_PS1_B64)
-                script = raw.decode('utf-16-le')
-                tmp = _tempfile.NamedTemporaryFile(mode='w', suffix='.ps1', delete=False, encoding='utf-8')
-                tmp.write(script)
-                tmp.close()
-                env = os.environ.copy()
-                env['APP_ID'] = appid
-                env['MANIFEST_MODE'] = 'github'
-                env['MANIFEST_SINGLE_RUN'] = '1'
-                env['MANIFEST_NO_PROMPT'] = '1'
-                si = _subprocess.STARTUPINFO()
-                si.dwFlags |= _subprocess.STARTF_USESHOWWINDOW
-                result = _subprocess.run(
-                    ["powershell", "-ExecutionPolicy", "Bypass", "-File", tmp.name],
-                    capture_output=True, text=True, timeout=180,
-                    startupinfo=si, creationflags=0x08000000, env=env
-                )
-                if result.returncode == 0:
-                    self._set_indicator(_tr(self, 'indicator.manifest_ok'), 'online')
-                    _play_sound('done')
-                else:
-                    err = (result.stderr.strip() or result.stdout.strip() or "Bilinmeyen hata")[:200]
-                    self.log(f"[Manifest] HATA: {err}")
-                    self._set_indicator(f"Manifest: {err}", 'offline')
-                    _play_sound('error')
-            except _subprocess.TimeoutExpired:
-                self._set_indicator(_tr(self, 'indicator.manifest_timeout'), 'offline')
-                _play_sound('error')
-            except Exception as e:
-                self.log(f"[Manifest] HATA: {e}")
-                self._set_indicator(_tr(self, 'indicator.manifest_err'), 'offline')
-                _play_sound('error')
-            finally:
-                if tmp and os.path.exists(tmp.name):
-                    try: os.unlink(tmp.name)
-                    except: pass
-        _batch_threading.Thread(target=_task, daemon=True).start()
-        _play_sound('start')
-    SteamApp.open_result_steamdb = open_result_steamdb
-
+    
     # ---- Online-Fix automation ----
     def open_onlinefix_auto(self, result):
         game_name = str(result.get('name', '') or '')
@@ -2410,7 +2353,20 @@ PREREQUISITES
                  font=('Bahnschrift SemiBold', 20), fg='#f7fafc', bg='#0d1724',
                  anchor='w').pack(anchor='w', padx=16, pady=(16, 4))
 
-        # Chain info
+        # Scrollable content area
+        _sc_canvas = tk.Canvas(window, bg='#0d1724', highlightthickness=0)
+        _sc_scroll = ttk.Scrollbar(window, orient=tk.VERTICAL, command=_sc_canvas.yview)
+        _sc_inner = tk.Frame(_sc_canvas, bg='#0d1724')
+        _sc_inner.bind('<Configure>', lambda e: _sc_canvas.configure(scrollregion=_sc_canvas.bbox('all')))
+        _sc_canvas.create_window((0, 0), window=_sc_inner, anchor='nw', tags='inner')
+        _sc_canvas.configure(yscrollcommand=_sc_scroll.set)
+        _sc_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 0))
+        _sc_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        def _mw(e): _sc_canvas.yview('scroll', -e.delta//30, 'units')
+        _sc_canvas.bind('<MouseWheel>', _mw)
+        # Redirect all children of window into _sc_inner
+        window = _sc_inner
+
         tk.Label(window, text=self.tr('settings.chain_info'),
                  font=('Segoe UI', 10), fg='#97afc6', bg='#0d1724',
                  anchor='w', wraplength=700, justify='left').pack(fill=tk.X, padx=16, pady=(0, 14))
@@ -3301,29 +3257,8 @@ A: .zipファイルの形式を確認してください
             webbrowser.open('https://github.com/Selectively11/CloudRedirect/releases/download/v2.1.8/CloudRedirect.exe')
         AB(_cr_btn_row, 'Indir CloudRedirect', _download_cloud_redirect, 130, 28,
            '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 8))
+            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 8))
 
-        # ---- Button visibility toggles ----
-        _vis_frame = tk.Frame(window, bg='#0d1724')
-        _vis_frame.pack(fill=tk.X, padx=16, pady=(2, 2))
-        tk.Label(_vis_frame, text='Button Gosterme / Gizleme', fg='#8fd3ff', bg='#0d1724',
-                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
-        _vis_row = tk.Frame(window, bg='#0d1724')
-        _vis_row.pack(fill=tk.X, padx=16, pady=(0, 6))
-        _show_unlock_dl = tk.BooleanVar(value=not self.settings.get('hide_unlock_download', False))
-        def _make_toggle(key, var):
-            def _toggle():
-                self.settings[key] = not var.get()
-                g['save_settings'](self.settings)
-            return _toggle
-        for _txt, _var, _key in [
-            ('Unlock Download', _show_unlock_dl, 'hide_unlock_download'),
-        ]:
-            _cb = tk.Checkbutton(_vis_row, text=_txt, variable=_var,
-                command=_make_toggle(_key, _var),
-                bg='#0d1724', activebackground='#0d1724',
-                selectcolor='#244363', fg='#dce7f4', font=('Segoe UI', 10))
-            _cb.pack(side=tk.LEFT, padx=(0, 12))
         # Also add save_path field
         _sv_frame = tk.Frame(window, bg='#0d1724')
         _sv_frame.pack(fill=tk.X, padx=16, pady=(4, 2))
@@ -3544,14 +3479,19 @@ A: .zipファイルの形式を確認してください
                     self.log(f'[Update] Indi, degistiriliyor...')
                     me = Path(sys.argv[0] if getattr(sys, 'frozen', False) else __file__).resolve()
                     ps_script = f'''
-        $retry = 0
-        do {{
-            Start-Sleep -Seconds 2
-            $retry++
-        }} while ($retry -lt 30 -and (Get-Process -Name "{me.stem}" -ErrorAction SilentlyContinue))
-        Copy-Item -LiteralPath "{tmp_exe}" -Destination "{me}" -Force
-        Start-Process -LiteralPath "{me}"
-        '''
+Start-Sleep -Milliseconds 800
+try {{ Wait-Process -Name "{me.stem}" -Timeout 90 -ErrorAction Stop }} catch {{}}
+$retry = 0
+do {{
+    try {{
+        Move-Item -LiteralPath "{tmp_exe}" -Destination "{me}" -Force -ErrorAction Stop
+        break
+    }} catch {{
+        $retry++; Start-Sleep -Milliseconds 1000
+    }}
+}} while ($retry -lt 10)
+Start-Process -LiteralPath "{me}"
+'''
                     updater = Path(os.environ.get('TEMP', '.')) / 'steamtools_update.ps1'
                     updater.write_text(ps_script.strip(), encoding='utf-8')
                     import subprocess as _sp
@@ -3743,6 +3683,7 @@ A: .zipファイルの形式を確認してください
     }
     root = root_app.root if root_app else None
     if root is not None:
+        root.state('zoomed')
         def _apply_theme_recursive(w, palette):
             try:
                 bg = w.cget('bg')
@@ -4375,14 +4316,18 @@ A: .zipファイルの形式を確認してください
                             if chunk: f.write(chunk)
                     app.log(f'[Update] Indi: {tmp_exe}')
                     me = Path(sys.argv[0] if getattr(sys, 'frozen', False) else __file__).resolve()
-                    # Use direct cmd.exe move to avoid PowerShell issues
                     ps_script = f'''
+Start-Sleep -Milliseconds 800
+try {{ Wait-Process -Name "{me.stem}" -Timeout 90 -ErrorAction Stop }} catch {{}}
 $retry = 0
 do {{
-    Start-Sleep -Seconds 2
-    $retry++
-}} while ($retry -lt 30 -and (Get-Process -Name "{me.stem}" -ErrorAction SilentlyContinue))
-Copy-Item -LiteralPath "{tmp_exe}" -Destination "{me}" -Force
+    try {{
+        Move-Item -LiteralPath "{tmp_exe}" -Destination "{me}" -Force -ErrorAction Stop
+        break
+    }} catch {{
+        $retry++; Start-Sleep -Milliseconds 1000
+    }}
+}} while ($retry -lt 10)
 Start-Process -LiteralPath "{me}"
 '''
                     updater = Path(os.environ.get('TEMP', '.')) / 'steamtools_update.ps1'
