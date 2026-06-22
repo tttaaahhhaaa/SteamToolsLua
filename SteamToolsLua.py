@@ -1928,6 +1928,11 @@ GEREKSINIMLER / PREREQUISITES
   Sonuclar kart seklinde goruntulenir. Her kartta 4 buton
   bulunur: Indir, OnlineFix, Unlock Download.
 
+  Arama gecmisi otomatik kaydedilir (son 50). Arama
+  kutusuna tiklayinca gecmis acilir, tiklayarak tekrar
+  arayabilirsiniz. Geri/ileri oklari (veya Alt+Sol/
+  Alt+Sag) ile arama gecmisinde gezinebilirsiniz.
+
 
 {ul}
 1a. INDIR BUTONU
@@ -1943,8 +1948,11 @@ GEREKSINIMLER / PREREQUISITES
 1b. ONLINEFIX BUTONU
 {ul}
 
-  Oyunun OnlineFix surumunu arar ve indirir.
-  online-fix.me sitesinden oyunun sayfasini acar.
+  Oyunun OnlineFix surumunu arar, indirir ve cikartir.
+  Dosyalar save_path/Online Fixes/{oyun_adi}/ klasorune
+  kaydedilir. Steam klasorune OTOMATIK kopyalanmaz,
+  kendiniz yonetimek icin Ayarlar > Klasorler'deki
+  "Online Fixes" butonunu kullanabilirsiniz.
 
 
 {ul}
@@ -1961,13 +1969,8 @@ GEREKSINIMLER / PREREQUISITES
   5. Manifestler GitHub mirror'dan indirilir
   6. Steam\\config\\depotcache klasorune kaydedilir
 
-  NOT: Basarili olmasi icin SteamTools'un yuklu olmasi ve
-  oyunun .lua dosyasinin stplug-in klasorunde bulunmasi
-  gerekir. Ayrica manifest dosyalari github.com/qwe213312/
-  k25FCdfEOoEJ42S6 reposunda bulunmalidir.
-
-  Daha fazla API secenegi (Morrenus, ManifestHub) icin
-  manuel olarak manifests.ps1 calistirin.
+  NOT: SteamTools'un yuklu olmasi ve oyunun .lua dosyasinin
+  stplug-in klasorunde bulunmasi gerekir.
 
 
 {ul}
@@ -1985,7 +1988,6 @@ GEREKSINIMLER / PREREQUISITES
   - .st / .lua / diger dosyalar -> Steam\\config\\stplug-in
 
   Islem sonrasi Steam'i yeniden baslatma secenegi sunar.
-  Klasor yolu Ayarlar'dan degistirilebilir (save_path).
 
 
 2b. ? (BU REHBER)
@@ -1999,9 +2001,9 @@ GEREKSINIMLER / PREREQUISITES
 
   Uygulama ayarlarini acar. Icerisinde:
   - Tools (Millenium, LuaTools, SteamTools, Steam)
+  - Klasorler (Setups, Online Fixes, Oyun Dosyalari)
   - AI Saglayicilari (API anahtarlari, modeller)
-  - Dil secimi
-  - Kart genisligi
+  - Dil secimi, Kart genisligi
   - Gelistirici modu, konsol
 
 
@@ -2016,196 +2018,54 @@ GEREKSINIMLER / PREREQUISITES
 {ul}
 
   Millenium adli Steam overlay/arayuzunu kurar. PowerShell
-   uzerinden https://clemdotla.github.io/millennium-
-   installer-ps1/millennium.ps1 betigini calistirir.
-  Status lambasi: Sari (calisiyor), Yesil (basarili),
-  Kirmizi (hata).
+  uzerinden kurulum betigini calistirir.
 
-
-3b. LUATOOLS KUR
+3b. LUATOOLS KUR / 3c. STEAMTOOLS AC / 3d. STEAM'I YENIDEN BASLAT
 {ul}
 
-  LuaTools pluginini kurar. Powershell uzerinden
-  https://luatools.vercel.app/install-plugin.ps1 betigini
-  calistirir. Kurulum sonrasi plugin dosyasi otomatik
-  olarak millennium/plugins/ klasorune tasinir.
-
-
-3c. STEAMTOOLS AC
-{ul}
-
-  SteamTools.exe'yi calistirir. Program genellikle
-  C:\\Program Files\\SteamTools\\ konumunda bulunur.
-
-
-3d. STEAM'I YENIDEN BASLAT
-{ul}
-
-  Steam.exe'yi kapatir (taskkill), 5 saniye bekler, sonra
-  tekrar baslatir. Sorun yasayan kullanicilar icin ilk
-  cozum yontemi budur.
+  Ilgili araclari kurar/acar/yeniden baslatir.
 
 
 {ul}
-4. AYARLAR > AI SAGLAYICILAR
+4. AYARLAR > KLASORLER
 {ul}
 
-  Uygulama 7 farkli yapay zeka saglayicisini destekler.
-  Her saglayici icin API Key ve Model alanlari bulunur.
-  "Auto Chain" ozelligi ile hata durumunda siradaki
-  saglayici otomatik denenir.
+  Ayarlar'da save_path altinda 3 hizli erisim butonu:
 
+  - Setups: CloudRedirect ve diger kurulum dosyalari icin
+  - Online Fixes: online-fix.me'den indirilen dosyalar
+  - Oyun Dosyalari: save_path ana klasoru
 
-4a. GROQ
-{ul}
-
-  En hizli ve ucretsiz secenek.
-  API Key almak icin:
-  -> https://console.groq.com/keys
-  Kayit olun, sol menuden "API Keys" secin,
-  "Create API Key" ile yeni anahtar olusturun.
-  Model: gemma2-9b-it, llama-3.3-70b-versatile,
-        llama-3.1-8b-instant, mixtral-8x7b-32768
-
-
-4b. OPENAI
-{ul}
-
-  En populer secenek.
-  API Key almak icin:
-  -> https://platform.openai.com/api-keys
-  Kayit olun, "Create new secret key" tiklayin.
-  Model: gpt-4o, gpt-4o-mini, gpt-4-turbo, gpt-3.5-turbo
-
-
-4c. ANTHROPIC
-{ul}
-
-  Claude modelleri icin.
-  API Key almak icin:
-  -> https://console.anthropic.com/
-  Kayit olun, "API Keys" bolumunden anahtar olusturun.
-  Model: claude-3-5-sonnet-20241022, claude-3-haiku
-
-
-4d. GOOGLE (GEMINI)
-{ul}
-
-  Gemini modelleri icin.
-  API Key almak icin:
-  -> https://console.cloud.google.com/
-  "APIs & Services" > "Credentials" > "Create Credentials"
-  > "API Key" secin. Gemini API'yi etkinlestirin.
-  Model: gemini-2.0-flash, gemini-1.5-pro
-
-
-4e. OPENROUTER
-{ul}
-
-  Birden fazla modele tek anahtarla erisim.
-  API Key almak icin:
-  -> https://openrouter.ai/keys
-  Kayit olun, "Create Key" tiklayin.
-  Model: openai/gpt-4o, anthropic/claude-3.5-sonnet
-
-
-4f. DEEPSEEK
-{ul}
-
-  Uygun fiyatli secenek.
-  API Key almak icin:
-  -> https://platform.deepseek.com/
-  Kayit olun, "API Keys" bolumunden anahtar olusturun.
-  Model: deepseek-chat, deepseek-reasoner
-
-
-4g. OLLAMA (YEREL)
-{ul}
-
-  Tamamen ucretsiz, yerel bilgisayarinizda calisir.
-  Kurulum icin:
-  -> https://ollama.com/
-  Indirin, kurun, terminalde:
-    ollama pull gemma2:2b
-    ollama serve
-  API Key gerekmez, model alanini bos birakin.
+  Her buton tiklandiginda klasoru acar (yoksa olusturur).
 
 
 {ul}
-5. DIL AYARLARI
+5. AYARLAR > AI SAGLAYICILAR
 {ul}
 
-  Turkce, English, Espanol, Francais, Deutsch, Japanese
-  dilleri desteklenir. Dil degistiginde tum arayuz
-  otomatik guncellenir.
-
-
-{ul}
-6. INJECT ALL DETAYLI
-{ul}
-
-  Inject All, "1 New Games" klasorundeki tum .zip
-  dosyalarini sirayla acar:
-
-  Adim 1: Zip'ler taranir
-  Adim 2: Herbiri acilir, manifest -> depotcache,
-          diger dosyalar -> stplug-in
-  Adim 3: Basarili zipl'ler silinir
-  Adim 4: Ozet gosterilir (kac basarili / toplam)
-  Adim 5: Steam restart istenirse Steam kapatilir,
-          5sn beklenir, tekrar acilir
-
-  NOT: Zip'lerin icinde .manifest ve .st/.lua dosyalari
-  bulunmalidir. Klasor yolunu Ayarlar'dan degistirebilir
-  veya varsayilan "1 New Games" klasorunu kullanabilirsiniz.
+  Uygulama 7 farkli yapay zeka saglayicisini destekler:
+  Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek,
+  Ollama (yerel). Her biri icin API Key ve Model girilir.
 
 
 {ul}
-7. SSS - SIK SORULAN SORULAR
+6. OTOMATIK GUNCELLEME
 {ul}
 
-  S: SteamTools kurulu degil, ne yapmaliyim?
-  C: Ayarlar > Tools > SteamTools Ac butonunu kullanin.
-     SteamTools genelde C:\\Program Files\\SteamTools\\'
-     konumunda bulunur.
-
-  S: Inject All calismiyor / zip islenmiyor?
-  C: Zip dosyalarinin "1 New Games" klasorunde olduguna
-     emin olun. Iceride .manifest ve .st/.lua dosyalari
-     bulunmalidir.
-
-  S: Unlock Download hata veriyor?
-  C: Oyunun .lua dosyasinin stplug-in klasorunde olduguna
-     emin olun. Internet baglantisi kontrol edin. GitHub
-     mirror'da manifest olmayabilir.
-
-  S: AI ceviri calismiyor?
-  C: Ayarlar > AI Saglayicilari bolumunden gecerli bir
-     API Key girdiginizden emin olun. Groq ucretsizdir.
-
-   S: Uygulama acilmiyor?
-   C: Python 3.14 gereklidir. Eksik moduller icin:
-      pip install Pillow requests
+  Uygulama baslatildiktan 1.5 saniye sonra GitHub'da yeni
+  surum kontrol edilir. Varsa popup ile bildirilir.
+  "Guncelle" tusuna basinca yeni .exe indirilir, eski
+  dosyanin uzerine yazilir ve uygulama yeniden baslatilir.
+  Tum islem tarayici acilmadan, arka planda yapilir.
 
 
 {ul}
-8. STEAMDB BROWSER (OYUN TARAYICI)
+7. STEAMDB BROWSER (OYUN TARAYICI)
 {ul}
 
-  Uygulama SteamDB veritabanindaki oyunlari goruntulemek
-  icin entegre bir tarayici icerir.
-
-  - Sayfada 12 oyun karti gosterilir (sabit, degismez)
-  - Ilk acilista cache'den yuklenir, API cagrisi yapilmaz
-  - Refresh (\U0001f504) butonu cache'teki sonraki 5000 oyuna
-    gecer; cache bossa SteamSpy API'sinden ceker
-  - Progress bar ile gercek zamanli yukleme gosterimi
-  - Sayfalama: onceki/sonraki oklar ile 12'li sayfalar
-
-  Kart uzerindeki butonlar:
-  - Download: Lua dosyasini stplug-in'e kopyalar
-  - OnlineFix: online-fix.me'de oyun sayfasini acar
-  - Unlock Download: manifests.ps1 ile manifest indirir
+  Entegre SteamDB tarayicisi. 12'li sayfalar halinde
+  5000+ oyunu goruntuler. Ilk acilista cache kullanilir,
+  Refresh butonu SteamSpy API'sinden veri ceker.
 
 """
 
@@ -2217,7 +2077,7 @@ GEREKSINIMLER / PREREQUISITES
   manifest files, and managing Steam companion tools.
 
   Features: AI-powered translation, game info display,
-  batch injection, and tool management.
+  batch injection, tool management, Online-Fix downloader.
 
 
 {ul}
@@ -2228,111 +2088,86 @@ PREREQUISITES
   these 3 required tools:
 
   1. Millenium - Steam UI overhaul
-     (github.com/SteamClientHomebrew/Millenium)
   2. LuaTools - Lua script execution
-     (github.com/Selectively11/LuaTools)
   3. CloudRedirect - Required for LuaTools + Online-Fix
-     (github.com/Selectively11/CloudRedirect)
-
-  The app will not function without these tools.
 
 
 {ul}
 1. SEARCH & RESULTS
 {ul}
 
-  Type a game name in the search bar and press Enter.
-  Results are displayed as cards. Each card has 4 buttons:
-  Download, OnlineFix, Unlock Download.
+  Type a game name and press Enter. Results display as
+  cards. Each card has: Download, OnlineFix, Unlock.
+
+  Search history is auto-saved (last 50). Click the search
+  bar to see history. Use back/forward arrows (or Alt+Left/
+  Alt+Right) to navigate through search history.
 
 
 {ul}
-1a. DOWNLOAD BUTTON
+1a. DOWNLOAD / 1b. ONLINEFIX / 1c. UNLOCK
 {ul}
 
-  Integrates selected game files into Steam. Copies the
-  .lua file to Steam/config/stplug-in/ and fetches the
-  latest manifest IDs from SteamDB.
-
-
-{ul}
-1b. ONLINEFIX BUTTON
-{ul}
-
-  Searches for and downloads the game's OnlineFix version.
-  Opens the game page on online-fix.me.
-
-
-{ul}
-1c. UNLOCK DOWNLOAD (MANIFEST DOWNLOADER)
-{ul}
-
-  Downloads depot manifest files (.manifest) needed for
-  SteamTools. Runs via PowerShell, headless:
-
-  1. Auto-selects GitHub Mirror mode
-  2. Auto-fills the game's AppID
-  3. Parses depot IDs from the Lua file
-  4. Fetches manifest IDs from SteamCMD API
-  5. Downloads manifests from GitHub mirror
-  6. Saves to Steam\\\\config\\\\depotcache
-
-  NOTE: SteamTools must be installed and the game's .lua
-  file must exist in stplug-in. Manifests are fetched from
-  github.com/qwe213312/k25FCdfEOoEJ42S6
+  Download: Integrates game files into Steam.
+  OnlineFix: Downloads & extracts from online-fix.me to
+    save_path/Online Fixes/ (NOT auto-injected).
+  Unlock: Downloads .manifest files for SteamTools.
 
 
 {ul}
 2. HEADER BUTTONS
 {ul}
 
-
-2a. INJECT ALL
-{ul}
-
-  Automatically extracts all .zip archives from the
-  "1 New Games" folder and places files correctly:
-
-  - .manifest files -> Steam\\\\config\\\\depotcache
-  - .st / .lua / other files -> Steam\\\\config\\\\stplug-in
-
-  Offers to restart Steam after completion.
-
-
-2b. ? (THIS GUIDE)
-{ul}
-
-  Opens the comprehensive user guide.
-
-
-2c. SETTINGS (GEAR ICON)
-{ul}
-
-  Opens the application settings. Contains:
-  - Tools (Millenium, LuaTools, SteamTools, Steam)
-  - AI Providers (API keys, models)
-  - Language selection
-  - Card width
-  - Developer mode, console
+  2a. INJECT ALL - Extracts all .zip from "1 New Games"
+  2b. ? - This guide
+  2c. SETTINGS - All app settings
 
 
 {ul}
 3. SETTINGS > TOOLS
 {ul}
 
+  Install Millenium, LuaTools, open SteamTools, restart
+  Steam. Each via PowerShell or direct execution.
 
-3a. INSTALL MILLENIUM
+
+{ul}
+4. SETTINGS > FOLDERS
 {ul}
 
-  Installs Millenium Steam overlay. Runs PowerShell script
-  from clemdotla.github.io. Status: Yellow (running),
-  Green (success), Red (error).
+  Quick-access buttons below save path:
+  - Setups: For CloudRedirect and setup files
+  - Online Fixes: Downloaded Online-Fix files
+  - Game Files: Main save_path folder
 
 
-3b. LUATOOLS INSTALLER
+{ul}
+5. AI PROVIDERS
 {ul}
 
-  Installs the LuaTools plugin via PowerShell from
+  7 providers: Groq, OpenAI, Anthropic, Google, OpenRouter,
+  DeepSeek, Ollama (local). Enter API Key + Model per
+  provider. "Auto Chain" falls through on error.
+
+
+{ul}
+6. AUTO UPDATE
+{ul}
+
+  1.5s after launch, checks GitHub for new releases.
+  Popup notifies when update is available. Click "Update"
+  to download, auto-replace, and restart - all without
+  opening a browser.
+
+
+{ul}
+7. STEAMDB BROWSER
+{ul}
+
+  Built-in game browser. 12 cards per page, 5000+ games.
+  Uses cache on first load; Refresh fetches from SteamSpy.
+
+"""
   luatools.vercel.app. Post-install moves plugin folder
   to millennium/plugins/.
 
@@ -3733,8 +3568,26 @@ A: .luaファイルがstplug-inフォルダにあることを
             if _d:
                 _sv_var.set(_d)
         AB(_sv_row, 'Gözat', _browse_sv, 60, 28,
-           '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
+            '#244363', '#315f8e', '#66c0f4', '#ffffff',
+            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
+
+        # ---- Folder quick access ----
+        _folder_frame = tk.Frame(window, bg='#0d1724')
+        _folder_frame.pack(fill=tk.X, padx=16, pady=(4, 2))
+        tk.Label(_folder_frame, text='Klas\u00f6rler', fg='#8fd3ff', bg='#0d1724',
+                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
+        _folder_row = tk.Frame(window, bg='#0d1724')
+        _folder_row.pack(fill=tk.X, padx=16, pady=(0, 6))
+        def _open_subfolder(name):
+            _base = Path(_sv_var.get().strip()) if _sv_var.get().strip() else Path.home() / 'Desktop'
+            _target = _base / name
+            _target.mkdir(parents=True, exist_ok=True)
+            try: _os.startfile(str(_target))
+            except: _subprocess.Popen(['explorer', str(_target)])
+        for _fname, _flabel in [('Setups', 'Setups'), ('Online Fixes', 'Online Fixes'), ('Game Files', 'Oyun Dosyalar\u0131')]:
+            AB(_folder_row, _flabel, lambda n=_fname: _open_subfolder(n), 100, 28,
+               '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
+               ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
 
         # ---- Library section ----
         lib_frame = tk.Frame(window, bg='#0d1724')
@@ -4281,7 +4134,7 @@ Start-Process -LiteralPath "{me}"
                     bar = tk.Frame(btn, bg='#7c6fff', height=0)
                     bar.place(x=1, rely=1.0, width=width-2, anchor=tk.SW)
                     _BAR_REFS[id(btn)] = bar
-                    def gt(bt=btn, ac=accent):
+                    def gt(bt=btn):
                         cid = id(bt)
                         if cid not in _BAR_REFS: return
                         bf = _BAR_REFS[cid]
@@ -4291,15 +4144,16 @@ Start-Process -LiteralPath "{me}"
                         except:
                             return
                         hv = max(0, min(1, hv))
-                        hi = int(hv * hv * (3 - 2 * hv) * 5 + 0.5)
+                        smoothed = hv * hv * (3 - 2 * hv)
+                        hi = int(smoothed * 6 + 0.5)
                         if hi > 0:
                             bf.configure(height=hi,
                                          bg=_th_lerpc('#7c6fff', '#c8bfff', hv))
                             bf.lift()
                         else:
                             bf.configure(height=0)
-                        bt.after(24, gt)
-                    btn.after(30, gt)
+                        bt.after(16, gt)
+                    btn.after(20, gt)
                 except:
                     pass
                 return btn
@@ -4460,16 +4314,13 @@ Start-Process -LiteralPath "{me}"
             _parent = _srch_entry.master
             _nav_frame = tk.Frame(_parent, bg=_parent.cget('bg'))
             _nav_frame.pack(side=tk.LEFT, padx=(0, 4), before=_srch_entry)
-            _btn_b = tk.Button(_nav_frame, text='\u25C0', font=_nav_font,
-                bg=_parent.cget('bg'), fg='#7c6fff', relief=tk.FLAT,
-                activebackground='#1a1a30', activeforeground='#b09eff',
-                bd=0, padx=4, cursor='hand2', command=_nav_back)
-            _btn_b.pack(side=tk.LEFT)
-            _btn_f = tk.Button(_nav_frame, text='\u25B6', font=_nav_font,
-                bg=_parent.cget('bg'), fg='#7c6fff', relief=tk.FLAT,
-                activebackground='#1a1a30', activeforeground='#b09eff',
-                bd=0, padx=4, cursor='hand2', command=_nav_forward)
-            _btn_f.pack(side=tk.LEFT)
+            _AB_nav = g.get('AnimatedButton', AnimatedButton)
+            _btn_b = _AB_nav(_nav_frame, '\u25C0', _nav_back, 30, 28,
+                '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0', ('Segoe UI', 10))
+            _btn_b.pack(side=tk.LEFT, padx=1)
+            _btn_f = _AB_nav(_nav_frame, '\u25B6', _nav_forward, 30, 28,
+                '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0', ('Segoe UI', 10))
+            _btn_f.pack(side=tk.LEFT, padx=1)
         except: pass
         # Keyboard shortcuts
         def _nav_key(e):
