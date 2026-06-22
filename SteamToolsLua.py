@@ -33,8 +33,8 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.1.0"
-VERSION_NAME = "Online Fix Downloader + Extraction"
+VERSION = "1.5.0"
+VERSION_NAME = "Online Fix + Navigation + Auto Update"
 UPDATE_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"       # e.g. "https://api.github.com/repos/user/repo/releases"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"     # snapshot release URL (token left blank)
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
@@ -136,8 +136,43 @@ def install_ui_fixes(g):
     AnimatedButton = g['AnimatedButton']
     GameCard = g['GameCard']
     SteamApp = g['SteamApp']
-    # Disable slow per-card online check (causes freeze on page navigation)
-    GameCard._check_online_status = lambda self: None
+    # SteamDB online detection: check if game has multiplayer categories
+    if not hasattr(SteamApp, '_mp_cache'):
+        SteamApp._mp_cache = {}
+    def _patched_online_check(self):
+        _aid = str(self.result.get('appid', ''))
+        if not _aid or _aid == '0':
+            self.btn_onlinefix.grid_remove()
+            return
+        if _aid in SteamApp._mp_cache:
+            if SteamApp._mp_cache[_aid]:
+                self.btn_onlinefix.grid()
+            else:
+                self.btn_onlinefix.grid_remove()
+            return
+        # Not cached yet - hide button and check asynchronously
+        self.btn_onlinefix.grid_remove()
+        def _check_mp():
+            try:
+                import requests as _req
+                _r = _req.get(f'https://store.steampowered.com/api/appdetails?appids={_aid}',
+                              timeout=8, headers={'User-Agent': 'Mozilla/5.0'})
+                if _r.status_code == 200:
+                    _data = _r.json()
+                    _app_data = _data.get(_aid, {})
+                    if _app_data.get('success'):
+                        _cats = _app_data.get('data', {}).get('categories', [])
+                        _mp_ids = {1, 9, 36, 38, 24}
+                        for _c in _cats:
+                            if _c.get('id') in _mp_ids:
+                                SteamApp._mp_cache[_aid] = True
+                                self.after(0, lambda: self.btn_onlinefix.grid())
+                                return
+                SteamApp._mp_cache[_aid] = False
+            except:
+                SteamApp._mp_cache[_aid] = False
+        threading.Thread(target=_check_mp, daemon=True).start()
+    GameCard._check_online_status = _patched_online_check
     clean_title = g['clean_title']
     ttk = g['ttk']
     threading = g['threading']
@@ -155,12 +190,12 @@ def install_ui_fixes(g):
 
     # ---- Multilingual ui text data ----
     extra_text = {
-        'tr': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': '\u00c7al\u0131\u015f\u0131yor...', 'button.inject_all': 'Inject All', 'button.install_millenium': 'Millenium Kur', 'button.luatools_installer': 'LuaTools Kur', 'button.launch_steamtools': 'SteamTools A\u00e7', 'button.restart_steam': 'Steam\u2019i Yeniden Ba\u015flat', 'button.update_check': 'G\u00fcncelle', 'button.snapshot': 'Karars\u0131z', 'button.youtube': 'YouTube', 'library.title': 'Library', 'library.open': 'Library A\u00e7', 'library.desc': '(enjekte ar\u015fivi)', 'library.name_az': '\u0130sim A-Z', 'library.date_new': 'Tarih \u25bc', 'library.date_old': 'Tarih \u25b2', 'library.open_folder': 'Klas\u00f6r A\u00e7', 'library.win_title': 'Library - Enjekte Edilen Oyunlar', 'library.col_date': 'Tarih', 'library.col_game': 'Oyun Ad\u0131', 'inject.err_title': 'Hata', 'inject.err_create': '1 New Games klas\u00f6r\u00fc olu\u015fturulamad\u0131!', 'inject.info_title': 'Bilgi', 'inject.no_zips_msg': '\u0130\u015flenecek .zip dosyas\u0131 bulunamad\u0131.', 'inject.done_title': '\u0130\u015flem Tamam', 'inject.ask_restart': '{count} zip inject edildi. Steam restart edilsin?', 'inject.select_title': 'Inject Edilecek Oyunlar', 'inject.select_all': 'T\u00fcm\u00fcn\u00fc Se\u00e7', 'inject.select_inject': 'Se\u00e7ilenleri Injectle', 'indicator.scanning': "Zip'ler taran\u0131yor...", 'indicator.no_zips': 'Zip bulunamad\u0131', 'indicator.done': '\u0130\u015flem tamam', 'indicator.steam_stop': 'Steam kapat\u0131l\u0131yor...', 'indicator.steam_start': 'Steam ba\u015flat\u0131l\u0131yor...', 'indicator.no_appid': 'AppID yok', 'indicator.manifest_dl': 'Manifest indiriliyor...', 'indicator.manifest_ok': 'Manifest tamam', 'indicator.manifest_timeout': 'Manifest zaman a\u015f\u0131m\u0131', 'indicator.manifest_err': 'Manifest hata', 'indicator.working': '\u00e7al\u0131\u015f\u0131yor...', 'indicator.fail': 'ba\u015far\u0131s\u0131z', 'indicator.timeout': 'zaman a\u015f\u0131m\u0131', 'indicator.err': 'hata', 'indicator.extracting': 'Ay\u0131klan\u0131yor', 'update.new_found': 'Yeni s\u00fcr\u00fcm {v} mevcut. Ge\u00e7mek ister misiniz?', 'update.downloading': 'G\u00fcncelleme indiriliyor...', 'update.done': 'G\u00fcncelleme indirildi. Uygulamak i\u00e7in yeniden ba\u015flat\u0131n.', 'update.error': 'G\u00fcncelleme kontrol\u00fc ba\u015far\u0131s\u0131z.', 'update.up_to_date': 'Zaten g\u00fcncelsiniz!', 'update.no_new_snapshot': 'Yeni snapshot s\u00fcr\u00fcm\u00fc yok. Zaten g\u00fcncelsiniz.', 'snapshot.warning': 'Snapshot s\u00fcr\u00fcmleri karars\u0131zd\u0131r ve hatalar i\u00e7erebilir. Devam etmek istiyor musunuz?', 'snapshot.switched': 'Snapshot kanal\u0131na ge\u00e7ildi. G\u00fcncelleme butonunu kullanarak kontrol edebilirsiniz.', 'snapshot.stable_switched': 'Kararl\u0131 kanala ge\u00e7ildi.', 'button.inject_onlinefixes': 'OnlineFix Enjekte Et'},
-        'en': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'Running...', 'button.inject_all': 'Inject All', 'button.install_millenium': 'Install Millenium', 'button.luatools_installer': 'LuaTools Installer', 'button.launch_steamtools': 'Launch SteamTools', 'button.restart_steam': 'Restart Steam', 'button.update_check': 'Update', 'button.snapshot': 'Snapshot', 'button.youtube': 'YouTube', 'library.title': 'Library', 'library.open': 'Open Library', 'library.desc': '(injected games archive)', 'library.name_az': 'Name A-Z', 'library.date_new': 'Date \u25bc', 'library.date_old': 'Date \u25b2', 'library.open_folder': 'Open Folder', 'library.win_title': 'Library - Injected Games', 'library.col_date': 'Date', 'library.col_game': 'Game Name', 'inject.err_title': 'Error', 'inject.err_create': 'Could not create 1 New Games folder!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'No .zip files to process.', 'inject.done_title': 'Done', 'inject.ask_restart': '{count} zip(s) injected. Restart Steam?', 'inject.select_title': 'Select Games to Inject', 'inject.select_all': 'Select All', 'inject.select_inject': 'Inject Selected', 'indicator.scanning': 'Scanning zips...', 'indicator.no_zips': 'No zips found', 'indicator.done': 'Done', 'indicator.steam_stop': 'Stopping Steam...', 'indicator.steam_start': 'Starting Steam...', 'indicator.no_appid': 'No AppID', 'indicator.manifest_dl': 'Downloading manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest timeout', 'indicator.manifest_err': 'Manifest error', 'indicator.working': 'working...', 'indicator.fail': 'failed', 'indicator.timeout': 'timeout', 'indicator.err': 'error', 'indicator.extracting': 'Extracting', 'update.new_found': 'New version {v} available. Switch to it?', 'update.downloading': 'Downloading update...', 'update.done': 'Update downloaded. Restart to apply.', 'update.error': 'Update check failed.', 'update.up_to_date': 'You are up to date!', 'update.no_new_snapshot': 'No new snapshot version. Already up to date.', 'snapshot.warning': 'Snapshot versions are unstable and may contain bugs. Do you want to continue?', 'snapshot.switched': 'Switched to snapshot channel. Use Update button to check.', 'snapshot.stable_switched': 'Switched to stable channel.', 'button.inject_onlinefixes': 'Inject OF'},
-        'es': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'En curso...', 'button.inject_all': 'Inyectar Todo', 'button.install_millenium': 'Instalar Millenium', 'button.luatools_installer': 'Instalador LuaTools', 'button.launch_steamtools': 'Iniciar SteamTools', 'button.restart_steam': 'Reiniciar Steam', 'button.update_check': 'Actualizar', 'button.snapshot': 'Inestable', 'button.youtube': 'YouTube', 'library.title': 'Biblioteca', 'library.open': 'Abrir Biblioteca', 'library.desc': '(archivo de juegos inyectados)', 'library.name_az': 'Nombre A-Z', 'library.date_new': 'Fecha \u25bc', 'library.date_old': 'Fecha \u25b2', 'library.open_folder': 'Abrir Carpeta', 'library.win_title': 'Biblioteca - Juegos Inyectados', 'library.col_date': 'Fecha', 'library.col_game': 'Nombre', 'inject.err_title': 'Error', 'inject.err_create': 'No se pudo crear la carpeta 1 New Games!', 'inject.info_title': 'Informaci\u00f3n', 'inject.no_zips_msg': 'No hay archivos .zip para procesar.', 'inject.done_title': 'Hecho', 'inject.ask_restart': '{count} zip(s) inyectados. \u00bfReiniciar Steam?', 'inject.select_title': 'Seleccionar Juegos a Inyectar', 'inject.select_all': 'Seleccionar Todo', 'inject.select_inject': 'Inyectar Seleccionados', 'indicator.scanning': 'Escaneando zips...', 'indicator.no_zips': 'Sin zips', 'indicator.done': 'Hecho', 'indicator.steam_stop': 'Deteniendo Steam...', 'indicator.steam_start': 'Iniciando Steam...', 'indicator.no_appid': 'Sin AppID', 'indicator.manifest_dl': 'Descargando manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest tiempo de espera', 'indicator.manifest_err': 'Error manifest', 'indicator.working': 'en curso...', 'indicator.fail': 'fall\u00f3', 'indicator.timeout': 'tiempo de espera', 'indicator.err': 'error', 'indicator.extracting': 'Extrayendo', 'update.new_found': '\u00a1Nueva versi\u00f3n {v} disponible! \u00bfDescargar?', 'update.downloading': 'Descargando actualizaci\u00f3n...', 'update.done': 'Actualizaci\u00f3n descargada. Reinicie para aplicar.', 'update.error': 'Error al buscar actualizaci\u00f3n.', 'update.up_to_date': '\u00a1Ya est\u00e1 actualizado!', 'snapshot.warning': 'Las versiones inestables pueden ser inestables. \u00bfContinuar?', 'snapshot.switched': 'Cambiado al canal inestable.', 'snapshot.stable_switched': 'Cambiado al canal estable.', 'button.inject_onlinefixes': 'Inyectar OF'},
-        'fr': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'En cours...', 'button.inject_all': 'Tout Injecter', 'button.install_millenium': 'Installer Millenium', 'button.luatools_installer': 'Installateur LuaTools', 'button.launch_steamtools': 'Lancer SteamTools', 'button.restart_steam': 'Red\u00e9marrer Steam', 'button.update_check': 'Mettre \u00e0 jour', 'button.snapshot': 'Instable', 'button.youtube': 'YouTube', 'library.title': 'Biblioth\u00e8que', 'library.open': 'Ouvrir Biblioth\u00e8que', 'library.desc': '(archive des jeux inject\u00e9s)', 'library.name_az': 'Nom A-Z', 'library.date_new': 'Date \u25bc', 'library.date_old': 'Date \u25b2', 'library.open_folder': 'Ouvrir Dossier', 'library.win_title': 'Biblioth\u00e8que - Jeux Inject\u00e9s', 'library.col_date': 'Date', 'library.col_game': 'Nom', 'inject.err_title': 'Erreur', 'inject.err_create': 'Impossible de cr\u00e9er le dossier 1 New Games!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'Aucun fichier .zip \u00e0 traiter.', 'inject.done_title': 'Termin\u00e9', 'inject.ask_restart': '{count} zip(s) inject\u00e9s. Red\u00e9marrer Steam?', 'inject.select_title': 'S\u00e9lectionner les jeux \u00e0 injecter', 'inject.select_all': 'Tout S\u00e9lectionner', 'inject.select_inject': 'Injecter la S\u00e9lection', 'indicator.scanning': 'Analyse des zips...', 'indicator.no_zips': 'Aucun zip', 'indicator.done': 'Termin\u00e9', 'indicator.steam_stop': 'Arr\u00eat de Steam...', 'indicator.steam_start': 'D\u00e9marrage de Steam...', 'indicator.no_appid': 'Pas d\'AppID', 'indicator.manifest_dl': 'T\u00e9l\u00e9chargement manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest d\u00e9lai d\u00e9pass\u00e9', 'indicator.manifest_err': 'Erreur manifest', 'indicator.working': 'en cours...', 'indicator.fail': '\u00e9chou\u00e9', 'indicator.timeout': 'd\u00e9lai d\u00e9pass\u00e9', 'indicator.err': 'erreur', 'indicator.extracting': 'Extraction', 'update.new_found': 'Nouvelle version {v} disponible. T\u00e9l\u00e9charger?', 'update.downloading': 'T\u00e9l\u00e9chargement de la mise \u00e0 jour...', 'update.done': 'Mise \u00e0 jour t\u00e9l\u00e9charg\u00e9e. Red\u00e9marrez pour appliquer.', 'update.error': '\u00c9chec de la v\u00e9rification de mise \u00e0 jour.', 'update.up_to_date': 'Vous \u00eates \u00e0 jour!', 'snapshot.warning': 'Les versions instables sont instables. Continuer?', 'snapshot.switched': 'Pass\u00e9 au canal instable.', 'snapshot.stable_switched': 'Pass\u00e9 au canal stable.', 'button.inject_onlinefixes': 'Injecter OF'},
-        'de': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'L\u00e4uft...', 'button.inject_all': 'Alle Injizieren', 'button.install_millenium': 'Millenium Installieren', 'button.luatools_installer': 'LuaTools Installer', 'button.launch_steamtools': 'SteamTools Starten', 'button.restart_steam': 'Steam Neustarten', 'button.update_check': 'Aktualisieren', 'button.snapshot': 'Instabil', 'button.youtube': 'YouTube', 'library.title': 'Bibliothek', 'library.open': 'Bibliothek \u00d6ffnen', 'library.desc': '(Archiv injizierter Spiele)', 'library.name_az': 'Name A-Z', 'library.date_new': 'Datum \u25bc', 'library.date_old': 'Datum \u25b2', 'library.open_folder': 'Ordner \u00d6ffnen', 'library.win_title': 'Bibliothek - Injizierte Spiele', 'library.col_date': 'Datum', 'library.col_game': 'Spielname', 'inject.err_title': 'Fehler', 'inject.err_create': '1 New Games Ordner konnte nicht erstellt werden!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'Keine .zip-Dateien zu verarbeiten.', 'inject.done_title': 'Erledigt', 'inject.ask_restart': '{count} zip(s) injiziert. Steam neustarten?', 'inject.select_title': 'Spiele zum Injizieren ausw\u00e4hlen', 'inject.select_all': 'Alle Ausw\u00e4hlen', 'inject.select_inject': 'Ausgew\u00e4hlte Injizieren', 'indicator.scanning': 'Scanne Zips...', 'indicator.no_zips': 'Keine Zips', 'indicator.done': 'Erledigt', 'indicator.steam_stop': 'Stoppe Steam...', 'indicator.steam_start': 'Starte Steam...', 'indicator.no_appid': 'Keine AppID', 'indicator.manifest_dl': 'Lade Manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest Zeit\u00fcberschreitung', 'indicator.manifest_err': 'Manifest Fehler', 'indicator.working': 'l\u00e4uft...', 'indicator.fail': 'fehlgeschlagen', 'indicator.timeout': 'Zeit\u00fcberschreitung', 'indicator.err': 'Fehler', 'indicator.extracting': 'Extrahiere', 'update.new_found': 'Neue Version {v} verf\u00fcgbar. Herunterladen?', 'update.downloading': 'Lade Update herunter...', 'update.done': 'Update heruntergeladen. Zum Anwenden neu starten.', 'update.error': 'Update-Pr\u00fcfung fehlgeschlagen.', 'update.up_to_date': 'Sie sind auf dem neuesten Stand!', 'update.no_new_snapshot': 'Keine neue Snapshot-Version. Bereits auf dem neuesten Stand.', 'snapshot.warning': 'Snapshot-Versionen sind instabil und können Fehler enthalten. Möchten Sie fortfahren?', 'snapshot.switched': 'Zu Snapshot-Kanal gewechselt. Verwenden Sie Update zum Prüfen.', 'snapshot.stable_switched': 'Zu stabilem Kanal gewechselt.', 'button.inject_onlinefixes': 'OF Injizieren'},
-        'ja': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': '実行中...', 'button.inject_all': 'すべて注入', 'button.install_millenium': 'Milleniumをインストール', 'button.luatools_installer': 'LuaToolsインストーラ', 'button.launch_steamtools': 'SteamToolsを起動', 'button.restart_steam': 'Steamを再起動', 'button.update_check': 'アップデート', 'button.snapshot': '不安定版', 'button.youtube': 'YouTube', 'library.title': 'ライブラリ', 'library.open': 'ライブラリを開く', 'library.desc': '(注入されたゲームのアーカイブ)', 'library.name_az': '名前 A-Z', 'library.date_new': '日付 ▼', 'library.date_old': '日付 ▲', 'library.open_folder': 'フォルダを開く', 'library.win_title': 'ライブラリ - 注入済ゲーム', 'library.col_date': '日付', 'library.col_game': 'ゲーム名', 'inject.err_title': 'エラー', 'inject.err_create': '1 New Gamesフォルダを作成できませんでした!', 'inject.info_title': '情報', 'inject.no_zips_msg': '処理する.zipファイルがありません。', 'inject.done_title': '完了', 'inject.ask_restart': '{count}個のZIPを注入しました。Steamを再起動しますか？', 'inject.select_title': '注入するゲームを選択', 'inject.select_all': 'すべて選択', 'inject.select_inject': '選択したものを注入', 'indicator.scanning': 'ZIPをスキャン中...', 'indicator.no_zips': 'ZIPが見つかりません', 'indicator.done': '完了', 'indicator.steam_stop': 'Steamを停止中...', 'indicator.steam_start': 'Steamを起動中...', 'indicator.no_appid': 'AppIDがありません', 'indicator.manifest_dl': 'マニフェストをダウンロード中...', 'indicator.manifest_ok': 'マニフェストOK', 'indicator.manifest_timeout': 'マニフェストタイムアウト', 'indicator.manifest_err': 'マニフェストエラー', 'indicator.working': '実行中...', 'indicator.fail': '失敗', 'indicator.timeout': 'タイムアウト', 'indicator.err': 'エラー', 'indicator.extracting': '抽出中', 'update.new_found': '新バージョン {v} が利用可能です。ダウンロードしますか？', 'update.downloading': 'アップデートをダウンロード中...', 'update.done': 'アップデートをダウンロードしました。再起動して適用してください。', 'update.error': 'アップデート確認に失敗しました。', 'update.up_to_date': '最新バージョンです！', 'update.no_new_snapshot': '新しいスナップショットバージョンはありません。既に最新です。', 'snapshot.warning': 'スナップショット版は不安定でバグが含まれる可能性があります。続行しますか？', 'snapshot.switched': 'スナップショットチャンネルに切り替えました。Updateボタンで確認できます。', 'snapshot.stable_switched': '安定チャンネルに切り替えました。', 'button.inject_onlinefixes': 'OFを注入'},
+        'tr': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': '\u00c7al\u0131\u015f\u0131yor...', 'button.inject_all': 'Inject All', 'button.install_millenium': 'Millenium Kur', 'button.luatools_installer': 'LuaTools Kur', 'button.launch_steamtools': 'SteamTools A\u00e7', 'button.restart_steam': 'Steam\u2019i Yeniden Ba\u015flat', 'button.update_check': 'G\u00fcncelle', 'button.snapshot': 'Karars\u0131z', 'button.youtube': 'YouTube', 'library.title': 'Library', 'library.open': 'Library A\u00e7', 'library.desc': '(enjekte ar\u015fivi)', 'library.name_az': '\u0130sim A-Z', 'library.date_new': 'Tarih \u25bc', 'library.date_old': 'Tarih \u25b2', 'library.open_folder': 'Klas\u00f6r A\u00e7', 'library.win_title': 'Library - Enjekte Edilen Oyunlar', 'library.col_date': 'Tarih', 'library.col_game': 'Oyun Ad\u0131', 'inject.err_title': 'Hata', 'inject.err_create': '1 New Games klas\u00f6r\u00fc olu\u015fturulamad\u0131!', 'inject.info_title': 'Bilgi', 'inject.no_zips_msg': '\u0130\u015flenecek .zip dosyas\u0131 bulunamad\u0131.', 'inject.done_title': '\u0130\u015flem Tamam', 'inject.ask_restart': '{count} zip inject edildi. Steam restart edilsin?', 'inject.select_title': 'Inject Edilecek Oyunlar', 'inject.select_all': 'T\u00fcm\u00fcn\u00fc Se\u00e7', 'inject.select_inject': 'Se\u00e7ilenleri Injectle', 'indicator.scanning': "Zip'ler taran\u0131yor...", 'indicator.no_zips': 'Zip bulunamad\u0131', 'indicator.done': '\u0130\u015flem tamam', 'indicator.steam_stop': 'Steam kapat\u0131l\u0131yor...', 'indicator.steam_start': 'Steam ba\u015flat\u0131l\u0131yor...', 'indicator.no_appid': 'AppID yok', 'indicator.manifest_dl': 'Manifest indiriliyor...', 'indicator.manifest_ok': 'Manifest tamam', 'indicator.manifest_timeout': 'Manifest zaman a\u015f\u0131m\u0131', 'indicator.manifest_err': 'Manifest hata', 'indicator.working': '\u00e7al\u0131\u015f\u0131yor...', 'indicator.fail': 'ba\u015far\u0131s\u0131z', 'indicator.timeout': 'zaman a\u015f\u0131m\u0131', 'indicator.err': 'hata', 'indicator.extracting': 'Ay\u0131klan\u0131yor', 'update.new_found': 'Yeni s\u00fcr\u00fcm {v} mevcut. Ge\u00e7mek ister misiniz?', 'update.downloading': 'G\u00fcncelleme indiriliyor...', 'update.done': 'G\u00fcncelleme indirildi. Uygulamak i\u00e7in yeniden ba\u015flat\u0131n.', 'update.error': 'G\u00fcncelleme kontrol\u00fc ba\u015far\u0131s\u0131z.', 'update.up_to_date': 'Zaten g\u00fcncelsiniz!', 'update.no_new_snapshot': 'Yeni snapshot s\u00fcr\u00fcm\u00fc yok. Zaten g\u00fcncelsiniz.', 'snapshot.warning': 'Snapshot s\u00fcr\u00fcmleri karars\u0131zd\u0131r ve hatalar i\u00e7erebilir. Devam etmek istiyor musunuz?', 'snapshot.switched': 'Snapshot kanal\u0131na ge\u00e7ildi. G\u00fcncelleme butonunu kullanarak kontrol edebilirsiniz.', 'snapshot.stable_switched': 'Kararl\u0131 kanala ge\u00e7ildi.', 'button.inject_onlinefixes': 'OnlineFix Enjekte Et', 'button.inject_all_onlinefixes': 'Experimental OF İnj'},
+        'en': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'Running...', 'button.inject_all': 'Inject All', 'button.install_millenium': 'Install Millenium', 'button.luatools_installer': 'LuaTools Installer', 'button.launch_steamtools': 'Launch SteamTools', 'button.restart_steam': 'Restart Steam', 'button.update_check': 'Update', 'button.snapshot': 'Snapshot', 'button.youtube': 'YouTube', 'library.title': 'Library', 'library.open': 'Open Library', 'library.desc': '(injected games archive)', 'library.name_az': 'Name A-Z', 'library.date_new': 'Date \u25bc', 'library.date_old': 'Date \u25b2', 'library.open_folder': 'Open Folder', 'library.win_title': 'Library - Injected Games', 'library.col_date': 'Date', 'library.col_game': 'Game Name', 'inject.err_title': 'Error', 'inject.err_create': 'Could not create 1 New Games folder!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'No .zip files to process.', 'inject.done_title': 'Done', 'inject.ask_restart': '{count} zip(s) injected. Restart Steam?', 'inject.select_title': 'Select Games to Inject', 'inject.select_all': 'Select All', 'inject.select_inject': 'Inject Selected', 'indicator.scanning': 'Scanning zips...', 'indicator.no_zips': 'No zips found', 'indicator.done': 'Done', 'indicator.steam_stop': 'Stopping Steam...', 'indicator.steam_start': 'Starting Steam...', 'indicator.no_appid': 'No AppID', 'indicator.manifest_dl': 'Downloading manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest timeout', 'indicator.manifest_err': 'Manifest error', 'indicator.working': 'working...', 'indicator.fail': 'failed', 'indicator.timeout': 'timeout', 'indicator.err': 'error', 'indicator.extracting': 'Extracting', 'update.new_found': 'New version {v} available. Switch to it?', 'update.downloading': 'Downloading update...', 'update.done': 'Update downloaded. Restart to apply.', 'update.error': 'Update check failed.', 'update.up_to_date': 'You are up to date!', 'update.no_new_snapshot': 'No new snapshot version. Already up to date.', 'snapshot.warning': 'Snapshot versions are unstable and may contain bugs. Do you want to continue?', 'snapshot.switched': 'Switched to snapshot channel. Use Update button to check.', 'snapshot.stable_switched': 'Switched to stable channel.', 'button.inject_onlinefixes': 'Inject OF', 'button.inject_all_onlinefixes': 'Inject All OF'},
+        'es': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'En curso...', 'button.inject_all': 'Inyectar Todo', 'button.install_millenium': 'Instalar Millenium', 'button.luatools_installer': 'Instalador LuaTools', 'button.launch_steamtools': 'Iniciar SteamTools', 'button.restart_steam': 'Reiniciar Steam', 'button.update_check': 'Actualizar', 'button.snapshot': 'Inestable', 'button.youtube': 'YouTube', 'library.title': 'Biblioteca', 'library.open': 'Abrir Biblioteca', 'library.desc': '(archivo de juegos inyectados)', 'library.name_az': 'Nombre A-Z', 'library.date_new': 'Fecha \u25bc', 'library.date_old': 'Fecha \u25b2', 'library.open_folder': 'Abrir Carpeta', 'library.win_title': 'Biblioteca - Juegos Inyectados', 'library.col_date': 'Fecha', 'library.col_game': 'Nombre', 'inject.err_title': 'Error', 'inject.err_create': 'No se pudo crear la carpeta 1 New Games!', 'inject.info_title': 'Informaci\u00f3n', 'inject.no_zips_msg': 'No hay archivos .zip para procesar.', 'inject.done_title': 'Hecho', 'inject.ask_restart': '{count} zip(s) inyectados. \u00bfReiniciar Steam?', 'inject.select_title': 'Seleccionar Juegos a Inyectar', 'inject.select_all': 'Seleccionar Todo', 'inject.select_inject': 'Inyectar Seleccionados', 'indicator.scanning': 'Escaneando zips...', 'indicator.no_zips': 'Sin zips', 'indicator.done': 'Hecho', 'indicator.steam_stop': 'Deteniendo Steam...', 'indicator.steam_start': 'Iniciando Steam...', 'indicator.no_appid': 'Sin AppID', 'indicator.manifest_dl': 'Descargando manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest tiempo de espera', 'indicator.manifest_err': 'Error manifest', 'indicator.working': 'en curso...', 'indicator.fail': 'fall\u00f3', 'indicator.timeout': 'tiempo de espera', 'indicator.err': 'error', 'indicator.extracting': 'Extrayendo', 'update.new_found': '\u00a1Nueva versi\u00f3n {v} disponible! \u00bfDescargar?', 'update.downloading': 'Descargando actualizaci\u00f3n...', 'update.done': 'Actualizaci\u00f3n descargada. Reinicie para aplicar.', 'update.error': 'Error al buscar actualizaci\u00f3n.', 'update.up_to_date': '\u00a1Ya est\u00e1 actualizado!', 'snapshot.warning': 'Las versiones inestables pueden ser inestables. \u00bfContinuar?', 'snapshot.switched': 'Cambiado al canal inestable.', 'snapshot.stable_switched': 'Cambiado al canal estable.', 'button.inject_onlinefixes': 'Inyectar OF', 'button.inject_all_onlinefixes': 'Inyectar Todo OF'},
+        'fr': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'En cours...', 'button.inject_all': 'Tout Injecter', 'button.install_millenium': 'Installer Millenium', 'button.luatools_installer': 'Installateur LuaTools', 'button.launch_steamtools': 'Lancer SteamTools', 'button.restart_steam': 'Red\u00e9marrer Steam', 'button.update_check': 'Mettre \u00e0 jour', 'button.snapshot': 'Instable', 'button.youtube': 'YouTube', 'library.title': 'Biblioth\u00e8que', 'library.open': 'Ouvrir Biblioth\u00e8que', 'library.desc': '(archive des jeux inject\u00e9s)', 'library.name_az': 'Nom A-Z', 'library.date_new': 'Date \u25bc', 'library.date_old': 'Date \u25b2', 'library.open_folder': 'Ouvrir Dossier', 'library.win_title': 'Biblioth\u00e8que - Jeux Inject\u00e9s', 'library.col_date': 'Date', 'library.col_game': 'Nom', 'inject.err_title': 'Erreur', 'inject.err_create': 'Impossible de cr\u00e9er le dossier 1 New Games!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'Aucun fichier .zip \u00e0 traiter.', 'inject.done_title': 'Termin\u00e9', 'inject.ask_restart': '{count} zip(s) inject\u00e9s. Red\u00e9marrer Steam?', 'inject.select_title': 'S\u00e9lectionner les jeux \u00e0 injecter', 'inject.select_all': 'Tout S\u00e9lectionner', 'inject.select_inject': 'Injecter la S\u00e9lection', 'indicator.scanning': 'Analyse des zips...', 'indicator.no_zips': 'Aucun zip', 'indicator.done': 'Termin\u00e9', 'indicator.steam_stop': 'Arr\u00eat de Steam...', 'indicator.steam_start': 'D\u00e9marrage de Steam...', 'indicator.no_appid': 'Pas d\'AppID', 'indicator.manifest_dl': 'T\u00e9l\u00e9chargement manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest d\u00e9lai d\u00e9pass\u00e9', 'indicator.manifest_err': 'Erreur manifest', 'indicator.working': 'en cours...', 'indicator.fail': '\u00e9chou\u00e9', 'indicator.timeout': 'd\u00e9lai d\u00e9pass\u00e9', 'indicator.err': 'erreur', 'indicator.extracting': 'Extraction', 'update.new_found': 'Nouvelle version {v} disponible. T\u00e9l\u00e9charger?', 'update.downloading': 'T\u00e9l\u00e9chargement de la mise \u00e0 jour...', 'update.done': 'Mise \u00e0 jour t\u00e9l\u00e9charg\u00e9e. Red\u00e9marrez pour appliquer.', 'update.error': '\u00c9chec de la v\u00e9rification de mise \u00e0 jour.', 'update.up_to_date': 'Vous \u00eates \u00e0 jour!', 'snapshot.warning': 'Les versions instables sont instables. Continuer?', 'snapshot.switched': 'Pass\u00e9 au canal instable.', 'snapshot.stable_switched': 'Pass\u00e9 au canal stable.', 'button.inject_onlinefixes': 'Injecter OF', 'button.inject_all_onlinefixes': 'Tout Injecter OF'},
+        'de': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'L\u00e4uft...', 'button.inject_all': 'Alle Injizieren', 'button.install_millenium': 'Millenium Installieren', 'button.luatools_installer': 'LuaTools Installer', 'button.launch_steamtools': 'SteamTools Starten', 'button.restart_steam': 'Steam Neustarten', 'button.update_check': 'Aktualisieren', 'button.snapshot': 'Instabil', 'button.youtube': 'YouTube', 'library.title': 'Bibliothek', 'library.open': 'Bibliothek \u00d6ffnen', 'library.desc': '(Archiv injizierter Spiele)', 'library.name_az': 'Name A-Z', 'library.date_new': 'Datum \u25bc', 'library.date_old': 'Datum \u25b2', 'library.open_folder': 'Ordner \u00d6ffnen', 'library.win_title': 'Bibliothek - Injizierte Spiele', 'library.col_date': 'Datum', 'library.col_game': 'Spielname', 'inject.err_title': 'Fehler', 'inject.err_create': '1 New Games Ordner konnte nicht erstellt werden!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'Keine .zip-Dateien zu verarbeiten.', 'inject.done_title': 'Erledigt', 'inject.ask_restart': '{count} zip(s) injiziert. Steam neustarten?', 'inject.select_title': 'Spiele zum Injizieren ausw\u00e4hlen', 'inject.select_all': 'Alle Ausw\u00e4hlen', 'inject.select_inject': 'Ausgew\u00e4hlte Injizieren', 'indicator.scanning': 'Scanne Zips...', 'indicator.no_zips': 'Keine Zips', 'indicator.done': 'Erledigt', 'indicator.steam_stop': 'Stoppe Steam...', 'indicator.steam_start': 'Starte Steam...', 'indicator.no_appid': 'Keine AppID', 'indicator.manifest_dl': 'Lade Manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest Zeit\u00fcberschreitung', 'indicator.manifest_err': 'Manifest Fehler', 'indicator.working': 'l\u00e4uft...', 'indicator.fail': 'fehlgeschlagen', 'indicator.timeout': 'Zeit\u00fcberschreitung', 'indicator.err': 'Fehler', 'indicator.extracting': 'Extrahiere', 'update.new_found': 'Neue Version {v} verf\u00fcgbar. Herunterladen?', 'update.downloading': 'Lade Update herunter...', 'update.done': 'Update heruntergeladen. Zum Anwenden neu starten.', 'update.error': 'Update-Pr\u00fcfung fehlgeschlagen.', 'update.up_to_date': 'Sie sind auf dem neuesten Stand!', 'update.no_new_snapshot': 'Keine neue Snapshot-Version. Bereits auf dem neuesten Stand.', 'snapshot.warning': 'Snapshot-Versionen sind instabil und können Fehler enthalten. Möchten Sie fortfahren?', 'snapshot.switched': 'Zu Snapshot-Kanal gewechselt. Verwenden Sie Update zum Prüfen.', 'snapshot.stable_switched': 'Zu stabilem Kanal gewechselt.', 'button.inject_onlinefixes': 'OF Injizieren', 'button.inject_all_onlinefixes': 'Alle OF Injizieren'},
+        'ja': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': '実行中...', 'button.inject_all': 'すべて注入', 'button.install_millenium': 'Milleniumをインストール', 'button.luatools_installer': 'LuaToolsインストーラ', 'button.launch_steamtools': 'SteamToolsを起動', 'button.restart_steam': 'Steamを再起動', 'button.update_check': 'アップデート', 'button.snapshot': '不安定版', 'button.youtube': 'YouTube', 'library.title': 'ライブラリ', 'library.open': 'ライブラリを開く', 'library.desc': '(注入されたゲームのアーカイブ)', 'library.name_az': '名前 A-Z', 'library.date_new': '日付 ▼', 'library.date_old': '日付 ▲', 'library.open_folder': 'フォルダを開く', 'library.win_title': 'ライブラリ - 注入済ゲーム', 'library.col_date': '日付', 'library.col_game': 'ゲーム名', 'inject.err_title': 'エラー', 'inject.err_create': '1 New Gamesフォルダを作成できませんでした!', 'inject.info_title': '情報', 'inject.no_zips_msg': '処理する.zipファイルがありません。', 'inject.done_title': '完了', 'inject.ask_restart': '{count}個のZIPを注入しました。Steamを再起動しますか？', 'inject.select_title': '注入するゲームを選択', 'inject.select_all': 'すべて選択', 'inject.select_inject': '選択したものを注入', 'indicator.scanning': 'ZIPをスキャン中...', 'indicator.no_zips': 'ZIPが見つかりません', 'indicator.done': '完了', 'indicator.steam_stop': 'Steamを停止中...', 'indicator.steam_start': 'Steamを起動中...', 'indicator.no_appid': 'AppIDがありません', 'indicator.manifest_dl': 'マニフェストをダウンロード中...', 'indicator.manifest_ok': 'マニフェストOK', 'indicator.manifest_timeout': 'マニフェストタイムアウト', 'indicator.manifest_err': 'マニフェストエラー', 'indicator.working': '実行中...', 'indicator.fail': '失敗', 'indicator.timeout': 'タイムアウト', 'indicator.err': 'エラー', 'indicator.extracting': '抽出中', 'update.new_found': '新バージョン {v} が利用可能です。ダウンロードしますか？', 'update.downloading': 'アップデートをダウンロード中...', 'update.done': 'アップデートをダウンロードしました。再起動して適用してください。', 'update.error': 'アップデート確認に失敗しました。', 'update.up_to_date': '最新バージョンです！', 'update.no_new_snapshot': '新しいスナップショットバージョンはありません。既に最新です。', 'snapshot.warning': 'スナップショット版は不安定でバグが含まれる可能性があります。続行しますか？', 'snapshot.switched': 'スナップショットチャンネルに切り替えました。Updateボタンで確認できます。', 'snapshot.stable_switched': '安定チャンネルに切り替えました。', 'button.inject_onlinefixes': 'OFを注入', 'button.inject_all_onlinefixes': 'すべてのOFを注入'},
     }
 
     settings_text = {
@@ -348,10 +383,6 @@ def install_ui_fixes(g):
             lambda: app.open_onlinefix(result), iw, 36,
             '#2d4a3e', '#3d6b56', '#66c0f4', '#f7fafc', ('Segoe UI Semibold', 9))
         self.btn_onlinefix.grid(row=5, column=0, sticky='ew', padx=14, pady=(0, 8))
-        self.btn_inject_of = AnimatedButton(self, app.tr('button.inject_onlinefixes'),
-            lambda: app.open_inject_onlinefixes(result), iw, 36,
-            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc', ('Segoe UI Semibold', 9))
-        self.btn_inject_of.grid(row=6, column=0, sticky='ew', padx=14, pady=(0, 8))
 
         for widget in (self.image_label, self.title_label, self.meta_label, self.footer_label):
             widget.bind('<Enter>', self._on_enter)
@@ -496,7 +527,6 @@ def install_ui_fixes(g):
         self.footer_label.configure(text=self.app.tr(footer_key))
         self.btn_indir.set_text(self.app.tr('button.download'))
         self.btn_onlinefix.set_text(self.app.tr('button.onlinefix'))
-        self.btn_inject_of.set_text(self.app.tr('button.inject_onlinefixes'))
         self.set_busy(False)
     GameCard.refresh_texts = _patched_refresh
     _orig_set_busy = GameCard.set_busy
@@ -504,7 +534,6 @@ def install_ui_fixes(g):
         global_busy = bool(getattr(self.app, 'busy', False))
         self.btn_indir.set_enabled(not global_busy)
         self.btn_onlinefix.set_enabled(not global_busy)
-        self.btn_inject_of.set_enabled(not global_busy)
     GameCard.set_busy = _patched_set_busy
     _orig_on_open = GameCard._on_open
     def _patched_on_open(self, event):
@@ -763,6 +792,7 @@ def install_ui_fixes(g):
             _subprocess.Popen(["C:\\Program Files (x86)\\Steam\\steam.exe"])
             self.log("Steam yeniden başlatıldı.")
     SteamApp.batch_inject_all = batch_inject_all
+
 
     # Add Inject All button to header
     _root_app = g.get('app')
@@ -1625,6 +1655,100 @@ def install_ui_fixes(g):
             files.append({'path': name, 'length': info.get(b'length', 0)})
         return files
 
+    # ---- Helper: download structured (Fix Repair or torrent) ----
+    def _download_structured(sess, dl_urls, out_dir, appid, headers, cookies, find_func, log, indicator):
+        import time as _t
+        # Try Fix Repair
+        upload_base = None
+        for u in dl_urls:
+            if '/uploads/' in u: upload_base = u; break
+        if upload_base:
+            repair_url = upload_base + '/Fix%20Repair/'
+            log(f'[OnlineFix] Fix Repair aranıyor: {repair_url}')
+            hr = sess.get(repair_url, timeout=15, headers=headers, cookies=cookies)
+            if hr.status_code == 200 and 'Generic.rar' in hr.text:
+                for m2 in re.finditer(r'<a href="([^"]+Generic[^"]*\.rar)"', hr.text, re.IGNORECASE):
+                    rar_path = m2.group(1)
+                    rar_url = rar_path if rar_path.startswith('http') else repair_url.rstrip('/') + '/' + rar_path
+                    rar_name = rar_path.split('/')[-1] if '/' in rar_path else rar_path
+                    dl_path = out_dir / rar_name
+                    log(f'[OnlineFix] İndiriliyor: {rar_name}')
+                    indicator('Online-Fix indiriliyor...', 'working')
+                    rd = sess.get(rar_url, stream=True, timeout=120, headers=headers, cookies=cookies)
+                    if rd.status_code != 200:
+                        log(f'[OnlineFix] HTTP {rd.status_code}'); indicator('OnlineFix: HTTP hatası', 'offline')
+                        return False
+                    total = int(rd.headers.get('Content-Length', 0))
+                    downloaded = 0; t0 = _t.time()
+                    with open(str(dl_path), 'wb') as f:
+                        for chunk in rd.iter_content(chunk_size=65536):
+                            if chunk:
+                                f.write(chunk); downloaded += len(chunk)
+                                if total:
+                                    pct = int(downloaded*100/total)
+                                    speed = downloaded/(_t.time()-t0)/1024 if (_t.time()-t0) > 0 else 0
+                                    indicator(f'OnlineFix: %{pct} ({speed:.0f} KB/s)', 'working')
+                    log(f'[OnlineFix] İndirme tamam: {dl_path}')
+                    # Extract directly into out_dir (flatten subfolders)
+                    extract_tmp = out_dir / '__extract__'
+                    extract_ok = False
+                    for pw in ('knkm',):
+                        try:
+                            cmd = ['7z', 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']
+                            if pw: cmd.append(f'-p{pw}')
+                            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, creationflags=0x08000000)
+                            if result.returncode == 0: extract_ok = True; break
+                        except: pass
+                    if extract_ok:
+                        log(f'[OnlineFix] Çıkartıldı, flatten ediliyor...')
+                        try: dl_path.unlink(); log('[OnlineFix] .rar silindi')
+                        except: pass
+                        # Flatten: move all files from extract_tmp into out_dir
+                        moved = 0
+                        for src in extract_tmp.rglob('*'):
+                            if src.is_file():
+                                try: rel = str(src.relative_to(extract_tmp))
+                                except: rel = src.name
+                                dst = out_dir / rel
+                                dst.parent.mkdir(parents=True, exist_ok=True)
+                                shutil.copy2(str(src), str(dst))
+                                moved += 1
+                        # Clean up extract_tmp
+                        try: shutil.rmtree(str(extract_tmp))
+                        except: pass
+                        log(f'[OnlineFix] {moved} dosya flatten edildi -> {out_dir}')
+                        indicator('OnlineFix hazır', 'online')
+                        os.startfile(str(out_dir))
+                        return True
+                    else:
+                        log('[OnlineFix] 7z çıkartılamadı')
+                        indicator('OnlineFix: çıkartılamadı', 'offline')
+                        os.startfile(str(out_dir))
+                        return False
+        # Try torrent
+        tor_base = None
+        for u in dl_urls:
+            if '/torrents/' in u: tor_base = u; break
+        if tor_base:
+            log(f'[OnlineFix] Torrent aranıyor: {tor_base}')
+            ht = sess.get(tor_base, timeout=15, headers=headers, cookies=cookies)
+            if ht.status_code == 200:
+                for m2 in re.finditer(r'<a href="([^"]+\.torrent)"', ht.text):
+                    tor_path = m2.group(1)
+                    tor_url = tor_path if tor_path.startswith('http') else tor_base.rstrip('/') + '/' + tor_path
+                    tor_name = tor_path.split('/')[-1] if '/' in tor_path else tor_path
+                    log(f'[OnlineFix] Torrent: {tor_name}')
+                    indicator('Online-Fix torrent...', 'working')
+                    rt = sess.get(tor_url, timeout=120, headers=headers, cookies=cookies)
+                    if rt.status_code != 200: break
+                    tor_path_out = out_dir / tor_name
+                    with open(str(tor_path_out), 'wb') as f: f.write(rt.content)
+                    log(f'[OnlineFix] Torrent kaydedildi: {tor_path_out}')
+                    indicator('OnlineFix torrent hazır', 'online')
+                    os.startfile(str(out_dir))
+                    return True
+        return False
+    
     def open_onlinefix_auto(self, result):
         game_name = str(result.get('name', '') or '')
         appid = str(result.get('appid', ''))
@@ -1632,269 +1756,78 @@ def install_ui_fixes(g):
             self._set_indicator('Oyun adi yok', 'offline')
             return
         def _task():
-            import re, urllib.parse, webbrowser, time as _time2, json
+            import re as _re, urllib.parse as _up, webbrowser as _wb
             sess = requests.Session()
             sess.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
             game_url = None
             try:
                 self._set_indicator('Online-Fix aranıyor...', 'working')
-                # 1) Try direct game page URL from appid
+                # Search by appid first
                 if appid:
                     r = sess.get(f'https://online-fix.me/index.php?do=search&subaction=search&story={appid}', timeout=15)
-                    for m in re.finditer(r'href="(https://online-fix\.me/games/[^"]+\.html)"', r.text):
-                        candidate = m.group(1).split('#')[0]
-                        if candidate not in (None, ''):
-                            game_url = candidate
-                            break
-                # 2) Search by name
+                    for m in _re.finditer(r'href="(https://online-fix\.me/games/[^"]+\.html)"', r.text):
+                        c = m.group(1).split('#')[0]
+                        if c: game_url = c; break
+                # Search by name
                 if not game_url:
-                    q = urllib.parse.quote(game_name[:80].strip())
+                    q = _up.quote(game_name[:80].strip())
                     r = sess.get(f'https://online-fix.me/index.php?do=search&subaction=search&story={q}', timeout=15)
-                    seen = set()
                     candidates = []
-                    for m in re.finditer(r'href="(https://online-fix\.me/games/[^"]+\.html)"', r.text):
+                    seen = set()
+                    for m in _re.finditer(r'href="(https://online-fix\.me/games/[^"]+\.html)"', r.text):
                         u = m.group(1).split('#')[0]
-                        if u not in seen:
-                            seen.add(u)
-                            candidates.append(u)
-                    search_words = set(re.findall(r'[a-z0-9]+', game_name.lower()))
+                        if u not in seen: seen.add(u); candidates.append(u)
+                    sw = set(_re.findall(r'[a-z0-9]+', game_name.lower()))
                     best_score = 0
                     for c in candidates:
-                        slug = c.split('/')[-1].replace('.html', '').replace('-po-seti', '').replace('-', ' ').lower()
-                        words = set(re.findall(r'[a-z0-9]+', slug))
-                        score = len(search_words & words)
-                        if score > best_score:
-                            best_score = score
-                            game_url = c
+                        slug = c.split('/')[-1].replace('.html','').replace('-po-seti','').replace('-',' ').lower()
+                        words = set(_re.findall(r'[a-z0-9]+', slug))
+                        score = len(sw & words)
+                        if score > best_score: best_score = score; game_url = c
                 if not game_url:
-                    self.log('[OnlineFix] Oyun online-fix.me\'de bulunamadı.')
-                    self._set_indicator('Online-Fix: bulunamadı', 'offline')
-                    webbrowser.open(f'https://online-fix.me/index.php?do=search&subaction=search&story={urllib.parse.quote(game_name[:80].strip())}')
+                    self.log('[OnlineFix] online-fix.me\'de bulunamadı')
+                    self._set_indicator('OnlineFix: bulunamadı', 'offline')
+                    _wb.open(f'https://online-fix.me/index.php?do=search&subaction=search&story={_up.quote(game_name[:80].strip())}')
                     return
                 self.log(f'[OnlineFix] Sayfa: {game_url}')
-                # 3) Fetch game page for PHPSESSID
+                # Fetch page for download links
                 r = sess.get(game_url, timeout=15)
                 phpsessid = sess.cookies.get('PHPSESSID', '')
-                # 4) Find all download URLs
+                # Extract structured URLs
                 dl_urls = set()
-                for m in re.finditer(r'(https?://(?:uploads|hosters|drive|torrents)\.online-fix\.me:\d+/[^"\']+)', r.text):
+                for m in _re.finditer(r'(https?://(?:uploads|hosters|drive|torrents)\.online-fix\.me:\d+/[^"\']+)', r.text):
                     dl_urls.add(m.group(1).rstrip('/'))
-                # Also catch path-based patterns on uploads server
-                for m in re.finditer(r'(https?://uploads\.online-fix\.me:\d+/(?:uploads|torrents)/[^"\']+)', r.text):
+                for m in _re.finditer(r'(https?://uploads\.online-fix\.me:\d+/(?:uploads|torrents)/[^"\']+)', r.text):
                     dl_urls.add(m.group(1).rstrip('/'))
-                if not dl_urls:
-                    self.log('[OnlineFix] İndirme linki bulunamadı.')
-                    self._set_indicator('Online-Fix: link yok', 'offline')
-                    return
-                _of_headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'Accept-Language': 'en-US,en;q=0.9', 'Referer': 'https://online-fix.me/'}
-                _of_cookies = {'PHPSESSID': phpsessid}
-                
-                # ---- Determine output folder ----
-                # Primary: save_path/Online Fixes/GameName/
-                # Fallback: %TEMP%/SteamToolsLua/OnlineFix/GameName/
+                # Setup output dir
                 _sv = self.settings.get('save_path', '') or ''
                 _of_root = Path(_sv, 'Online Fixes') if _sv and Path(_sv).exists() else Path(_os.environ['TEMP'], 'SteamToolsLua', 'OnlineFix')
                 _of_root.mkdir(parents=True, exist_ok=True)
-                # Sanitize game name for folder name
-                _safe_name = re.sub(r'[\\\\/:*?"<>|]', '_', game_name.strip())[:80]
+                _safe_name = _re.sub(r'[\\/:*?"<>|]', '_', game_name.strip())[:80]
                 _out_dir = _of_root / _safe_name
                 _out_dir.mkdir(parents=True, exist_ok=True)
-                
-                # 5) Try Fix Repair
-                upload_base = None
-                for u in dl_urls:
-                    if '/uploads/' in u:
-                        upload_base = u
-                        break
-                if upload_base:
-                    repair_url = upload_base + '/Fix%20Repair/'
-                    self.log(f'[OnlineFix] Fix Repair aranıyor: {repair_url}')
-                    hr = sess.get(repair_url, timeout=15, headers=_of_headers, cookies=_of_cookies)
-                    if hr.status_code == 200 and 'Generic.rar' in hr.text:
-                        for m2 in re.finditer(r'<a href="([^"]+Generic[^"]*\.rar)"', hr.text, re.IGNORECASE):
-                            rar_path = m2.group(1)
-                            if rar_path.startswith('http'):
-                                rar_url = rar_path
-                            else:
-                                rar_url = repair_url.rstrip('/') + '/' + rar_path
-                            rar_name = rar_path.split('/')[-1] if '/' in rar_path else rar_path
-                            _dl_path = _out_dir / rar_name
-                            self.log(f'[OnlineFix] İndiriliyor: {rar_name}')
-                            self._set_indicator('Online-Fix indiriliyor...', 'working')
-                            rd = sess.get(rar_url, stream=True, timeout=120, headers=_of_headers, cookies=_of_cookies)
-                            if rd.status_code != 200:
-                                self.log(f'[OnlineFix] İndirme hatası HTTP {rd.status_code}')
-                                self._set_indicator('Online-Fix: HTTP hatası', 'offline')
-                                break
-                            total = int(rd.headers.get('Content-Length', 0))
-                            downloaded = 0
-                            _t0 = _time2.time()
-                            with open(str(_dl_path), 'wb') as f:
-                                for chunk in rd.iter_content(chunk_size=65536):
-                                    if chunk:
-                                        f.write(chunk)
-                                        downloaded += len(chunk)
-                                        if total:
-                                            pct = int(downloaded * 100 / total)
-                                            elapsed = _time2.time() - _t0
-                                            speed = downloaded / elapsed / 1024 if elapsed > 0 else 0
-                                            self._set_indicator(f'OnlineFix: %{pct} ({speed:.0f} KB/s)', 'working')
-                            self.log(f'[OnlineFix] İndirme tamam: {_dl_path}')
-                            # Extract
-                            _extract_dir = _out_dir / _dl_path.stem
-                            _extract_ok = False
-                            for _pw in ('', 'knkm', 'online-fix.me'):
-                                try:
-                                    _cmd = ['7z', 'x', str(_dl_path), f'-o{str(_extract_dir)}', '-y']
-                                    if _pw:
-                                        _cmd.append(f'-p{_pw}')
-                                    _result = _subprocess.run(_cmd, capture_output=True, text=True, timeout=60, creationflags=0x08000000)
-                                    if _result.returncode == 0:
-                                        _extract_ok = True
-                                        break
-                                except Exception:
-                                    pass
-                            # Extract to out_dir root if subfolder extraction worked
-                            if _extract_ok:
-                                self.log(f'[OnlineFix] Çıkartıldı: {_extract_dir}')
-                                # Delete the .rar
-                                try:
-                                    _dl_path.unlink()
-                                    self.log(f'[OnlineFix] .rar silindi: {rar_name}')
-                                except Exception as _de:
-                                    self.log(f'[OnlineFix] .rar silinemedi: {_de}')
-                            else:
-                                self.log('[OnlineFix] 7z çıkartılamadı')
-                                _os.startfile(str(_out_dir))
-                                _save_dl_name(game_name)
-                                return
-                            # ---- Steam installation detection ----
-                            _steam_path = _find_steam_game_path(appid)
-                            if _steam_path:
-                                self.log(f'[OnlineFix] Steam oyunu bulundu: {_steam_path}')
-                                # Copy fix files to game folder
-                                for _src in _extract_dir.rglob('*'):
-                                    if _src.is_file():
-                                        _rel = _src.relative_to(_extract_dir)
-                                        _dst = _steam_path / _rel
-                                        try:
-                                            _dst.parent.mkdir(parents=True, exist_ok=True)
-                                            _shutil.copy2(str(_src), str(_dst))
-                                            self.log(f'[OnlineFix] Kopyalandı: {_rel}')
-                                        except Exception as _ce:
-                                            self.log(f'[OnlineFix] Kopyalama hatası: {_ce}')
-                                self._set_indicator('OnlineFix oyuna eklendi', 'online')
-                                _os.startfile(str(_steam_path))
-                            else:
-                                self._set_indicator('OnlineFix hazır', 'online')
-                                _os.startfile(str(_extract_dir))
-                            _save_dl_name(game_name)
-                            return
-                
-                # 6) No Fix Repair - try torrent
-                tor_base = None
-                for u in dl_urls:
-                    if '/torrents/' in u:
-                        tor_base = u
-                        break
-                if tor_base:
-                    self.log(f'[OnlineFix] Torrent aranıyor: {tor_base}')
-                    ht = sess.get(tor_base, timeout=15, headers=_of_headers, cookies=_of_cookies)
-                    if ht.status_code == 200:
-                        for m2 in re.finditer(r'<a href="([^"]+\.torrent)"', ht.text):
-                            tor_path = m2.group(1)
-                            if tor_path.startswith('http'):
-                                tor_url = tor_path
-                            else:
-                                tor_url = tor_base.rstrip('/') + '/' + tor_path
-                            tor_name = tor_path.split('/')[-1] if '/' in tor_path else tor_path
-                            self.log(f'[OnlineFix] Torrent indiriliyor: {tor_name}')
-                            self._set_indicator('Online-Fix torrent...', 'working')
-                            rt = sess.get(tor_url, timeout=120, headers=_of_headers, cookies=_of_cookies)
-                            if rt.status_code != 200:
-                                self.log(f'[OnlineFix] Torrent HTTP {rt.status_code}')
-                                break
-                            _tor_path = _out_dir / tor_name
-                            with open(str(_tor_path), 'wb') as f:
-                                f.write(rt.content)
-                            self.log(f'[OnlineFix] Torrent kaydedildi: {_tor_path}')
-                            # Parse .torrent to find Generic files
-                            try:
-                                _files = _parse_torrent_files(str(_tor_path))
-                                if _files:
-                                    _generic = [f for f in _files if 'generic' in f['path'].lower()]
-                                    self.log(f'[OnlineFix] Torrent içinde {len(_files)} dosya, {len(_generic)} Generic')
-                                    if _generic:
-                                        _list_path = _out_dir / 'generic_files.txt'
-                                        with open(str(_list_path), 'w', encoding='utf-8') as _lf:
-                                            for _gf in _generic:
-                                                _lf.write(_gf['path'] + '\n')
-                                        self.log(f'[OnlineFix] Generic dosya listesi: {_list_path}')
-                            except Exception as _pe:
-                                self.log(f'[OnlineFix] Torrent parse hatası: {_pe}')
-                            self._set_indicator('OnlineFix torrent hazır', 'online')
-                            _os.startfile(str(_out_dir))
-                            _save_dl_name(game_name)
-                            return
-                
-                # 7) Fallback
-                self.log('[OnlineFix] Fix Repair veya torrent bulunamadı, tarayıcı açılıyor.')
-                webbrowser.open(game_url)
+                _of_headers = {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://online-fix.me/'}
+                _of_cookies = {'PHPSESSID': phpsessid}
+                # Try structured download
+                if dl_urls:
+                    _downloaded = _download_structured(sess, dl_urls, _out_dir, appid, _of_headers, _of_cookies, _find_steam_game_path,
+                        lambda m: self.log(m), lambda t,s: self._set_indicator(t,s))
+                    if _downloaded:
+                        _save_dl_name(game_name)
+                        return
+                # Fallback: open game page in browser
+                self.log('[OnlineFix] Yapısal link yok, tarayıcı açılıyor')
+                self._set_indicator('OnlineFix: tarayıcı açıldı', 'online')
+                _wb.open(game_url)
                 _save_dl_name(game_name)
             except Exception as ex:
                 self.log(f'[OnlineFix] Hata: {ex}')
                 self._set_indicator('Online-Fix: hata', 'offline')
-                if game_url:
-                    webbrowser.open(game_url)
         threading.Thread(target=_task, daemon=True).start()
     SteamApp.open_onlinefix = open_onlinefix_auto
     SteamApp.open_result_steamdb = open_onlinefix_auto
 
-    def inject_onlinefixes_auto(self, result):
-        """Inject Online Fix files into Steam game folder."""
-        game_name = str(result.get('name', '') or '')
-        appid = str(result.get('appid', ''))
-        if not game_name:
-            return
-        def _task():
-            import re
-            # Find extracted fix files
-            _sv = self.settings.get('save_path', '') or ''
-            _of_root = Path(_sv, 'Online Fixes') if _sv and Path(_sv).exists() else Path(_os.environ['TEMP'], 'SteamToolsLua', 'OnlineFix')
-            _safe_name = re.sub(r'[\\\\/:*?"<>|]', '_', game_name.strip())[:80]
-            _extract_dirs = sorted(_of_root.glob(f'{_safe_name}*/**/*')) if _of_root.exists() else []
-            if not _extract_dirs:
-                self.log(f'[InjectOF] Online Fixes/{_safe_name} içinde dosya bulunamadı')
-                self._set_indicator('OnlineFix bulunamadı', 'offline')
-                return
-            # Find Steam install path
-            _steam_path = _find_steam_game_path(appid)
-            if not _steam_path:
-                self.log(f'[InjectOF] Steam oyun klasörü bulunamadı (AppID: {appid})')
-                self._set_indicator('Steam oyunu bulunamadı', 'offline')
-                return
-            self.log(f'[InjectOF] Oyun bulundu: {_steam_path}')
-            self._set_indicator('OnlineFix enjekte ediliyor...', 'working')
-            _count = 0
-            for _src in _extract_dirs:
-                if _src.is_file():
-                    # Try to find relative path within the extracted folder
-                    try:
-                        _rel_str = str(_src.relative_to(_of_root / _safe_name))
-                    except:
-                        _rel_str = _src.name
-                    _dst = _steam_path / _rel_str
-                    try:
-                        _dst.parent.mkdir(parents=True, exist_ok=True)
-                        _shutil.copy2(str(_src), str(_dst))
-                        _count += 1
-                    except Exception as _ce:
-                        self.log(f'[InjectOF] Kopyalama hatası: {_ce}')
-            self.log(f'[InjectOF] {_count} dosya kopyalandı -> {_steam_path}')
-            self._set_indicator(f'OnlineFix: {_count} dosya', 'online')
-            _os.startfile(str(_steam_path))
-        threading.Thread(target=_task, daemon=True).start()
-    SteamApp.open_inject_onlinefixes = inject_onlinefixes_auto
+
 
     # ---- Unlock All (batch unlock from ZIPs in used/) ----
     def _flatten_stplug_lua(appid, log_func=None):
@@ -1949,7 +1882,7 @@ def install_ui_fixes(g):
                 if tmp and os.path.exists(tmp.name): os.unlink(tmp.name)
             except: pass
 
-    # ---- ? Guide button on header ----
+    # ---- FALSE GUİDE Guide button on header ----
     def _open_guide(self):
         import webbrowser
         lang = self.settings.get('language', 'tr')
@@ -2795,7 +2728,7 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
                 'tr': {
                     'title': 'KAPSAMLI KULLANIM REHBERİ',
                     'content': """╔══════════════════════════════════════════╗
-║        STEAMTOOLSLUA KAPSAMLI REHBER        ║
+║        HATALI ESKİ REHBER       ║
 ╚══════════════════════════════════════════╝
 
 📌 BU UYGULAMA NE İŞE YARAR?
@@ -2981,7 +2914,7 @@ Uygulama hakkında sorun yaşarsanız:
                 'en': {
                     'title': 'COMPREHENSIVE USER GUIDE',
                     'content': """╔══════════════════════════════════════════╗
-║      STEAMTOOLSLUA COMPREHENSIVE GUIDE     ║
+║             FALSE USAGE GUİDE            ║
 ╚══════════════════════════════════════════╝
 
 📌 WHAT IS THIS APP?
@@ -3154,7 +3087,7 @@ A: Ensure the .lua file is in stplug-in folder. Check
                 'es': {
                     'title': 'GUÍA COMPLETA DE USUARIO',
                     'content': """╔══════════════════════════════════════════╗
-║       STEAMTOOLSLUA GUÍA COMPLETA        ║
+║      GUIA PARA DESCULPAS INDEVIDAS       ║
 ╚══════════════════════════════════════════╝
 
 📌 ¿QUÉ ES ESTA APLICACIÓN?
@@ -3284,7 +3217,7 @@ R: Asegúrate de que el .lua esté en stplug-in.
                 'fr': {
                     'title': 'GUIDE UTILISATEUR COMPLET',
                     'content': """╔══════════════════════════════════════════╗
-║    STEAMTOOLSLUA GUIDE UTILISATEUR       ║
+║       GUIDE DE FAUSSE UTILISATION        ║
 ╚══════════════════════════════════════════╝
 
 📌 QU'EST-CE QUE CETTE APPLICATION ?
@@ -3398,7 +3331,7 @@ R: Vérifiez que le .lua est dans stplug-in.
                 'de': {
                     'title': 'UMFASSENDES BENUTZERHANDBUCH',
                     'content': """╔══════════════════════════════════════════╗
-║     STEAMTOOLSLUA BENUTZERHANDBUCH       ║
+║     LEITFADEN FÜR UNGERECHTE AUSREDEN    ║
 ╚══════════════════════════════════════════╝
 
 📌 WAS IST DIESE ANWENDUNG?
@@ -3512,7 +3445,7 @@ A: Stellen Sie sicher, dass .lua in stplug-in ist.
                 'ja': {
                     'title': '包括的なユーザーガイド',
                     'content': """╔══════════════════════════════════════════╗
-║       STEAMTOOLSLUA ユーザーガイド       ║
+║            誤用に関する注意事項            ║
 ╚══════════════════════════════════════════╝
 
 📌 このアプリについて
@@ -3945,6 +3878,86 @@ A: .luaファイルがstplug-inフォルダにあることを
                                 fg='#97afc6', bg='#0d1724', font=('Segoe UI', 9))
             rate_lbl.grid(row=row_idx, column=4, padx=4, sticky='w')
             rate_labels[provider_name] = rate_lbl
+
+        # ---- Torrent Downloader Section ----
+        _tor_frame = tk.LabelFrame(window, text='Torrent \u0130ndirici [aria2c]',
+            font=('Segoe UI', 10, 'bold'), fg='#66c0f4', bg='#0d1724',
+            padx=12, pady=8, labelanchor='nw')
+        _tor_frame.pack(fill=tk.X, padx=16, pady=(8, 4))
+        # Torrent save path
+        _tor_path_frame = tk.Frame(_tor_frame, bg='#0d1724')
+        _tor_path_frame.pack(fill=tk.X, pady=4)
+        tk.Label(_tor_path_frame, text='Kay\u0131t:',
+                 fg='#dce7f4', bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT)
+        _tor_save_var = tk.StringVar(value=self.settings.get('torrent_save_path', str(Path.home() / 'Downloads')))
+        _tor_save_entry = tk.Entry(_tor_path_frame, textvariable=_tor_save_var,
+            relief=tk.FLAT, bg='#122235', fg='#edf2f7', insertbackground='#8fd3ff')
+        _tor_save_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
+        def _browse_tor_save():
+            import tkinter.filedialog as _fd
+            _p = _fd.askdirectory(title='Torrent kay\u0131t klas\u00f6r\u00fc')
+            if _p: _tor_save_var.set(_p)
+        AnimatedButton(_tor_path_frame, '...', _browse_tor_save, 30, 24,
+            '#1f3348', '#2b4b68', '#66c0f4', '#ffffff', ('Segoe UI', 8)).pack(side=tk.RIGHT)
+        # Torrent file selection + status
+        _tor_btn_frame = tk.Frame(_tor_frame, bg='#0d1724')
+        _tor_btn_frame.pack(fill=tk.X, pady=2)
+        _tor_listbox = tk.Listbox(_tor_btn_frame, height=4, bg='#122235', fg='#dce7f4',
+            selectbackground='#2b4b68', relief=tk.FLAT, font=('Segoe UI', 9))
+        _tor_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        _tor_scroll = ttk.Scrollbar(_tor_btn_frame, orient=tk.VERTICAL, command=_tor_listbox.yview)
+        _tor_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        _tor_listbox.config(yscrollcommand=_tor_scroll.set)
+        def _select_torrent():
+            import tkinter.filedialog as _fd
+            _f = _fd.askopenfilename(title='Torrent dosyas\u0131 se\u00e7',
+                filetypes=[('Torrent files', '*.torrent'), ('All files', '*.*')])
+            if _f:
+                _tor_listbox.insert(tk.END, f'[Bekliyor] {Path(_f).name}')
+                _tor_listbox.see(tk.END)
+                # Start download
+                import sys as _sys2, types as _types2
+                _mod_path2 = Path(getattr(_sys2, '_MEIPASS', Path(__file__).resolve().parent)) / 'webviewer_module.py'
+                if _mod_path2.exists():
+                    _mod2 = _types2.ModuleType('_tor_mod')
+                    _mod2.__builtins__ = __builtins__
+                    _mod2.__dict__.update({'requests': requests, 'subprocess': _subprocess, 'os': _os, 'Path': Path})
+                    _mod2.__dict__.update({'threading': threading, 'time': __import__('time'), 're': __import__('re')})
+                    with open(str(_mod_path2), 'r', encoding='utf-8') as _fh2:
+                        exec(_fh2.read(), _mod2.__dict__)
+                    _engine = _mod2.TorrentEngine(download_dir=_tor_save_var.get(), log_func=lambda m: self.log(m))
+                    _engine.start()
+                    _gid = _engine.add_torrent(_f)
+                    if _gid:
+                        def _monitor_tor(gid, eng, lb):
+                            import time as _tt
+                            while True:
+                                st = eng.get_status(gid)
+                                if isinstance(st, dict):
+                                    s = st.get('status', '')
+                                    if s == 'complete':
+                                        lb.delete(0, tk.END)
+                                        lb.insert(tk.END, f'[Tamam] {Path(_f).name}')
+                                        break
+                                    elif s == 'error':
+                                        lb.delete(0, tk.END)
+                                        lb.insert(tk.END, f'[Hata] {Path(_f).name}')
+                                        break
+                                    elif 'downloadSpeed' in st:
+                                        speed = int(st['downloadSpeed']) // 1024
+                                        comp = int(st.get('completedLength', 0))
+                                        total = int(st.get('totalLength', 0))
+                                        if total > 0:
+                                            pct = int(comp*100/total)
+                                            lb.delete(0, tk.END)
+                                            lb.insert(tk.END, f'[%{pct} {speed}KB/s] {Path(_f).name}')
+                                _tt.sleep(3)
+                        threading.Thread(target=_monitor_tor, args=(_gid, _engine, _tor_listbox), daemon=True).start()
+        AB(_tor_btn_frame, 'Torrent Se\u00e7', _select_torrent, 100, 28,
+           '#3a2840', '#5a2a4a', '#ff66aa', '#f7fafc', ('Segoe UI Semibold', 9)).pack(side=tk.BOTTOM, padx=6, pady=4)
+        # Drag-drop hint
+        tk.Label(_tor_btn_frame, text='S\u00fcr\u00fckle-b\u0131rak destegi yok (dosya se\u00e7ici kullan)',
+                 fg='#585878', bg='#0d1724', font=('Segoe UI', 8)).pack(side=tk.BOTTOM, pady=2)
 
         # Footer
         footer = tk.Frame(window, bg='#0d1724')
@@ -4415,6 +4428,57 @@ Start-Process -LiteralPath "{me}"
                     _save_hist(h)
                 root.after(100, _hide_hist)
             _srch_entry.bind('<Return>', _search_and_save, add='+')
+        # ---- Back/Forward Navigation ----
+        _nav_stack = []
+        _nav_pos = -1
+        def _nav_go(idx):
+            nonlocal _nav_pos
+            if 0 <= idx < len(_nav_stack):
+                _nav_pos = idx
+                _srch_entry.delete(0, tk.END)
+                _srch_entry.insert(0, _nav_stack[idx])
+                _srch_entry.event_generate('<Return>')
+        def _nav_back():
+            _nav_go(_nav_pos - 1)
+        def _nav_forward():
+            _nav_go(_nav_pos + 1)
+        def _nav_on_search(q):
+            nonlocal _nav_pos
+            if q and (_nav_pos < 0 or q != _nav_stack[_nav_pos]):
+                _nav_stack = _nav_stack[:_nav_pos + 1]
+                _nav_stack.append(q)
+                if len(_nav_stack) > 50: _nav_stack.pop(0)
+                _nav_pos = len(_nav_stack) - 1
+        _orig_save = _search_and_save
+        def _search_save_nav(e=None):
+            _orig_save(e)
+            _nav_on_search(_srch_entry.get().strip())
+        _srch_entry.bind('<Return>', _search_save_nav, add='+')
+        # Add nav buttons next to search entry
+        try:
+            _nav_font = ('Segoe UI', 12)
+            _parent = _srch_entry.master
+            _nav_frame = tk.Frame(_parent, bg=_parent.cget('bg'))
+            _nav_frame.pack(side=tk.LEFT, padx=(0, 4), before=_srch_entry)
+            _btn_b = tk.Button(_nav_frame, text='\u25C0', font=_nav_font,
+                bg=_parent.cget('bg'), fg='#7c6fff', relief=tk.FLAT,
+                activebackground='#1a1a30', activeforeground='#b09eff',
+                bd=0, padx=4, cursor='hand2', command=_nav_back)
+            _btn_b.pack(side=tk.LEFT)
+            _btn_f = tk.Button(_nav_frame, text='\u25B6', font=_nav_font,
+                bg=_parent.cget('bg'), fg='#7c6fff', relief=tk.FLAT,
+                activebackground='#1a1a30', activeforeground='#b09eff',
+                bd=0, padx=4, cursor='hand2', command=_nav_forward)
+            _btn_f.pack(side=tk.LEFT)
+        except: pass
+        # Keyboard shortcuts
+        def _nav_key(e):
+            if e.keysym == 'Left' and e.state & 0x20000:
+                _nav_back()
+            elif e.keysym == 'Right' and e.state & 0x20000:
+                _nav_forward()
+        root.bind('<Alt-Left>', _nav_key)
+        root.bind('<Alt-Right>', _nav_key)
     except: pass
 
     # ---- SteamDB Game Browser + Sidebar + Library ----
@@ -4764,44 +4828,55 @@ Start-Process -LiteralPath "{me}"
     root.after(100, lambda: (_style_scrollbars(root), None))
     root.after(800, _init_steamdb_browser)
 
-    # ---- Auto update check (with "don't show again" setting) ----
+    # ---- Auto update check (console output + popup + self-replace) ----
     def _check_auto_update():
-        import threading as _thr, webbrowser
+        import threading as _thr
         def _task():
             try:
                 import requests as _req
                 lang = app.settings.get('language', 'tr')
                 is_tr = lang == 'tr'
-                # Check skip flag
                 if app.settings.get('skip_update_notification', False):
                     return
+                print('[Update] Sürüm kontrol ediliyor...' if is_tr else '[Update] Checking version...')
+                app.log('[Update] GitHub releases kontrol ediliyor...')
                 r = _req.get(UPDATE_URL, timeout=10, headers={'Accept': 'application/vnd.github.v3+json',
                     'User-Agent': 'SteamToolsLua/1.0'})
-                if r.status_code != 200: return
+                if r.status_code != 200:
+                    print(f'[Update] API yanit vermedi (HTTP {r.status_code})')
+                    app.log(f'[Update] API hatasi: {r.status_code}')
+                    return
                 data = r.json()
                 latest = data.get('tag_name', '').lstrip('v')
                 current = VERSION
-                if not latest or latest == current: return
+                if not latest or latest == current:
+                    print(f'[Update] Zaten guncel (v{current})')
+                    return
                 def _parse(v):
                     parts = v.split('.')
                     return tuple(int(x) if x.isdigit() else 0 for x in parts) + (0,)*4
-                if _parse(latest) <= _parse(current): return
-                # Build custom popup with "don't show again" checkbox
+                if _parse(latest) <= _parse(current):
+                    print(f'[Update] Zaten guncel (v{current})')
+                    return
+                print(f'[Update] Yeni surum: v{current} -> v{latest}')
+                app.log(f'[Update] Yeni surum bulundu: v{latest}')
+                # Build custom popup with progress
                 _popup = tk.Toplevel(app.root)
-                _popup.title('Güncelleme' if is_tr else 'Update')
-                _popup.geometry('380x200')
+                _popup.title('Guncelleme' if is_tr else 'Update')
+                _popup.geometry('400x250')
                 _popup.configure(bg='#0d1724')
                 _popup.transient(app.root)
                 _popup.grab_set()
-                tk.Label(_popup, text='🚀 ' + ('Yeni Sürüm Mevcut!' if is_tr else 'New Version Available!'),
+                tk.Label(_popup, text=('Yeni Surum Mevcut!' if is_tr else 'New Version Available!'),
                         fg='#48bb78', bg='#0d1724', font=('Bahnschrift SemiBold', 16)).pack(pady=(20, 8))
-                msg = f'v{current} → v{latest}' if is_tr else f'v{current} → v{latest}'
-                tk.Label(_popup, text=msg, fg='#dce7f4', bg='#0d1724',
-                        font=('Segoe UI', 12)).pack(pady=(0, 10))
+                tk.Label(_popup, text=f'v{current} -> v{latest}', fg='#dce7f4', bg='#0d1724',
+                        font=('Segoe UI', 12)).pack(pady=(0, 6))
+                _status_lbl = tk.Label(_popup, text='', fg='#97afc6', bg='#0d1724', font=('Segoe UI', 9))
+                _status_lbl.pack(pady=(0, 6))
                 _skip_var = tk.BooleanVar(value=False)
-                tk.Checkbutton(_popup, text='Bir daha gösterme' if is_tr else "Don't show again",
+                tk.Checkbutton(_popup, text='Bir daha gosterme' if is_tr else "Don't show again",
                               variable=_skip_var, bg='#0d1724', activebackground='#0d1724',
-                              selectcolor='#244363', fg='#97afc6', font=('Segoe UI', 9)).pack(pady=(0, 10))
+                              selectcolor='#244363', fg='#97afc6', font=('Segoe UI', 9)).pack(pady=(0, 6))
                 _btnf = tk.Frame(_popup, bg='#0d1724')
                 _btnf.pack()
                 def _do_update():
@@ -4809,22 +4884,22 @@ Start-Process -LiteralPath "{me}"
                         app.settings['skip_update_notification'] = True
                         g['save_settings'](app.settings)
                     _popup.destroy()
-                    _download_and_replace(latest, data)
-                def _skip():
+                    _download_and_replace(latest, data, is_tr)
+                def _skip_dlg():
                     if _skip_var.get():
                         app.settings['skip_update_notification'] = True
                         g['save_settings'](app.settings)
                     _popup.destroy()
                 AB = g.get('AnimatedButton', AnimatedButton)
-                AB(_btnf, 'Güncelle' if is_tr else 'Update', _do_update, 100, 32,
+                AB(_btnf, 'Guncelle' if is_tr else 'Update', _do_update, 100, 32,
                    '#244363', '#315f8e', '#66c0f4', '#ffffff',
                    ('Segoe UI Semibold', 10)).pack(side=tk.LEFT, padx=4)
-                AB(_btnf, 'Daha Sonra' if is_tr else 'Later', _skip, 100, 32,
+                AB(_btnf, 'Daha Sonra' if is_tr else 'Later', _skip_dlg, 100, 32,
                    '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
                    ('Segoe UI Semibold', 10)).pack(side=tk.LEFT, padx=4)
             except:
                 import traceback; traceback.print_exc()
-        def _download_and_replace(latest, data):
+        def _download_and_replace(latest, data, is_tr):
             def _dl_task():
                 try:
                     import requests as _req
@@ -4832,19 +4907,37 @@ Start-Process -LiteralPath "{me}"
                     for a in data.get('assets', []):
                         if a.get('name', '').lower().endswith('.exe'):
                             asset = a; break
-                    if not asset: return
+                    if not asset:
+                        print('[Update] .exe dosyasi bulunamadi')
+                        app.log('[Update] Release icinde .exe yok')
+                        _messagebox.showerror('Update', '.exe dosyasi bulunamadi.')
+                        return
                     dl_url = asset.get('browser_download_url', '')
                     if not dl_url: return
-                    app.log(f'[Update] {latest} indiriliyor: {dl_url}')
+                    print(f'[Update] Indiriliyor: {dl_url}')
+                    app.log(f'[Update] {latest} indiriliyor...')
+                    tmp_exe = Path(os.environ.get('TEMP', '.')) / f'SteamToolsLua_{latest}.exe'
+                    # Stream download with progress
                     d = _req.get(dl_url, timeout=120, stream=True)
                     if d.status_code != 200:
-                        app.log('[Update] Indirme basarisiz'); return
-                    tmp_exe = Path(os.environ.get('TEMP', '.')) / f'SteamToolsLua_{latest}.exe'
+                        print(f'[Update] HTTP {d.status_code}')
+                        app.log(f'[Update] HTTP hatasi: {d.status_code}')
+                        _messagebox.showerror('Update', f'Indirme basarisiz (HTTP {d.status_code})')
+                        return
+                    total = int(d.headers.get('Content-Length', 0))
+                    downloaded = 0
                     with open(str(tmp_exe), 'wb') as f:
                         for chunk in d.iter_content(8192):
-                            if chunk: f.write(chunk)
+                            if chunk:
+                                f.write(chunk)
+                                downloaded += len(chunk)
+                                if total and downloaded % (1024*1024) < 8192:
+                                    pct = downloaded * 100 // total
+                                    print(f'[Update] Indirme: %{pct} ({downloaded//1024//1024}MB/{total//1024//1024}MB)')
+                    print(f'[Update] Indi: {tmp_exe} ({downloaded//1024//1024}MB)')
                     app.log(f'[Update] Indi: {tmp_exe}')
                     me = Path(sys.argv[0] if getattr(sys, 'frozen', False) else __file__).resolve()
+                    print(f'[Update] Kendi konumu: {me}')
                     ps_script = f'''
 Start-Sleep -Milliseconds 800
 try {{ Wait-Process -Name "{me.stem}" -Timeout 90 -ErrorAction Stop }} catch {{}}
@@ -4861,14 +4954,17 @@ Start-Process -LiteralPath "{me}"
 '''
                     updater = Path(os.environ.get('TEMP', '.')) / 'steamtools_update.ps1'
                     updater.write_text(ps_script.strip(), encoding='utf-8')
+                    print(f'[Update] PowerShell scripti yazildi')
                     app.log(f'[Update] Guncelleniyor...')
                     import subprocess as _sp
                     _sp.Popen(['powershell', '-ExecutionPolicy', 'Bypass', '-File', str(updater)],
                              startupinfo=_sp.STARTUPINFO(dwFlags=_sp.STARTF_USESHOWWINDOW),
                              creationflags=0x08000000)
+                    print('[Update] Uygulama kapatiliyor, guncelleme basliyor...')
                     app.root.after(300, app.root.destroy)
                 except:
                     import traceback; traceback.print_exc()
+                    _messagebox.showerror('Update', 'Guncelleme basarisiz.')
             _thr.Thread(target=_dl_task, daemon=True).start()
         _thr.Thread(target=_task, daemon=True).start()
     root.after(500, lambda: _show_setup_wizard(app))
