@@ -33,8 +33,8 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.5.0"
-VERSION_NAME = "Online Fix + Navigation + Auto Update"
+VERSION = "1.6.0"
+VERSION_NAME = "Online Fix + Folder Quick Access + Optimizations"
 UPDATE_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"       # e.g. "https://api.github.com/repos/user/repo/releases"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"     # snapshot release URL (token left blank)
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
@@ -139,6 +139,9 @@ def install_ui_fixes(g):
     # SteamDB online detection: check if game has multiplayer categories
     if not hasattr(SteamApp, '_mp_cache'):
         SteamApp._mp_cache = {}
+    # Semaphore to limit concurrent Steam API calls (max 2)
+    if not hasattr(SteamApp, '_mp_lock'):
+        SteamApp._mp_lock = __import__('threading').Semaphore(2)
     def _patched_online_check(self):
         _aid = str(self.result.get('appid', ''))
         if not _aid or _aid == '0':
@@ -150,28 +153,30 @@ def install_ui_fixes(g):
             else:
                 self.btn_onlinefix.grid_remove()
             return
-        # Not cached yet - hide button and check asynchronously
         self.btn_onlinefix.grid_remove()
-        def _check_mp():
+        def _check_mp(aid, card):
             try:
-                import requests as _req
-                _r = _req.get(f'https://store.steampowered.com/api/appdetails?appids={_aid}',
-                              timeout=8, headers={'User-Agent': 'Mozilla/5.0'})
-                if _r.status_code == 200:
-                    _data = _r.json()
-                    _app_data = _data.get(_aid, {})
-                    if _app_data.get('success'):
-                        _cats = _app_data.get('data', {}).get('categories', [])
-                        _mp_ids = {1, 9, 36, 38, 24}
-                        for _c in _cats:
-                            if _c.get('id') in _mp_ids:
-                                SteamApp._mp_cache[_aid] = True
-                                self.after(0, lambda: self.btn_onlinefix.grid())
-                                return
-                SteamApp._mp_cache[_aid] = False
+                with SteamApp._mp_lock:
+                    import requests as _req
+                    import time as _t
+                    _t.sleep(0.3)
+                    _r = _req.get(f'https://store.steampowered.com/api/appdetails?appids={aid}',
+                                  timeout=5, headers={'User-Agent': 'Mozilla/5.0'})
+                    if _r.status_code == 200:
+                        _data = _r.json()
+                        _app_data = _data.get(aid, {})
+                        if _app_data.get('success'):
+                            _cats = _app_data.get('data', {}).get('categories', [])
+                            _mp_ids = {1, 9, 36, 38, 24}
+                            for _c in _cats:
+                                if _c.get('id') in _mp_ids:
+                                    SteamApp._mp_cache[aid] = True
+                                    card.after(0, lambda: card.btn_onlinefix.grid())
+                                    return
+                    SteamApp._mp_cache[aid] = False
             except:
-                SteamApp._mp_cache[_aid] = False
-        threading.Thread(target=_check_mp, daemon=True).start()
+                SteamApp._mp_cache[aid] = False
+        __import__('threading').Thread(target=_check_mp, args=(_aid, self), daemon=True).start()
     GameCard._check_online_status = _patched_online_check
     clean_title = g['clean_title']
     ttk = g['ttk']
@@ -3584,85 +3589,6 @@ A: .luaファイルがstplug-inフォルダにあることを
             rate_labels[provider_name] = rate_lbl
 
         # ---- Torrent Downloader Section ----
-        _tor_frame = tk.LabelFrame(window, text='Torrent \u0130ndirici [aria2c]',
-            font=('Segoe UI', 10, 'bold'), fg='#66c0f4', bg='#0d1724',
-            padx=12, pady=8, labelanchor='nw')
-        _tor_frame.pack(fill=tk.X, padx=16, pady=(8, 4))
-        # Torrent save path
-        _tor_path_frame = tk.Frame(_tor_frame, bg='#0d1724')
-        _tor_path_frame.pack(fill=tk.X, pady=4)
-        tk.Label(_tor_path_frame, text='Kay\u0131t:',
-                 fg='#dce7f4', bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT)
-        _tor_save_var = tk.StringVar(value=self.settings.get('torrent_save_path', str(Path.home() / 'Downloads')))
-        _tor_save_entry = tk.Entry(_tor_path_frame, textvariable=_tor_save_var,
-            relief=tk.FLAT, bg='#122235', fg='#edf2f7', insertbackground='#8fd3ff')
-        _tor_save_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
-        def _browse_tor_save():
-            import tkinter.filedialog as _fd
-            _p = _fd.askdirectory(title='Torrent kay\u0131t klas\u00f6r\u00fc')
-            if _p: _tor_save_var.set(_p)
-        AnimatedButton(_tor_path_frame, '...', _browse_tor_save, 30, 24,
-            '#1f3348', '#2b4b68', '#66c0f4', '#ffffff', ('Segoe UI', 8)).pack(side=tk.RIGHT)
-        # Torrent file selection + status
-        _tor_btn_frame = tk.Frame(_tor_frame, bg='#0d1724')
-        _tor_btn_frame.pack(fill=tk.X, pady=2)
-        _tor_listbox = tk.Listbox(_tor_btn_frame, height=4, bg='#122235', fg='#dce7f4',
-            selectbackground='#2b4b68', relief=tk.FLAT, font=('Segoe UI', 9))
-        _tor_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        _tor_scroll = ttk.Scrollbar(_tor_btn_frame, orient=tk.VERTICAL, command=_tor_listbox.yview)
-        _tor_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-        _tor_listbox.config(yscrollcommand=_tor_scroll.set)
-        def _select_torrent():
-            import tkinter.filedialog as _fd
-            _f = _fd.askopenfilename(title='Torrent dosyas\u0131 se\u00e7',
-                filetypes=[('Torrent files', '*.torrent'), ('All files', '*.*')])
-            if _f:
-                _tor_listbox.insert(tk.END, f'[Bekliyor] {Path(_f).name}')
-                _tor_listbox.see(tk.END)
-                # Start download
-                import sys as _sys2, types as _types2
-                _mod_path2 = Path(getattr(_sys2, '_MEIPASS', Path(__file__).resolve().parent)) / 'webviewer_module.py'
-                if _mod_path2.exists():
-                    _mod2 = _types2.ModuleType('_tor_mod')
-                    _mod2.__builtins__ = __builtins__
-                    _mod2.__dict__.update({'requests': requests, 'subprocess': _subprocess, 'os': _os, 'Path': Path})
-                    _mod2.__dict__.update({'threading': threading, 'time': __import__('time'), 're': __import__('re')})
-                    with open(str(_mod_path2), 'r', encoding='utf-8') as _fh2:
-                        exec(_fh2.read(), _mod2.__dict__)
-                    _engine = _mod2.TorrentEngine(download_dir=_tor_save_var.get(), log_func=lambda m: self.log(m))
-                    _engine.start()
-                    _gid = _engine.add_torrent(_f)
-                    if _gid:
-                        def _monitor_tor(gid, eng, lb):
-                            import time as _tt
-                            while True:
-                                st = eng.get_status(gid)
-                                if isinstance(st, dict):
-                                    s = st.get('status', '')
-                                    if s == 'complete':
-                                        lb.delete(0, tk.END)
-                                        lb.insert(tk.END, f'[Tamam] {Path(_f).name}')
-                                        break
-                                    elif s == 'error':
-                                        lb.delete(0, tk.END)
-                                        lb.insert(tk.END, f'[Hata] {Path(_f).name}')
-                                        break
-                                    elif 'downloadSpeed' in st:
-                                        speed = int(st['downloadSpeed']) // 1024
-                                        comp = int(st.get('completedLength', 0))
-                                        total = int(st.get('totalLength', 0))
-                                        if total > 0:
-                                            pct = int(comp*100/total)
-                                            lb.delete(0, tk.END)
-                                            lb.insert(tk.END, f'[%{pct} {speed}KB/s] {Path(_f).name}')
-                                _tt.sleep(3)
-                        threading.Thread(target=_monitor_tor, args=(_gid, _engine, _tor_listbox), daemon=True).start()
-        AB(_tor_btn_frame, 'Torrent Se\u00e7', _select_torrent, 100, 28,
-           '#3a2840', '#5a2a4a', '#ff66aa', '#f7fafc', ('Segoe UI Semibold', 9)).pack(side=tk.BOTTOM, padx=6, pady=4)
-        # Drag-drop hint
-        tk.Label(_tor_btn_frame, text='S\u00fcr\u00fckle-b\u0131rak destegi yok (dosya se\u00e7ici kullan)',
-                 fg='#585878', bg='#0d1724', font=('Segoe UI', 8)).pack(side=tk.BOTTOM, pady=2)
-
         # Footer
         footer = tk.Frame(window, bg='#0d1724')
 
@@ -4133,54 +4059,7 @@ Start-Process -LiteralPath "{me}"
                     _save_hist(h)
                 root.after(100, _hide_hist)
             _srch_entry.bind('<Return>', _search_and_save, add='+')
-        # ---- Back/Forward Navigation ----
-        _nav_stack = []
-        _nav_pos = -1
-        def _nav_go(idx):
-            nonlocal _nav_pos
-            if 0 <= idx < len(_nav_stack):
-                _nav_pos = idx
-                _srch_entry.delete(0, tk.END)
-                _srch_entry.insert(0, _nav_stack[idx])
-                _srch_entry.event_generate('<Return>')
-        def _nav_back():
-            _nav_go(_nav_pos - 1)
-        def _nav_forward():
-            _nav_go(_nav_pos + 1)
-        def _nav_on_search(q):
-            nonlocal _nav_pos
-            if q and (_nav_pos < 0 or q != _nav_stack[_nav_pos]):
-                _nav_stack = _nav_stack[:_nav_pos + 1]
-                _nav_stack.append(q)
-                if len(_nav_stack) > 50: _nav_stack.pop(0)
-                _nav_pos = len(_nav_stack) - 1
-        _orig_save = _search_and_save
-        def _search_save_nav(e=None):
-            _orig_save(e)
-            _nav_on_search(_srch_entry.get().strip())
-        _srch_entry.bind('<Return>', _search_save_nav, add='+')
-        # Add nav buttons next to search entry
-        try:
-            _nav_font = ('Segoe UI', 12)
-            _parent = _srch_entry.master
-            _nav_frame = tk.Frame(_parent, bg=_parent.cget('bg'))
-            _nav_frame.pack(side=tk.LEFT, padx=(0, 4), before=_srch_entry)
-            _AB_nav = g.get('AnimatedButton', AnimatedButton)
-            _btn_b = _AB_nav(_nav_frame, '\u25C0', _nav_back, 30, 28,
-                '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0', ('Segoe UI', 10))
-            _btn_b.pack(side=tk.LEFT, padx=1)
-            _btn_f = _AB_nav(_nav_frame, '\u25B6', _nav_forward, 30, 28,
-                '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0', ('Segoe UI', 10))
-            _btn_f.pack(side=tk.LEFT, padx=1)
-        except: pass
-        # Keyboard shortcuts
-        def _nav_key(e):
-            if e.keysym == 'Left' and e.state & 0x20000:
-                _nav_back()
-            elif e.keysym == 'Right' and e.state & 0x20000:
-                _nav_forward()
-        root.bind('<Alt-Left>', _nav_key)
-        root.bind('<Alt-Right>', _nav_key)
+
     except: pass
 
     # ---- SteamDB Game Browser + Sidebar + Library ----
