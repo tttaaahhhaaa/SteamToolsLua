@@ -33,36 +33,29 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.7.1"
-VERSION_NAME = "Clean update + minimize fix"
+VERSION = "1.7.2"
+VERSION_NAME = "Delete old version + update info + page nav"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/main/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
 
 def main():
-    # --- UPDATE CLEANUP: delete old exe, rename self, delete stale v_exe ---
+    # --- STARTUP: check for .update_info.txt from a completed update ---
+    _update_info_path = None
     try:
         if getattr(sys, 'frozen', False):
-            me = Path(sys.argv[0]).resolve()
-            if me.stem.startswith('SteamToolsLua_v'):
-                exe_dir = me.parent
-                old = exe_dir / 'SteamToolsLua.exe'
-                if old.exists():
-                    try: old.unlink()
-                    except:
-                        try:
-                            tmp = exe_dir / 'SteamToolsLua_todel.exe'
-                            ctypes.windll.kernel32.MoveFileW(str(old), str(tmp))
-                            tmp.unlink()
-                        except: pass
-                if not (exe_dir / 'SteamToolsLua.exe').exists():
-                    try: ctypes.windll.kernel32.MoveFileW(str(me), str(exe_dir / 'SteamToolsLua.exe'))
-                    except: pass
-                for f in exe_dir.glob('SteamToolsLua_v*.exe'):
-                    if f.resolve() != me and f.resolve() != exe_dir / 'SteamToolsLua.exe':
-                        try: f.unlink()
-                        except: pass
+            _me = Path(sys.argv[0]).resolve()
+            _info_file = _me.parent / '.update_info.txt'
+            if _info_file.exists():
+                try:
+                    _info = json.loads(_info_file.read_text(encoding='utf-8'))
+                    _old_name = _info.get('old_name', '')
+                    _old_path = _info.get('old_path', '')
+                    _old_exe = Path(_old_path) / _old_name if _old_path else _me.parent / _old_name
+                    _updated_to = _info.get('updated_to', '')
+                    _update_info_path = _info_file
+                except: pass
     except:
         pass
     _tk = __import__('tkinter')
@@ -156,6 +149,26 @@ def main():
             root.after(10, lambda: root.attributes('-topmost', False))
         except: pass
     root.bind('<Map>', _on_deiconify)
+    # --- Show update-completed dialog if .update_info.txt found ---
+    def _handle_update_dialog():
+        try:
+            if _update_info_path is None or not _update_info_path.exists():
+                return
+            import json
+            _info = json.loads(_update_info_path.read_text(encoding='utf-8'))
+            _old_name = _info.get('old_name', '')
+            _old_path = _info.get('old_path', '')
+            _updated_to = _info.get('updated_to', '')
+            _old_exe = (Path(_old_path) / _old_name) if _old_path else (root and Path(sys.argv[0]).resolve().parent / _old_name)
+            _msg = f'Update to v{_updated_to} completed.\nDelete old version ({_old_name})?'
+            _ans = tkinter.messagebox.askyesno('Update', _msg)
+            if _ans and _old_exe and _old_exe.exists():
+                try: _old_exe.unlink()
+                except: pass
+            try: _update_info_path.unlink()
+            except: pass
+        except: pass
+    root.after(2000, _handle_update_dialog)
     real_mainloop(root)
 
 
@@ -3486,6 +3499,27 @@ A: .luaファイルがstplug-inフォルダにあることを
             AB(_folder_row, _flabel, lambda n=_fname: _open_subfolder(n), 100, 28,
                '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
                ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
+        # Delete Old Version button
+        def _del_old_ver():
+            if not getattr(sys, 'frozen', False): return
+            _me = Path(sys.argv[0]).resolve()
+            _dir = _me.parent
+            _old_exes = []
+            for _f in _dir.glob('SteamToolsLua*.exe'):
+                if _f.resolve() != _me:
+                    _old_exes.append(_f.name)
+            if not _old_exes:
+                _messagebox.showinfo('Delete Old Version', 'No old versions found.')
+                return
+            _msg = f'Delete old version(s)?\n' + '\n'.join(_old_exes)
+            if _messagebox.askyesno('Delete Old Version', _msg):
+                for _f in _old_exes:
+                    try: (_dir / _f).unlink()
+                    except: pass
+                _messagebox.showinfo('Delete Old Version', 'Deleted.')
+        AB(_folder_row, 'Del Old', _del_old_ver, 80, 28,
+           '#4a1a2a', '#6a2a3a', '#ff6b6b', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(6, 0))
 
         # ---- Library section ----
         lib_frame = tk.Frame(window, bg='#0d1724')
@@ -3684,6 +3718,11 @@ A: .luaファイルがstplug-inフォルダにあることを
                                     pct = downloaded * 100 // total
                                     self.root.after(0, lambda p=pct: self._set_indicator(f'Guncelleme: %{p}', 'working'))
                     self.log(f'[Update] v{latest} indirildi, baslatiliyor...')
+                    try:
+                        _info = {"old_name": me.name, "old_path": str(me.parent), "updated_to": latest}
+                        _info_file = me.parent / '.update_info.txt'
+                        _info_file.write_text(json.dumps(_info), encoding='utf-8')
+                    except: pass
                     import subprocess as _sp
                     _sp.Popen([str(out_path)], close_fds=True)
                     self.root.after(500, lambda: os._exit(0))
@@ -4217,6 +4256,13 @@ A: .luaファイルがstplug-inフォルダにあることを
             else:
                 viewed[page] = current_ids
             app._sd_viewed = viewed
+            # Save viewed pages to disk
+            _vf = getattr(app, '_sd_viewed_file', None)
+            if _vf:
+                try:
+                    _ser = {str(k): list(v) for k, v in viewed.items()}
+                    _vf.write_text(json.dumps(_ser), encoding='utf-8')
+                except: pass
             # Rebuild page buttons
             _rebuild_page_btns(app)
         except Exception as ex:
@@ -4330,6 +4376,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                 pass
             # Load from cache only - no API call on startup
             app._sd_offset = 0
+            app._sd_viewed_file = _data_dir / "steamdb_viewed.json"
             games = _load_steamdb_games(offset=0)
             app._sd_total_games = 0
             if games:
@@ -4447,7 +4494,16 @@ A: .luaファイルがstplug-inフォルダにあることを
             app._sd_prev = sd_prev
             app._sd_next = sd_next
             app._sd_page_btns = sd_page_btns
-            app._sd_viewed = {}
+            # Load previously viewed pages from disk
+            _sd_v = getattr(app, '_sd_viewed_file', None)
+            if _sd_v and _sd_v.exists():
+                try:
+                    import json
+                    app._sd_viewed = {int(k): set(v) for k, v in json.loads(_sd_v.read_text(encoding='utf-8')).items()}
+                except:
+                    app._sd_viewed = {}
+            else:
+                app._sd_viewed = {}
             cinfo = app.results_canvas.pack_info()
             app.results_canvas.pack_forget()
             sd_bar.pack(fill=tk.X, padx=20, pady=(0, 5))
@@ -4601,6 +4657,11 @@ A: .luaファイルがstplug-inフォルダにあることを
                                     app.root.after(0, lambda p=pct: app._set_indicator(f'Guncelleme: %{p}', 'working'))
                     print(f'[Update] Indi: {out_path} ({downloaded//1024//1024}MB)')
                     app.log(f'[Update] v{latest} indirildi, baslatiliyor...')
+                    try:
+                        _info = {"old_name": me.name, "old_path": str(me.parent), "updated_to": latest}
+                        _info_file = me.parent / '.update_info.txt'
+                        _info_file.write_text(json.dumps(_info), encoding='utf-8')
+                    except: pass
                     import subprocess as _sp
                     _sp.Popen([str(out_path)], close_fds=True)
                     app.root.after(500, lambda: os._exit(0))
