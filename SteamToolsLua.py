@@ -33,13 +33,35 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.6.0"
-VERSION_NAME = "Online Fix + Folder Quick Access + Optimizations"
-UPDATE_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"       # e.g. "https://api.github.com/repos/user/repo/releases"
-SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"     # snapshot release URL (token left blank)
+VERSION = "1.7.1"
+VERSION_NAME = "Simple Download (no exe replace)"
+UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/main/latest_version.txt"
+DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
+SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
 
 def main():
+    # --- UPDATE CLEANUP: old exe delete + self-rename ---
+    try:
+        if getattr(sys, 'frozen', False):
+            me = Path(sys.argv[0]).resolve()
+            if me.stem.startswith('SteamToolsLua_v'):
+                exe_dir = me.parent
+                for f in exe_dir.glob('SteamToolsLua_v*.exe'):
+                    if f.resolve() != me:
+                        try: f.unlink()
+                        except: pass
+                old = exe_dir / 'SteamToolsLua.exe'
+                if old.exists():
+                    try: old.unlink()
+                    except:
+                        try: ctypes.windll.kernel32.MoveFileW(str(old), str(old.with_name('SteamToolsLua.exe.old')))
+                        except: pass
+                if not (exe_dir / 'SteamToolsLua.exe').exists():
+                    try: ctypes.windll.kernel32.MoveFileW(str(me), str(exe_dir / 'SteamToolsLua.exe'))
+                    except: pass
+    except:
+        pass
     _tk = __import__('tkinter')
     __import__('html')
     # --- PURPLE PALETTE - intercept blue colors at widget birth ---
@@ -120,6 +142,10 @@ def main():
     root = app_globals.get('root', None)
     if root is None or os.getenv('STEAMTOOLS_SMOKE_TEST') == '1':
         return
+    # Fix: ensure window closes properly and returns from taskbar
+    root.protocol('WM_DELETE_WINDOW', root.destroy)
+    try: root.attributes('-toolwindow', False)
+    except: pass
     real_mainloop(root)
 
 
@@ -3385,25 +3411,65 @@ A: .luaファイルがstplug-inフォルダにあることを
         _cr_light = tk.Label(tools_row, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 14))
         _cr_light.pack(side=tk.LEFT, padx=(0, 4))
         def _run_cr():
-            import threading as _thr, requests as _req, subprocess as _sp, os
+            import threading as _thr, subprocess as _sp, os
             from pathlib import Path
             _cr_light.config(fg='#f6ad55')
-            def _dl():
+            def _launch():
                 try:
-                    url = 'https://github.com/Selectively11/CloudRedirect/releases/download/v2.1.8/CloudRedirect.exe'
-                    tmp = Path(os.environ.get('TEMP', '.')) / 'CloudRedirect.exe'
-                    r = _req.get(url, timeout=120, stream=True)
-                    if r.status_code == 200:
-                        with open(str(tmp), 'wb') as f:
-                            for chunk in r.iter_content(8192):
-                                if chunk: f.write(chunk)
-                        _sp.Popen([str(tmp)])
-                    _cr_light.config(fg='#48bb78')
-                except: pass
-            _thr.Thread(target=_dl, daemon=True).start()
+                    cr_exe = resource_path('CloudRedirect.exe')
+                    cr_dll = resource_path('cloud_redirect.dll')
+                    tmp = Path(os.environ.get('TEMP', '.'))
+                    dest_exe = tmp / 'CloudRedirect.exe'
+                    dest_dll = tmp / 'cloud_redirect.dll'
+                    import shutil
+                    if cr_exe.exists():
+                        shutil.copy2(str(cr_exe), str(dest_exe))
+                        if cr_dll.exists():
+                            shutil.copy2(str(cr_dll), str(dest_dll))
+                        _sp.Popen([str(dest_exe)])
+                        _cr_light.config(fg='#48bb78')
+                    else:
+                        _cr_light.config(fg='#f56565')
+                except:
+                    _cr_light.config(fg='#f56565')
+            _thr.Thread(target=_launch, daemon=True).start()
         AB(tools_row, 'CloudRedirect', _run_cr,
            130, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
+
+        # ---- UI Scale Slider ----
+        _scale_frame = tk.Frame(window, bg='#0d1724')
+        _scale_frame.pack(fill=tk.X, padx=16, pady=(4, 2))
+        _scale_lbl = tk.Label(_scale_frame, text='UI Scale', fg='#8fd3ff', bg='#0d1724',
+                 font=('Segoe UI Semibold', 11))
+        _scale_lbl.pack(anchor='w')
+        _scale_row = tk.Frame(window, bg='#0d1724')
+        _scale_row.pack(fill=tk.X, padx=16, pady=(0, 6))
+        _scale_vals = [100, 80, 75, 65, 50, 40, 30, 20]
+        _current_scale = self.settings.get('ui_scale', 100)
+        if _current_scale not in _scale_vals:
+            _current_scale = 100
+        _scale_var = tk.IntVar(value=_current_scale)
+        def _set_scale(val):
+            closest = min(_scale_vals, key=lambda x: abs(x - int(float(val))))
+            _scale_var.set(closest)
+            factor = closest / 100.0
+            try: self.root.tk.call('tk', 'scaling', factor)
+            except: pass
+            self.settings['ui_scale'] = closest
+            g['save_settings'](self.settings)
+        _scale_w = tk.Scale(_scale_row, from_=100, to=20, orient=tk.HORIZONTAL,
+                   variable=_scale_var, command=_set_scale, showvalue=False,
+                   bg='#0d1724', fg='#dce7f4', troughcolor='#1f3348',
+                   activebackground='#7c6fff', highlightthickness=0,
+                   length=280, sliderlength=20, resolution=1)
+        _scale_w.pack(side=tk.LEFT, padx=(0, 10))
+        _scale_display = tk.Label(_scale_row, text=f'{_current_scale}%', fg='#66c0f4',
+                      bg='#0d1724', font=('Segoe UI', 10, 'bold'))
+        _scale_display.pack(side=tk.LEFT)
+        def _update_scale_display(*_):
+            _scale_display.config(text=f'{_scale_var.get()}%')
+        _scale_var.trace_add('write', _update_scale_display)
 
         # Also add save_path field
         _sv_frame = tk.Frame(window, bg='#0d1724')
@@ -3608,12 +3674,10 @@ A: .luaファイルがstplug-inフォルダにあることを
             def _task():
                 try:
                     import requests as _req
-                    r = _req.get(UPDATE_URL, timeout=10, headers={'Accept': 'application/vnd.github.v3+json',
-                        'User-Agent': 'SteamToolsLua/1.0'})
+                    r = _req.get(UPDATE_URL, timeout=10)
                     if r.status_code != 200:
-                        self.log('[Update] API hatasi'); return
-                    data = r.json()
-                    latest = data.get('tag_name', '').lstrip('v')
+                        self.log('[Update] Sürüm kontrolü başarısız'); return
+                    latest = r.text.strip()
                     current = VERSION
                     if not latest or latest == current:
                         self.log(f'[Update] Zaten guncel (v{current})')
@@ -3626,44 +3690,27 @@ A: .luaファイルがstplug-inフォルダにあることを
                         self.log(f'[Update] Zaten guncel (v{current})')
                         _messagebox.showinfo('Update', _tr(self, 'update.up_to_date'))
                         return
-                    asset = None
-                    for a in data.get('assets', []):
-                        if a.get('name', '').lower().endswith('.exe'):
-                            asset = a; break
-                    if not asset: return
-                    dl_url = asset.get('browser_download_url', '')
-                    if not dl_url: return
+                    dl_url = f'{DOWNLOAD_BASE}/v{latest}/SteamToolsLua.exe'
                     self.log(f'[Update] {latest} indiriliyor...')
                     d = _req.get(dl_url, timeout=120, stream=True)
                     if d.status_code != 200:
                         self.log('[Update] Indirme basarisiz'); return
-                    tmp_exe = Path(os.environ.get('TEMP', '.')) / f'SteamToolsLua_{latest}.exe'
-                    with open(str(tmp_exe), 'wb') as f:
-                        for chunk in d.iter_content(8192):
-                            if chunk: f.write(chunk)
-                    self.log(f'[Update] Indi, degistiriliyor...')
                     me = Path(sys.argv[0] if getattr(sys, 'frozen', False) else __file__).resolve()
-                    ps_script = f'''
-Start-Sleep -Milliseconds 800
-try {{ Wait-Process -Name "{me.stem}" -Timeout 90 -ErrorAction Stop }} catch {{}}
-$retry = 0
-do {{
-    try {{
-        Move-Item -LiteralPath "{tmp_exe}" -Destination "{me}" -Force -ErrorAction Stop
-        break
-    }} catch {{
-        $retry++; Start-Sleep -Milliseconds 1000
-    }}
-}} while ($retry -lt 10)
-Start-Process -LiteralPath "{me}"
-'''
-                    updater = Path(os.environ.get('TEMP', '.')) / 'steamtools_update.ps1'
-                    updater.write_text(ps_script.strip(), encoding='utf-8')
+                    out_path = me.parent / f'SteamToolsLua_v{latest}.exe'
+                    total = int(d.headers.get('Content-Length', 0))
+                    downloaded = 0
+                    with open(str(out_path), 'wb') as f:
+                        for chunk in d.iter_content(8192):
+                            if chunk:
+                                f.write(chunk)
+                                downloaded += len(chunk)
+                                if total and downloaded % (1024*1024) < 8192:
+                                    pct = downloaded * 100 // total
+                                    self.root.after(0, lambda p=pct: self._set_indicator(f'Guncelleme: %{p}', 'working'))
+                    self.log(f'[Update] v{latest} indirildi, baslatiliyor...')
                     import subprocess as _sp
-                    _sp.Popen(['powershell', '-ExecutionPolicy', 'Bypass', '-File', str(updater)],
-                             startupinfo=_sp.STARTUPINFO(dwFlags=_sp.STARTF_USESHOWWINDOW),
-                             creationflags=0x08000000)
-                    self.root.after(300, self.root.destroy)
+                    _sp.Popen([str(out_path)], close_fds=True)
+                    self.root.after(500, self.root.destroy)
                 except:
                     import traceback; traceback.print_exc()
             _thr.Thread(target=_task, daemon=True).start()
@@ -3683,6 +3730,59 @@ Start-Process -LiteralPath "{me}"
         _lbl_v.pack(side=tk.LEFT)
         def _show_versions(e=None):
             import threading as _thr
+            def _show_ui(releases):
+                _win = tk.Toplevel(self.root)
+                _win.title('Versions')
+                _win.configure(bg='#0f1b2a')
+                _win.geometry('420x380')
+                tk.Label(_win, text='Versions', fg='#7c6fff', bg='#0f1b2a',
+                         font=('Segoe UI', 14, 'bold')).pack(pady=(12, 6))
+                _cf = tk.Frame(_win, bg='#0f1b2a')
+                _cf.pack(fill=tk.BOTH, expand=True, padx=16)
+                _canv = tk.Canvas(_cf, bg='#0f1b2a', highlightthickness=0)
+                _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
+                _inner = tk.Frame(_canv, bg='#0f1b2a')
+                _inner.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
+                _canv.create_window((0, 0), window=_inner, anchor='nw')
+                _canv.configure(yscrollcommand=_scr.set)
+                _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+                _scr.pack(side=tk.RIGHT, fill=tk.Y)
+                def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
+                _canv.bind('<MouseWheel>', _mw)
+                current_tag = 'v' + VERSION
+                newer_found = False
+                for rel in releases:
+                    tag = rel.get('tag_name', '')
+                    name = rel.get('name', tag)
+                    body = (rel.get('body', '') or '')[:80]
+                    published = rel.get('published_at', '')[:10]
+                    is_current = tag == current_tag
+                    is_newer = False
+                    if not is_current and current_tag:
+                        try:
+                            cv = tuple(int(x) for x in VERSION.split('.'))
+                            lv = tuple(int(x) for x in tag.lstrip('v').split('.'))
+                            if lv > cv: is_newer = True
+                        except: pass
+                    bg = '#0a0a16' if is_current else ('#122030' if is_newer else '#0f1b2a')
+                    row = tk.Frame(_inner, bg=bg, highlightthickness=1,
+                                   highlightbackground='#1f3448' if is_newer else '#0f1b2a')
+                    row.pack(fill=tk.X, pady=2)
+                    tk.Label(row, text=tag, fg='#7c6fff' if is_current else '#f7fafc',
+                            bg=bg, font=('Segoe UI', 11, 'bold')).pack(side=tk.LEFT, padx=8, pady=4)
+                    if is_newer:
+                        tk.Label(row, text='NEW', fg='#48bb78', bg=bg,
+                                font=('Segoe UI', 8, 'bold')).pack(side=tk.LEFT, padx=(0, 4))
+                        newer_found = True
+                    if is_current:
+                        tk.Label(row, text='current', fg='#585878', bg=bg,
+                                font=('Segoe UI', 8)).pack(side=tk.LEFT, padx=(0, 4))
+                    tk.Label(row, text=published, fg='#686880', bg=bg,
+                            font=('Segoe UI', 8)).pack(side=tk.RIGHT, padx=8)
+                    if body:
+                        tk.Label(row, text=body, fg='#8fb8da', bg=bg,
+                                font=('Segoe UI', 8), anchor='w', wraplength=300).pack(side=tk.BOTTOM, fill=tk.X, padx=8, pady=(0, 4))
+                self.root.after(0, lambda: _lbl_v.config(fg='#48bb78' if newer_found else '#585878'))
             def _task():
                 try:
                     import requests as _req
@@ -3691,60 +3791,9 @@ Start-Process -LiteralPath "{me}"
                     if r.status_code != 200: return
                     releases = r.json()
                     if not releases: return
-                    _win = tk.Toplevel(self.root)
-                    _win.title('Versions')
-                    _win.configure(bg='#0f1b2a')
-                    _win.geometry('420x380')
-                    tk.Label(_win, text='Versions', fg='#7c6fff', bg='#0f1b2a',
-                             font=('Segoe UI', 14, 'bold')).pack(pady=(12, 6))
-                    _cf = tk.Frame(_win, bg='#0f1b2a')
-                    _cf.pack(fill=tk.BOTH, expand=True, padx=16)
-                    _canv = tk.Canvas(_cf, bg='#0f1b2a', highlightthickness=0)
-                    _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
-                    _inner = tk.Frame(_canv, bg='#0f1b2a')
-                    _inner.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
-                    _canv.create_window((0, 0), window=_inner, anchor='nw')
-                    _canv.configure(yscrollcommand=_scr.set)
-                    _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-                    _scr.pack(side=tk.RIGHT, fill=tk.Y)
-                    def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
-                    _canv.bind('<MouseWheel>', _mw)
-                    current_tag = 'v' + VERSION
-                    newer_found = False
-                    for rel in releases:
-                        tag = rel.get('tag_name', '')
-                        name = rel.get('name', tag)
-                        body = (rel.get('body', '') or '')[:80]
-                        published = rel.get('published_at', '')[:10]
-                        is_current = tag == current_tag
-                        is_newer = False
-                        if not is_current and current_tag:
-                            try:
-                                cv = tuple(int(x) for x in VERSION.split('.'))
-                                lv = tuple(int(x) for x in tag.lstrip('v').split('.'))
-                                if lv > cv: is_newer = True
-                            except: pass
-                        bg = '#0a0a16' if is_current else ('#122030' if is_newer else '#0f1b2a')
-                        row = tk.Frame(_inner, bg=bg, highlightthickness=1,
-                                       highlightbackground='#1f3448' if is_newer else '#0f1b2a')
-                        row.pack(fill=tk.X, pady=2)
-                        # Tag
-                        tk.Label(row, text=tag, fg='#7c6fff' if is_current else '#f7fafc',
-                                bg=bg, font=('Segoe UI', 11, 'bold')).pack(side=tk.LEFT, padx=8, pady=4)
-                        if is_newer:
-                            tk.Label(row, text='NEW', fg='#48bb78', bg=bg,
-                                    font=('Segoe UI', 8, 'bold')).pack(side=tk.LEFT, padx=(0, 4))
-                            newer_found = True
-                        if is_current:
-                            tk.Label(row, text='current', fg='#585878', bg=bg,
-                                    font=('Segoe UI', 8)).pack(side=tk.LEFT, padx=(0, 4))
-                        tk.Label(row, text=published, fg='#686880', bg=bg,
-                                font=('Segoe UI', 8)).pack(side=tk.RIGHT, padx=8)
-                        if body:
-                            tk.Label(row, text=body, fg='#8fb8da', bg=bg,
-                                    font=('Segoe UI', 8), anchor='w', wraplength=300).pack(side=tk.BOTTOM, fill=tk.X, padx=8, pady=(0, 4))
-                    self.root.after(0, lambda: _lbl_v.config(fg='#48bb78' if newer_found else '#585878'))
-                except: pass
+                    self.root.after(0, lambda: _show_ui(releases))
+                except:
+                    pass
             _thr.Thread(target=_task, daemon=True).start()
         _lbl_v.bind('<Button-1>', _show_versions)
         tk.Label(_ver_frame, text=VERSION_NAME, fg='#686880', bg='#0d1724',
@@ -4237,7 +4286,6 @@ Start-Process -LiteralPath "{me}"
 
     def _init_steamdb_browser():
         try:
-            app = g.get('app')
             if not app or not hasattr(app, 'cards'):
                 return
             # Set window icon
@@ -4412,6 +4460,54 @@ Start-Process -LiteralPath "{me}"
     # ---- Auto update check (console output + popup + self-replace) ----
     def _check_auto_update():
         import threading as _thr
+        def _show_popup(latest, is_tr):
+            lang = app.settings.get('language', 'tr')
+            is_tr = lang == 'tr'
+            _skip_file = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / ".skip_update"
+            _popup = tk.Toplevel(app.root)
+            _popup.title('Guncelleme' if is_tr else 'Update')
+            _popup.geometry('400x250')
+            _popup.configure(bg='#0d1724')
+            _popup.transient(app.root)
+            _popup.grab_set()
+            tk.Label(_popup, text=('Yeni Surum Mevcut!' if is_tr else 'New Version Available!'),
+                    fg='#48bb78', bg='#0d1724', font=('Bahnschrift SemiBold', 16)).pack(pady=(20, 8))
+            tk.Label(_popup, text=f'v{VERSION} -> v{latest}', fg='#dce7f4', bg='#0d1724',
+                    font=('Segoe UI', 12)).pack(pady=(0, 6))
+            _status_lbl = tk.Label(_popup, text='', fg='#97afc6', bg='#0d1724', font=('Segoe UI', 9))
+            _status_lbl.pack(pady=(0, 6))
+            _skip_var = tk.BooleanVar(value=False)
+            tk.Checkbutton(_popup, text='Bir daha gosterme' if is_tr else "Don't show again",
+                          variable=_skip_var, bg='#0d1724', activebackground='#0d1724',
+                          selectcolor='#244363', fg='#97afc6', font=('Segoe UI', 9)).pack(pady=(0, 6))
+            _btnf = tk.Frame(_popup, bg='#0d1724')
+            _btnf.pack()
+            def _do_update():
+                if _skip_var.get():
+                    app.settings['skip_update_notification'] = True
+                    g['save_settings'](app.settings)
+                    try: _skip_file.write_text('1')
+                    except: pass
+                _popup.destroy()
+                try: app.root.attributes('-toolwindow', False)
+                except: pass
+                _download_and_replace(latest, is_tr)
+            def _skip_dlg():
+                if _skip_var.get():
+                    app.settings['skip_update_notification'] = True
+                    g['save_settings'](app.settings)
+                    try: _skip_file.write_text('1')
+                    except: pass
+                _popup.destroy()
+                try: app.root.attributes('-toolwindow', False)
+                except: pass
+            AB = g.get('AnimatedButton', AnimatedButton)
+            AB(_btnf, 'Guncelle' if is_tr else 'Update', _do_update, 100, 32,
+               '#244363', '#315f8e', '#66c0f4', '#ffffff',
+               ('Segoe UI Semibold', 10)).pack(side=tk.LEFT, padx=4)
+            AB(_btnf, 'Daha Sonra' if is_tr else 'Later', _skip_dlg, 100, 32,
+               '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
+               ('Segoe UI Semibold', 10)).pack(side=tk.LEFT, padx=4)
         def _task():
             try:
                 import requests as _req
@@ -4419,16 +4515,17 @@ Start-Process -LiteralPath "{me}"
                 is_tr = lang == 'tr'
                 if app.settings.get('skip_update_notification', False):
                     return
-                print('[Update] Sürüm kontrol ediliyor...' if is_tr else '[Update] Checking version...')
-                app.log('[Update] GitHub releases kontrol ediliyor...')
-                r = _req.get(UPDATE_URL, timeout=10, headers={'Accept': 'application/vnd.github.v3+json',
-                    'User-Agent': 'SteamToolsLua/1.0'})
-                if r.status_code != 200:
-                    print(f'[Update] API yanit vermedi (HTTP {r.status_code})')
-                    app.log(f'[Update] API hatasi: {r.status_code}')
+                _skip_file = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / ".skip_update"
+                if _skip_file.exists():
                     return
-                data = r.json()
-                latest = data.get('tag_name', '').lstrip('v')
+                print('[Update] Sürüm kontrol ediliyor...' if is_tr else '[Update] Checking version...')
+                app.log('[Update] Sürüm kontrol ediliyor...')
+                r = _req.get(UPDATE_URL, timeout=10)
+                if r.status_code != 200:
+                    print(f'[Update] Sürüm kontrolü başarısız (HTTP {r.status_code})')
+                    app.log(f'[Update] Sürüm hatasi: {r.status_code}')
+                    return
+                latest = r.text.strip()
                 current = VERSION
                 if not latest or latest == current:
                     print(f'[Update] Zaten guncel (v{current})')
@@ -4441,64 +4538,18 @@ Start-Process -LiteralPath "{me}"
                     return
                 print(f'[Update] Yeni surum: v{current} -> v{latest}')
                 app.log(f'[Update] Yeni surum bulundu: v{latest}')
-                # Build custom popup with progress
-                _popup = tk.Toplevel(app.root)
-                _popup.title('Guncelleme' if is_tr else 'Update')
-                _popup.geometry('400x250')
-                _popup.configure(bg='#0d1724')
-                _popup.transient(app.root)
-                _popup.grab_set()
-                tk.Label(_popup, text=('Yeni Surum Mevcut!' if is_tr else 'New Version Available!'),
-                        fg='#48bb78', bg='#0d1724', font=('Bahnschrift SemiBold', 16)).pack(pady=(20, 8))
-                tk.Label(_popup, text=f'v{current} -> v{latest}', fg='#dce7f4', bg='#0d1724',
-                        font=('Segoe UI', 12)).pack(pady=(0, 6))
-                _status_lbl = tk.Label(_popup, text='', fg='#97afc6', bg='#0d1724', font=('Segoe UI', 9))
-                _status_lbl.pack(pady=(0, 6))
-                _skip_var = tk.BooleanVar(value=False)
-                tk.Checkbutton(_popup, text='Bir daha gosterme' if is_tr else "Don't show again",
-                              variable=_skip_var, bg='#0d1724', activebackground='#0d1724',
-                              selectcolor='#244363', fg='#97afc6', font=('Segoe UI', 9)).pack(pady=(0, 6))
-                _btnf = tk.Frame(_popup, bg='#0d1724')
-                _btnf.pack()
-                def _do_update():
-                    if _skip_var.get():
-                        app.settings['skip_update_notification'] = True
-                        g['save_settings'](app.settings)
-                    _popup.destroy()
-                    _download_and_replace(latest, data, is_tr)
-                def _skip_dlg():
-                    if _skip_var.get():
-                        app.settings['skip_update_notification'] = True
-                        g['save_settings'](app.settings)
-                    _popup.destroy()
-                AB = g.get('AnimatedButton', AnimatedButton)
-                AB(_btnf, 'Guncelle' if is_tr else 'Update', _do_update, 100, 32,
-                   '#244363', '#315f8e', '#66c0f4', '#ffffff',
-                   ('Segoe UI Semibold', 10)).pack(side=tk.LEFT, padx=4)
-                AB(_btnf, 'Daha Sonra' if is_tr else 'Later', _skip_dlg, 100, 32,
-                   '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
-                   ('Segoe UI Semibold', 10)).pack(side=tk.LEFT, padx=4)
+                app.root.after(0, lambda: _show_popup(latest, is_tr))
             except:
                 import traceback; traceback.print_exc()
-        def _download_and_replace(latest, data, is_tr):
+        def _download_and_replace(latest, is_tr):
             def _dl_task():
                 try:
                     import requests as _req
-                    asset = None
-                    for a in data.get('assets', []):
-                        if a.get('name', '').lower().endswith('.exe'):
-                            asset = a; break
-                    if not asset:
-                        print('[Update] .exe dosyasi bulunamadi')
-                        app.log('[Update] Release icinde .exe yok')
-                        _messagebox.showerror('Update', '.exe dosyasi bulunamadi.')
-                        return
-                    dl_url = asset.get('browser_download_url', '')
-                    if not dl_url: return
+                    dl_url = f'{DOWNLOAD_BASE}/v{latest}/SteamToolsLua.exe'
                     print(f'[Update] Indiriliyor: {dl_url}')
                     app.log(f'[Update] {latest} indiriliyor...')
-                    tmp_exe = Path(os.environ.get('TEMP', '.')) / f'SteamToolsLua_{latest}.exe'
-                    # Stream download with progress
+                    me = Path(sys.argv[0] if getattr(sys, 'frozen', False) else __file__).resolve()
+                    out_path = me.parent / f'SteamToolsLua_v{latest}.exe'
                     d = _req.get(dl_url, timeout=120, stream=True)
                     if d.status_code != 200:
                         print(f'[Update] HTTP {d.status_code}')
@@ -4507,7 +4558,7 @@ Start-Process -LiteralPath "{me}"
                         return
                     total = int(d.headers.get('Content-Length', 0))
                     downloaded = 0
-                    with open(str(tmp_exe), 'wb') as f:
+                    with open(str(out_path), 'wb') as f:
                         for chunk in d.iter_content(8192):
                             if chunk:
                                 f.write(chunk)
@@ -4515,34 +4566,12 @@ Start-Process -LiteralPath "{me}"
                                 if total and downloaded % (1024*1024) < 8192:
                                     pct = downloaded * 100 // total
                                     print(f'[Update] Indirme: %{pct} ({downloaded//1024//1024}MB/{total//1024//1024}MB)')
-                    print(f'[Update] Indi: {tmp_exe} ({downloaded//1024//1024}MB)')
-                    app.log(f'[Update] Indi: {tmp_exe}')
-                    me = Path(sys.argv[0] if getattr(sys, 'frozen', False) else __file__).resolve()
-                    print(f'[Update] Kendi konumu: {me}')
-                    ps_script = f'''
-Start-Sleep -Milliseconds 800
-try {{ Wait-Process -Name "{me.stem}" -Timeout 90 -ErrorAction Stop }} catch {{}}
-$retry = 0
-do {{
-    try {{
-        Move-Item -LiteralPath "{tmp_exe}" -Destination "{me}" -Force -ErrorAction Stop
-        break
-    }} catch {{
-        $retry++; Start-Sleep -Milliseconds 1000
-    }}
-}} while ($retry -lt 10)
-Start-Process -LiteralPath "{me}"
-'''
-                    updater = Path(os.environ.get('TEMP', '.')) / 'steamtools_update.ps1'
-                    updater.write_text(ps_script.strip(), encoding='utf-8')
-                    print(f'[Update] PowerShell scripti yazildi')
-                    app.log(f'[Update] Guncelleniyor...')
+                                    app.root.after(0, lambda p=pct: app._set_indicator(f'Guncelleme: %{p}', 'working'))
+                    print(f'[Update] Indi: {out_path} ({downloaded//1024//1024}MB)')
+                    app.log(f'[Update] v{latest} indirildi, baslatiliyor...')
                     import subprocess as _sp
-                    _sp.Popen(['powershell', '-ExecutionPolicy', 'Bypass', '-File', str(updater)],
-                             startupinfo=_sp.STARTUPINFO(dwFlags=_sp.STARTF_USESHOWWINDOW),
-                             creationflags=0x08000000)
-                    print('[Update] Uygulama kapatiliyor, guncelleme basliyor...')
-                    app.root.after(300, app.root.destroy)
+                    _sp.Popen([str(out_path)], close_fds=True)
+                    app.root.after(500, app.root.destroy)
                 except:
                     import traceback; traceback.print_exc()
                     _messagebox.showerror('Update', 'Guncelleme basarisiz.')
