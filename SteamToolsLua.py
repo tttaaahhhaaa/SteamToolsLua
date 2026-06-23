@@ -34,7 +34,7 @@ def resource_path(name):
 
 # ---- Version & Update ----
 VERSION = "1.7.1"
-VERSION_NAME = "Clean update (no VBScript)"
+VERSION_NAME = "Clean update + minimize fix"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/main/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"
@@ -3686,7 +3686,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                     self.log(f'[Update] v{latest} indirildi, baslatiliyor...')
                     import subprocess as _sp
                     _sp.Popen([str(out_path)], close_fds=True)
-                    self.root.after(500, self.root.destroy)
+                    self.root.after(500, lambda: os._exit(0))
                 except:
                     import traceback; traceback.print_exc()
             _thr.Thread(target=_task, daemon=True).start()
@@ -4547,7 +4547,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                     app.log(f'[Update] v{latest} indirildi, baslatiliyor...')
                     import subprocess as _sp
                     _sp.Popen([str(out_path)], close_fds=True)
-                    app.root.after(500, app.root.destroy)
+                    app.root.after(500, lambda: os._exit(0))
                 except:
                     import traceback; traceback.print_exc()
                     _messagebox.showerror('Update', 'Guncelleme basarisiz.')
