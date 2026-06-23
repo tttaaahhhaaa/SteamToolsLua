@@ -4206,12 +4206,64 @@ A: .luaファイルがstplug-inフォルダにあることを
             app._sd_total = total_p
             if hasattr(app, '_sd_info'):
                 app._sd_info.config(text=f'Sayfa {page+1}/{total_p}')
-            if hasattr(app, '_sd_prev'):
-                app._sd_prev.config(state='normal' if page > 0 else 'disabled')
-            if hasattr(app, '_sd_next'):
-                app._sd_next.config(state='normal' if page < total_p - 1 else 'disabled')
+            # Track viewed pages
+            viewed = getattr(app, '_sd_viewed', {})
+            current_ids = {str(gd.get('appid', '') or gd.get('id', '')) for gd in page_games if gd.get('appid', '') or gd.get('id', '')}
+            stored = viewed.get(page, set())
+            if stored:
+                overlap = len(current_ids & stored)
+                if overlap < 4:
+                    viewed[page] = current_ids
+            else:
+                viewed[page] = current_ids
+            app._sd_viewed = viewed
+            # Rebuild page buttons
+            _rebuild_page_btns(app)
         except Exception as ex:
             print(f'SteamDB page: {ex}')
+
+    def _rebuild_page_btns(app):
+        try:
+            _btns = getattr(app, '_sd_page_btns', None)
+            if _btns is None:
+                return
+            for w in _btns.winfo_children():
+                w.destroy()
+            total = getattr(app, '_sd_total', 1)
+            current = getattr(app, '_sd_page', 0)
+            viewed = getattr(app, '_sd_viewed', {})
+            def _mk_btn(p):
+                is_viewed = bool(viewed.get(p, set()))
+                btn = tk.Button(_btns, text=str(p+1),
+                                bg='#7c6fff' if is_viewed else '#1f3348',
+                                fg='#ffffff' if is_viewed else '#dce7f4',
+                                relief=tk.FLAT, padx=6, pady=1,
+                                font=('Segoe UI', 9),
+                                activebackground='#9b8fff' if is_viewed else '#244363',
+                                activeforeground='#ffffff',
+                                cursor='hand2',
+                                command=lambda p=p: _steamdb_show_page(app, p))
+                btn.pack(side=tk.LEFT, padx=1)
+            if total <= 10:
+                for p in range(total):
+                    _mk_btn(p)
+            else:
+                _mk_btn(0)
+                if current > 3:
+                    tk.Label(_btns, text='...', bg='#0f1b2a', fg='#585878',
+                            font=('Segoe UI', 9)).pack(side=tk.LEFT)
+                s = max(1, min(current - 2, total - 6))
+                e = min(total - 1, max(current + 3, 7))
+                if s >= e:
+                    s, e = 1, min(total - 1, 8)
+                for p in range(s, e):
+                    _mk_btn(p)
+                if current < total - 4:
+                    tk.Label(_btns, text='...', bg='#0f1b2a', fg='#585878',
+                            font=('Segoe UI', 9)).pack(side=tk.LEFT)
+                _mk_btn(total - 1)
+        except Exception as ex:
+            print(f'Page btns: {ex}')
 
     def _build_sidebar(app):
         try:
@@ -4376,22 +4428,26 @@ A: .luaファイルがstplug-inフォルダにあることを
             _ref_btn.bind('<Leave>', lambda e: app.status_var.set(''))
             sd_nav = tk.Frame(sd_bar, bg='#0f1b2a')
             sd_nav.pack(side=tk.RIGHT)
+            sd_page_btns = tk.Frame(sd_nav, bg='#0f1b2a')
+            sd_page_btns.pack(side=tk.RIGHT)
             sd_prev = tk.Button(sd_nav, text='\u25c0', bg='#1f3348', fg='#dce7f4',
-                                relief=tk.FLAT, padx=10, pady=1,
+                                relief=tk.FLAT, padx=6, pady=1,
                                 font=('Segoe UI', 10, 'bold'),
                                 activebackground='#244363', activeforeground='#ffffff',
                                 command=lambda: _steamdb_show_page(app, app._sd_page - 1))
-            sd_prev.pack(side=tk.LEFT, padx=(0, 3))
+            sd_prev.pack(side=tk.LEFT, padx=(0, 2))
             sd_next = tk.Button(sd_nav, text='\u25b6', bg='#1f3348', fg='#dce7f4',
-                                relief=tk.FLAT, padx=10, pady=1,
+                                relief=tk.FLAT, padx=6, pady=1,
                                 font=('Segoe UI', 10, 'bold'),
                                 activebackground='#244363', activeforeground='#ffffff',
                                 command=lambda: _steamdb_show_page(app, app._sd_page + 1))
-            sd_next.pack(side=tk.LEFT, padx=(3, 0))
+            sd_next.pack(side=tk.LEFT, padx=(2, 0))
             app._sd_bar = sd_bar
             app._sd_info = sd_info
             app._sd_prev = sd_prev
             app._sd_next = sd_next
+            app._sd_page_btns = sd_page_btns
+            app._sd_viewed = {}
             cinfo = app.results_canvas.pack_info()
             app.results_canvas.pack_forget()
             sd_bar.pack(fill=tk.X, padx=20, pady=(0, 5))
