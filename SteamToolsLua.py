@@ -33,9 +33,9 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.7.3"
-VERSION_NAME = "Window fix + pw online-fix.me + browser fix"
-UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/main/latest_version.txt"
+VERSION = "1.6.0"
+VERSION_NAME = "Update test build"
+UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
@@ -4581,6 +4581,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                 _popup.destroy()
                 try: app.root.attributes('-toolwindow', False)
                 except: pass
+            _popup.protocol('WM_DELETE_WINDOW', _skip_dlg)
             AB = g.get('AnimatedButton', AnimatedButton)
             AB(_btnf, 'Guncelle' if is_tr else 'Update', _do_update, 100, 32,
                '#244363', '#315f8e', '#66c0f4', '#ffffff',
