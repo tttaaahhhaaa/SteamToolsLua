@@ -1,51 +1,29 @@
 ## Goal
-- Maintain Steam game tools app with Online Fix downloader, SteamDB browser, auto-update, AI translation, embedded CloudRedirect, and page navigation with viewed-page tracking.
+- Steam game tools app: Online Fix downloader, SteamDB browser, auto-update, AI translation, embedded CloudRedirect, page nav.
 
-## Constraints & Preferences
-- All game pages opened in external browser (no in-app webviewer).
-- Archive password is only `knkm`.
-- Online Fix download → extract only; no injection into Steam folders.
-- Torrent downloader removed entirely.
-- Back/forward navigation buttons removed.
-- Folder quick-access: Setups, Online Fixes, Game Files buttons in settings.
-- All buttons need translations in 6 languages (tr/en/es/fr/de/ja).
-- CloudRedirect bundled inside exe (not downloaded at runtime).
-- UI Scale slider removed (was broken).
-- Update: old exe downloads new exe alongside itself, spawns it, exits with `os._exit(0)`. New exe on first launch deletes old exe and renames itself to `SteamToolsLua.exe`.
-- Page nav: number buttons at bottom, purple if 4+ game appids match previously viewed.
-
-## Progress
-### Done
-- UI Scale slider removed.
-- Update mechanism rewritten: download to `SteamToolsLua_v{latest}.exe` → spawn → `os._exit(0)`. No `.old`, no VBScript, no TerminateProcess.
-- Minimize/restore bug fix: `root.bind('<Map>', ...)` for topmost toggle.
-- Page navigation: numbered page buttons + ellipsis at bottom (`_rebuild_page_btns`). Purple for viewed pages.
-- v1.7.1 uploaded to GitHub release & placed on desktop. v1.6.0 removed (bytecode version mismatch).
-- Code pushed to GitHub (`master` branch).
-
-### In Progress
-- (none)
-
-### Blocked
-- (none)
+## Changes in v1.7.2
+- **Startup fix**: no more self-rename (was crashing). Only checks for `.update_info.txt`.
+- **Update info file**: old exe writes `.update_info.txt` (old_name, old_path, updated_to) before spawning new exe.
+- **Update completion dialog**: new exe shows "Delete old version?" on first launch after update. Yes → deletes old exe. Removes `.update_info.txt`.
+- **Settings "Del Old" button**: scans for other `SteamToolsLua*.exe` files, asks confirmation, deletes them. Always available.
+- **Viewed page persistence**: `app._sd_viewed` saved to `steamdb_viewed.json`, survives restart. Purple tracking works after app restart.
+- **Page navigation**: numbered page buttons + ellipsis at bottom of SteamDB browser. Purple if viewed.
 
 ## Key Decisions
-- **`os._exit(0)` instead of `root.destroy()`** — terminates immediately regardless of background threads.
-- **Download next to current exe** — simpler path, avoids cross-directory moves.
-- **No `.old` file** — old exe deleted directly or renamed to `_todel.exe` then deleted.
-- **Page nav tracking with appid set** — 4+ matching appids = same page content → purple.
+- `os._exit(0)` for update restart
+- Download new exe to `SteamToolsLua_v{latest}.exe` next to current exe
+- No `.old` files, no VBScript, no TerminateProcess
+- No self-rename on startup (was causing crash)
+- `.update_info.txt` is the handshake file between old and new exe
+- Page viewed tracking persisted to disk
 
-## Next Steps
-- None currently.
+## Known Issues
+- Need a working v1.6.0 exe with v1.6.0 bytecode to test full update flow
+- Push to GitHub blocked on secrets; remove tokens before committing
 
 ## Critical Context
-- PHPSESSID from any game page → headers `Referer: https://online-fix.me/` + cookies `{"PHPSESSID": "<id>"}` for structured downloads.
-- Structured URL regex: `https?://(?:uploads|hosters|drive|torrents)\.online-fix\.me:\d+/[^"']+`.
-- 7z extraction password: only `knkm`.
-- Auto-update: fetch version from raw git → download to `SteamToolsLua_v{latest}.exe` → `subprocess.Popen` → `os._exit(0)` after 500ms.
-- UPDATE_URL = raw git `latest_version.txt`.
-- DOWNLOAD_BASE = GitHub releases download.
-- GitHub token: (redacted - stored in env var).
-- Repo branch is `master` (not `main`).
-- PyInstaller `--add-data`: `icon.ico`, `webviewer_module.py`, `aria2c.exe`, `CloudRedirect.exe`, `cloud_redirect.dll`.
-- Page nav: `app._sd_viewed = {page_num: {appid_str, ...}}`. Up to 10 buttons shown at once with ellipsis.
+- `UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/main/latest_version.txt"`
+- `DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"`
+- Repo branch: `master`
+- Archive password: `knkm`
+- PyInstaller `--add-data`: icon.ico, webviewer_module.py, aria2c.exe, CloudRedirect.exe, cloud_redirect.dll

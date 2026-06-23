@@ -4256,13 +4256,6 @@ A: .luaファイルがstplug-inフォルダにあることを
             else:
                 viewed[page] = current_ids
             app._sd_viewed = viewed
-            # Save viewed pages to disk
-            _vf = getattr(app, '_sd_viewed_file', None)
-            if _vf:
-                try:
-                    _ser = {str(k): list(v) for k, v in viewed.items()}
-                    _vf.write_text(json.dumps(_ser), encoding='utf-8')
-                except: pass
             # Rebuild page buttons
             _rebuild_page_btns(app)
         except Exception as ex:
@@ -4376,7 +4369,6 @@ A: .luaファイルがstplug-inフォルダにあることを
                 pass
             # Load from cache only - no API call on startup
             app._sd_offset = 0
-            app._sd_viewed_file = _data_dir / "steamdb_viewed.json"
             games = _load_steamdb_games(offset=0)
             app._sd_total_games = 0
             if games:
@@ -4408,6 +4400,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                         if games:
                             app._steamdb_games = games
                             app._sd_page = 0
+                            app._sd_viewed = {}
                             app._sd_total = max(1, (len(games) + _STEAMDB_PAGE_SIZE - 1) // _STEAMDB_PAGE_SIZE)
                             _steamdb_show_page(app, 0)
                             app.status_var.set(f'Sonraki {len(games)} oyun (sayfa {app._sd_offset//_STEAMDB_LIMIT+1})')
@@ -4452,6 +4445,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                             _prog_frame.destroy()
                             app._steamdb_games = gs
                             app._sd_page = 0
+                            app._sd_viewed = {}
                             app._sd_total = max(1, (len(gs) + _STEAMDB_PAGE_SIZE - 1) // _STEAMDB_PAGE_SIZE)
                             _steamdb_show_page(app, 0)
                             app.status_var.set(f'{len(gs)} oyun yuklendi')
@@ -4494,16 +4488,7 @@ A: .luaファイルがstplug-inフォルダにあることを
             app._sd_prev = sd_prev
             app._sd_next = sd_next
             app._sd_page_btns = sd_page_btns
-            # Load previously viewed pages from disk
-            _sd_v = getattr(app, '_sd_viewed_file', None)
-            if _sd_v and _sd_v.exists():
-                try:
-                    import json
-                    app._sd_viewed = {int(k): set(v) for k, v in json.loads(_sd_v.read_text(encoding='utf-8')).items()}
-                except:
-                    app._sd_viewed = {}
-            else:
-                app._sd_viewed = {}
+            app._sd_viewed = {}
             cinfo = app.results_canvas.pack_info()
             app.results_canvas.pack_forget()
             sd_bar.pack(fill=tk.X, padx=20, pady=(0, 5))
