@@ -34,7 +34,7 @@ def resource_path(name):
 
 # ---- Version & Update ----
 VERSION = "1.7.1"
-VERSION_NAME = "Simple Download (no exe replace)"
+VERSION_NAME = "Clean update (no VBScript)"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/main/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"
@@ -3440,40 +3440,6 @@ A: .luaファイルがstplug-inフォルダにあることを
         AB(tools_row, 'CloudRedirect', _run_cr,
            130, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
-
-        # ---- UI Scale Slider ----
-        _scale_frame = tk.Frame(window, bg='#0d1724')
-        _scale_frame.pack(fill=tk.X, padx=16, pady=(4, 2))
-        _scale_lbl = tk.Label(_scale_frame, text='UI Scale', fg='#8fd3ff', bg='#0d1724',
-                 font=('Segoe UI Semibold', 11))
-        _scale_lbl.pack(anchor='w')
-        _scale_row = tk.Frame(window, bg='#0d1724')
-        _scale_row.pack(fill=tk.X, padx=16, pady=(0, 6))
-        _scale_vals = [100, 80, 75, 65, 50, 40, 30, 20]
-        _current_scale = self.settings.get('ui_scale', 100)
-        if _current_scale not in _scale_vals:
-            _current_scale = 100
-        _scale_var = tk.IntVar(value=_current_scale)
-        def _set_scale(val):
-            closest = min(_scale_vals, key=lambda x: abs(x - int(float(val))))
-            _scale_var.set(closest)
-            factor = closest / 100.0
-            try: self.root.tk.call('tk', 'scaling', factor)
-            except: pass
-            self.settings['ui_scale'] = closest
-            g['save_settings'](self.settings)
-        _scale_w = tk.Scale(_scale_row, from_=100, to=20, orient=tk.HORIZONTAL,
-                   variable=_scale_var, command=_set_scale, showvalue=False,
-                   bg='#0d1724', fg='#dce7f4', troughcolor='#1f3348',
-                   activebackground='#7c6fff', highlightthickness=0,
-                   length=280, sliderlength=20, resolution=1)
-        _scale_w.pack(side=tk.LEFT, padx=(0, 10))
-        _scale_display = tk.Label(_scale_row, text=f'{_current_scale}%', fg='#66c0f4',
-                      bg='#0d1724', font=('Segoe UI', 10, 'bold'))
-        _scale_display.pack(side=tk.LEFT)
-        def _update_scale_display(*_):
-            _scale_display.config(text=f'{_scale_var.get()}%')
-        _scale_var.trace_add('write', _update_scale_display)
 
         # Also add save_path field
         _sv_frame = tk.Frame(window, bg='#0d1724')
