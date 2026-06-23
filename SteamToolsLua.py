@@ -41,24 +41,28 @@ SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
 
 def main():
-    # --- UPDATE CLEANUP: old exe delete + self-rename ---
+    # --- UPDATE CLEANUP: old exe → .old → self-rename → delete .old ---
     try:
         if getattr(sys, 'frozen', False):
             me = Path(sys.argv[0]).resolve()
             if me.stem.startswith('SteamToolsLua_v'):
                 exe_dir = me.parent
-                for f in exe_dir.glob('SteamToolsLua_v*.exe'):
-                    if f.resolve() != me:
-                        try: f.unlink()
-                        except: pass
                 old = exe_dir / 'SteamToolsLua.exe'
+                old_marked = exe_dir / 'SteamToolsLua.exe.old'
                 if old.exists():
-                    try: old.unlink()
+                    try: ctypes.windll.kernel32.MoveFileW(str(old), str(old_marked))
                     except:
-                        try: ctypes.windll.kernel32.MoveFileW(str(old), str(old.with_name('SteamToolsLua.exe.old')))
+                        try: old.unlink()
                         except: pass
                 if not (exe_dir / 'SteamToolsLua.exe').exists():
                     try: ctypes.windll.kernel32.MoveFileW(str(me), str(exe_dir / 'SteamToolsLua.exe'))
+                    except: pass
+                for f in exe_dir.glob('SteamToolsLua_v*.exe'):
+                    if f.resolve() != me and f.resolve() != exe_dir / 'SteamToolsLua.exe':
+                        try: f.unlink()
+                        except: pass
+                if old_marked.exists():
+                    try: old_marked.unlink()
                     except: pass
     except:
         pass
