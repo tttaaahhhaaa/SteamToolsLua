@@ -41,18 +41,20 @@ SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
 
 def main():
-    # --- UPDATE CLEANUP: old exe → .old → self-rename → delete .old ---
+    # --- UPDATE CLEANUP: delete old exe, rename self, delete stale v_exe ---
     try:
         if getattr(sys, 'frozen', False):
             me = Path(sys.argv[0]).resolve()
             if me.stem.startswith('SteamToolsLua_v'):
                 exe_dir = me.parent
                 old = exe_dir / 'SteamToolsLua.exe'
-                old_marked = exe_dir / 'SteamToolsLua.exe.old'
                 if old.exists():
-                    try: ctypes.windll.kernel32.MoveFileW(str(old), str(old_marked))
+                    try: old.unlink()
                     except:
-                        try: old.unlink()
+                        try:
+                            tmp = exe_dir / 'SteamToolsLua_todel.exe'
+                            ctypes.windll.kernel32.MoveFileW(str(old), str(tmp))
+                            tmp.unlink()
                         except: pass
                 if not (exe_dir / 'SteamToolsLua.exe').exists():
                     try: ctypes.windll.kernel32.MoveFileW(str(me), str(exe_dir / 'SteamToolsLua.exe'))
@@ -61,9 +63,6 @@ def main():
                     if f.resolve() != me and f.resolve() != exe_dir / 'SteamToolsLua.exe':
                         try: f.unlink()
                         except: pass
-                if old_marked.exists():
-                    try: old_marked.unlink()
-                    except: pass
     except:
         pass
     _tk = __import__('tkinter')
@@ -150,6 +149,13 @@ def main():
     root.protocol('WM_DELETE_WINDOW', root.destroy)
     try: root.attributes('-toolwindow', False)
     except: pass
+    # Fix: bring window to front when restored from taskbar
+    def _on_deiconify(_=None):
+        try:
+            root.attributes('-topmost', True)
+            root.after(10, lambda: root.attributes('-topmost', False))
+        except: pass
+    root.bind('<Map>', _on_deiconify)
     real_mainloop(root)
 
 
