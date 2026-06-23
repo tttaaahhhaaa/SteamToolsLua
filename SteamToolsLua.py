@@ -142,9 +142,11 @@ def main():
     root.protocol('WM_DELETE_WINDOW', root.destroy)
     try: root.attributes('-toolwindow', False)
     except: pass
-    # Fix: bring window to front when restored from taskbar
+    # Fix: bring window to front only when restored from taskbar
     def _on_deiconify(_=None):
         try:
+            if root.wm_state() == 'iconic':
+                return
             root.attributes('-topmost', True)
             root.after(10, lambda: root.attributes('-topmost', False))
         except: pass
@@ -1746,7 +1748,7 @@ def install_ui_fixes(g):
                     # Extract directly into out_dir (flatten subfolders)
                     extract_tmp = out_dir / '__extract__'
                     extract_ok = False
-                    for pw in ('knkm',):
+                    for pw in ('knkm', 'online-fix.me'):
                         try:
                             cmd = ['7z', 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']
                             if pw: cmd.append(f'-p{pw}')
@@ -1841,7 +1843,6 @@ def install_ui_fixes(g):
                 if not game_url:
                     self.log('[OnlineFix] online-fix.me\'de bulunamadı')
                     self._set_indicator('OnlineFix: bulunamadı', 'offline')
-                    _wb.open(f'https://online-fix.me/index.php?do=search&subaction=search&story={_up.quote(game_name[:80].strip())}')
                     return
                 self.log(f'[OnlineFix] Sayfa: {game_url}')
                 # Fetch page for download links
@@ -1863,16 +1864,22 @@ def install_ui_fixes(g):
                 _of_headers = {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://online-fix.me/'}
                 _of_cookies = {'PHPSESSID': phpsessid}
                 # Try structured download
+                dl_attempted = False
                 if dl_urls:
+                    dl_attempted = True
                     _downloaded = _download_structured(sess, dl_urls, _out_dir, appid, _of_headers, _of_cookies, _find_steam_game_path,
                         lambda m: self.log(m), lambda t,s: self._set_indicator(t,s))
                     if _downloaded:
                         _save_dl_name(game_name)
                         return
-                # Fallback: open game page in browser
-                self.log('[OnlineFix] Yapısal link yok, tarayıcı açılıyor')
-                self._set_indicator('OnlineFix: tarayıcı açıldı', 'online')
-                _wb.open(game_url)
+                # Only open browser if ZIP download was attempted but failed
+                if dl_attempted:
+                    self.log('[OnlineFix] Yapısal indirme başarısız, tarayıcı açılıyor')
+                    self._set_indicator('OnlineFix: tarayıcı açıldı', 'online')
+                    _wb.open(game_url)
+                else:
+                    self.log('[OnlineFix] Yapısal link yok')
+                    self._set_indicator('OnlineFix: link yok', 'offline')
                 _save_dl_name(game_name)
             except Exception as ex:
                 self.log(f'[OnlineFix] Hata: {ex}')
