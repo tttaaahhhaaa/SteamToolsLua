@@ -3645,8 +3645,12 @@ A: .luaファイルがstplug-inフォルダにあることを
                                 with _zf.ZipFile(str(_zip_f), 'r') as _z:
                                     for _zn in _z.namelist():
                                         if _zn.lower().endswith('.lua'):
-                                            _lua_text = _z.read(_zn).decode('utf-8', errors='ignore')
-                                            _am = _re2.search(r'["\']?appid["\']?\s*[=:]\s*["\']?\s*(\d+)', _lua_text)
+                                            _lua_text = _z.read(_zn).decode('utf-8', errors='ignore').lstrip()
+                                            # first try: number at very beginning of file
+                                            _am = _re2.match(r'(\d+)', _lua_text)
+                                            # second try: appid = X or "appid" "X"
+                                            if not _am:
+                                                _am = _re2.search(r'["\']?appid["\']?\s*[=:]\s*["\']?\s*(\d+)', _lua_text)
                                             if _am:
                                                 _aid = _am.group(1)
                                                 _gn = _zip_f.stem
