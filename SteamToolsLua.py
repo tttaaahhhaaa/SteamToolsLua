@@ -3646,7 +3646,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                                     for _zn in _z.namelist():
                                         if _zn.lower().endswith('.lua'):
                                             _lua_text = _z.read(_zn).decode('utf-8', errors='ignore')
-                                            _am = _re2.search(r'"appid"\s*["\']?\s*(\d+)', _lua_text)
+                                            _am = _re2.search(r'["\']?appid["\']?\s*[=:]\s*["\']?\s*(\d+)', _lua_text)
                                             if _am:
                                                 _aid = _am.group(1)
                                                 _gn = _zip_f.stem
@@ -3724,10 +3724,33 @@ A: .luaファイルがstplug-inフォルダにあることを
                             sel = tv.selection()
                             if sel:
                                 vals = tv.item(sel[0], 'values')
-                                if vals and vals[0]:
-                                    _subprocess.Popen(['start', 'steam://install/' + vals[0]], shell=True)
+                                _aid = vals[0] if vals and vals[0] else ''
+                                _gname = vals[2] if vals and len(vals) > 2 else ''
+                                if not _aid:
+                                    _dlg = tk.Toplevel(lib_win)
+                                    _dlg.title('AppID Gir')
+                                    _dlg.geometry('350x140')
+                                    _dlg.configure(bg='#08080e')
+                                    _dlg.transient(lib_win)
+                                    _dlg.grab_set()
+                                    tk.Label(_dlg, text=f'AppID bulunamadi: {_gname}', fg='#f6ad55',
+                                             bg='#08080e', font=('Segoe UI', 10)).pack(pady=(12, 4))
+                                    tk.Label(_dlg, text='Steam App ID\'sini girin:', fg='#8fd3ff',
+                                             bg='#08080e', font=('Segoe UI', 9)).pack()
+                                    _aid_var = tk.StringVar()
+                                    tk.Entry(_dlg, textvariable=_aid_var, width=20, relief=tk.FLAT,
+                                             bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
+                                             font=('Segoe UI', 10)).pack(pady=4)
+                                    def _do_install():
+                                        _a = _aid_var.get().strip()
+                                        if _a:
+                                            _subprocess.Popen(['start', 'steam://install/' + _a], shell=True)
+                                        _dlg.destroy()
+                                    AnimatedButton(_dlg, 'Indir', _do_install, 80, 28,
+                                                   '#244363', '#315f8e', '#66c0f4', '#ffffff',
+                                                   ('Segoe UI Semibold', 10)).pack(pady=6)
                                 else:
-                                    _messagebox.showinfo('Uyari', 'Bu oyunun AppID\'si bulunamadi.\nIndirmek icin once Online Fix ZIP\'inden yukleyin.')
+                                    _subprocess.Popen(['start', 'steam://install/' + _aid], shell=True)
                         AB_lib(sort_frame, '\u2b07 Install', _install_lib_game, 100, 26,
                                '#1c3a2a', '#2a5a3a', '#48bb78', '#ffffff',
                                ('Segoe UI Semibold', 8)).pack(side=tk.RIGHT, padx=(4, 0))
