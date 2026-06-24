@@ -16,7 +16,7 @@ import zlib as _zlib
 import tkinter.filedialog, tkinter.messagebox, tkinter.colorchooser
 import tkinter.simpledialog, tkinter.scrolledtext, tkinter.font, tkinter.dnd
 import tkinter.ttk
-import html, requests, webbrowser, subprocess, threading, json, datetime
+import html, requests, webbrowser, subprocess, threading, json, datetime, hashlib
 import math, re, shutil, textwrap, queue, http.client, urllib.parse
 import xml.etree.ElementTree
 from PIL import Image, ImageDraw, ImageTk, ImageFilter, ImageEnhance, ImageFont
