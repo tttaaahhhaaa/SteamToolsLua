@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.7.6"
+VERSION = "1.7.7"
 VERSION_NAME = "AI correction click + rebuild"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
@@ -313,6 +313,18 @@ def install_ui_fixes(g):
                         ('fr', 'Fran\u00e7ais'), ('de', 'Deutsch'), ('ja', '\u65e5\u672c\u8a9e')]
     g['LANGUAGE_OPTIONS'] = language_options
     g['LANGUAGE_LABELS'] = dict(language_options)
+
+    # Additional Translations
+    _more_text = {
+        'tr': {'settings.installed_games': 'Y\u00fckl\u00fc Oyunlar', 'settings.steam_not_found': 'Steam bulunamad\u0131.'},
+        'en': {'settings.installed_games': 'Installed Games', 'settings.steam_not_found': 'Steam not found.'},
+        'es': {'settings.installed_games': 'Juegos Instalados', 'settings.steam_not_found': 'Steam no encontrado.'},
+        'fr': {'settings.installed_games': 'Jeux Install\u00e9s', 'settings.steam_not_found': 'Steam introuvable.'},
+        'de': {'settings.installed_games': 'Installierte Spiele', 'settings.steam_not_found': 'Steam nicht gefunden.'},
+        'ja': {'settings.installed_games': '\u30a4\u30f3\u30b9\u30c8\u30fc\u30eb\u6e08\u307f\u30b2\u30fc\u30e0', 'settings.steam_not_found': 'Steam\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002'},
+    }
+    for _lang, _data in _more_text.items():
+        extra_text.setdefault(_lang, {}).update(_data)
 
     # Provider guide text
     guide_text = {
@@ -613,13 +625,17 @@ def install_ui_fixes(g):
                     self.status_dot.itemconfig(self.status_oval, fill=colors.get(state, colors['idle']))
                 if hasattr(self, 'status_var'):
                     self.status_var.set(text)
-                # Update tooltip/detail
                 if hasattr(self, 'status_lbl') and self.status_lbl.winfo_exists():
-                    last_dl = [h for h in reversed(self._indicator_history) if 'downloaded' in h[1].lower() or 'unlock' in h[1].lower() or 'inject' in h[1].lower()]
-                    detail = f'Son: {text}'
-                    if last_dl:
-                        detail += f'\n{last_dl[0][0]} {last_dl[0][1]}'
-                    self.status_lbl.config(text=detail[:60])
+                    _ai_prov = ''
+                    try:
+                        _cfg = getattr(self, 'settings', {})
+                        if _cfg:
+                            _provider = _cfg.get('api_provider', '') or _cfg.get('groq_api_key', 'Groq' if _cfg.get('groq_api_key') else '')
+                            _ai_prov = f' | AI: {_provider.split("_api_key")[0].replace("_"," ").title() if "_api_key" in _provider else _provider}'[:30]
+                    except: pass
+                    _age = _time.strftime('%H:%M')
+                    detail = f'{_age} {text}{_ai_prov}'
+                    self.status_lbl.config(text=detail[:80])
         except Exception:
             pass
 
@@ -2475,7 +2491,7 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
                 'tr': {
                     'title': 'KAPSAMLI KULLANIM REHBERİ',
                     'content': """╔══════════════════════════════════════════╗
-║        HATALI ESKİ REHBER       ║
+║        KAPSAMLI KULLANIM REHBERİ       ║
 ╚══════════════════════════════════════════╝
 
 📌 BU UYGULAMA NE İŞE YARAR?
@@ -2490,64 +2506,56 @@ sunar.
 
 ─────────────────────────────────────────────
 
-🔰 1. ADIM: GROQ API KEY ALMA (ZORUNLU)
+🔰 1. ADIM: API KEY ALMA
 ─────────────────────────────────────────────
-Uygulamanın yapay zeka çeviri özelliklerini
-kullanmak için ücretsiz bir Groq API anahtarı
-almanız gerekir.
+Uygulamanın yapay zeka özelliklerini
+kullanmak için bir API anahtarı
+almanız gerekir. Desteklenen sağlayıcılar:
+Groq (ücretsiz), OpenAI, Anthropic, Google, OpenRouter.
 
-① console.groq.com adresine gidin
-② "Sign Up" butonu ile kaydolun (Google ile de olur)
-③ Giriş yaptıktan sonra sol menüden "API Keys" seçin
-④ "Create API Key" butonuna tıklayın
-⑤ İstediğiniz bir isim verin (ör: "SteamTools")
-⑥ Oluşan anahtarı kopyalayın (başta "gsk_" ile başlar)
-⑦ Uygulamada Ayarlar → Groq satırındaki API Key
-   alanına yapıştırın ve Kaydet butonuna basın
+① İlgili sağlayıcının web sitesine gidin
+② API Key bölümünden yeni bir anahtar oluşturun
+③ Oluşan anahtarı kopyalayın
+④ Uygulamada Ayarlar → ilgili sağlayıcı satırındaki
+   API Key alanına yapıştırın ve Kaydet butonuna basın
 
-⚠ NOT: API Key'iniz kaydedildikten sonra
-  ayarlar penceresini kapatıp açmanız gerekebilir.
+⚠ NOT: Groq ücretsizdir (gsk_ ile başlar).
+  console.groq.com adresinden alabilirsiniz.
 
 ─────────────────────────────────────────────
 
 📂 2. ADIM: 1 NEW GAMES KLASÖRÜ
 ─────────────────────────────────────────────
 İnternetten indirdiğiniz oyun .zip dosyalarını
-atalacağınız ana klasördür.
+atacağınız ana klasördür.
 
 ① Masaüstünde "1 New Games" klasörü oluşturun
    (veya var olanı kullanın)
 ② Ayarlar → save_path kısmına klasörün tam yolunu
-   yazın (ör: C:\\Users\\Taha\\Desktop\\1 New Games)
+   yazın (ör: C:\\Users\\Kullanici\\Desktop\\1 New Games)
 ③ Oyun .zip dosyalarını bu klasörün İÇİNE atın
 
 ⚠ ÖNEMLİ: Zip'lerin içinde manifest (.manifest)
   dosyaları ve plugin (.st / .lua) dosyaları
-  olmalıdır. Doğru formattaki zip'ler otomatik
-  olarak sınıflandırılıp inject edilir.
+  olmalıdır.
 
 ─────────────────────────────────────────────
 
 🚀 3. ADIM: INJECT ALL KULLANIMI
 ─────────────────────────────────────────────
-Ana ekranın üst kısmındaki "Inject All" butonu
-1 New Games klasöründeki tüm .zip dosyalarını
-otomatik olarak işler.
+"Inject All" butonu 1 New Games klasöründeki
+tüm .zip dosyalarını otomatik olarak işler.
 
 Butona bastığınızda:
 ① Zip'ler taranır ve sayılır
-② Her zip açılır, manifest dosyaları → depotcache
-   diğer dosyalar (.st, .lua) → stplug-in klasörüne
+② Her zip açılır, dosyalar ilgili klasörlere
    ayıklanır
-③ İşlenen zip'ler otomatik silinir
+③ İşlenen zip'ler arşivlenir
 ④ "Steam restart edilsin mi?" sorusu gelir
 ⑤ Evet derseniz → Steam kapatılır, 5sn beklenir,
    tekrar açılır
-⑥ Steam yeniden başlayınca SteamTools
-   eklediğiniz oyunları otomatik algılar
 
-⚠ NOT: SteamTools zaten bilgisayarınızda
-  yüklü olmalıdır.
+⚠ NOT: SteamTools bilgisayarınızda yüklü olmalıdır.
 
 ─────────────────────────────────────────────
 
@@ -2557,28 +2565,23 @@ Ayarlar penceresindeki "Tools" bölümü:
 
 ☆ Install Millenium
    - Steam için modern bir arayüz teması kurar
-   - Tek tıkla çalışır, PowerShell çalıştırır
+   - Tek tıkla çalışır
 
 ☆ LuaTools Installer
    - Lua tabanlı Steam eklentilerini kurar
-   - Kurulum sonrası eklenti otomatik plugins/
-     klasörüne taşınır
 
 ☆ Launch SteamTools
    - SteamTools.exe'yi başlatır
-   - (C:\\Program Files\\SteamTools\\ yolunda arar)
 
 ☆ Restart Steam
-   - Steam'i kapatır (taskkill ile)
-   - 5 saniye bekler
-   - Tekrar başlatır
+   - Steam'i kapatır, bekler ve tekrar başlatır
 
 ☆ ? (Bu Rehber)
    - Kapsamlı kullanım rehberini açar
 
 ─────────────────────────────────────────────
 
-🃏 5. ADIM: OYUN KARTLARI VE UNLOCK DOWNLOAD
+🃏 5. ADIM: OYUN KARTLARI
 ─────────────────────────────────────────────
 
 Her arama sonucu bir oyun kartı olarak gösterilir.
@@ -2586,43 +2589,23 @@ Kart üzerindeki butonlar:
 
 ☆ Download
    - Oyunun .lua dosyasını stplug-in klasörüne kopyalar
-   - Oyun zaten yüklüyse Steam'de başlatır
-   - Yüklü değilse manifest dosyalarını indirir
 
 ☆ OnlineFix
    - online-fix.me'de oyun sayfasını açar
-   - Oyun dosyaları ve crack bilgileri için kullanılır
 
 ☆ Unlock Download
    - manifests.ps1 PowerShell betiğini çalıştırır
-   - GitHub Mirror modunda manifest dosyalarını indirir
-   - Steam'in oyunu tanımasını sağlar
-   - Not: .lua dosyası stplug-in klasöründe olmalıdır
 
 ─────────────────────────────────────────────
 
-⚙ AYARLAR DETAYLI ANLATIM
+⚙ AYARLAR
 ─────────────────────────────────────────────
 
-◇ Route (Yönlendirme):
-  Yapay zeka sağlayıcılarının hangi sırayla
-  kullanılacağını belirler. "Auto" modunda
-  hata alırsa sıradaki sağlayıcıya geçer.
-
-◇ Language (Dil):
-  6 dil desteği: Türkçe, English, Español,
-  Français, Deutsch, 日本語
-
-◇ Card Width / Spacing:
-  Oyun kartlarının genişliğini ve aralığını
-  ayarlar.
-
-◇ Provider Tablosu:
-  Her yapay zeka sağlayıcısı için:
-  • API Key: Sağlayıcının verdiği anahtar
-  • Model: Kullanılacak model (boş = varsayılan)
-  • Guide: Sağlayıcıya özel rehber
-  • Limit: Kalan istek/token bilgisi
+◇ Route: Yapay zeka sağlayıcı sırasını belirler.
+◇ Language: 6 dil desteği.
+◇ AI Toggle: Arama çubuğu yanındaki buton.
+  Aktifken AI arama isimlerini otomatik düzeltir.
+◇ Card Width / Spacing: Kart görünüm ayarları.
 
 ─────────────────────────────────────────────
 
@@ -2630,23 +2613,15 @@ Kart üzerindeki butonlar:
 ─────────────────────────────────────────────
 
 S: SteamTools kurulu değil, ne yapmalıyım?
-C: Settings → Tools → Launch SteamTools
-   butonu çalışmazsa, SteamTools'u resmi
-   sitesinden indirip kurun.
+C: SteamTools'u resmi sitesinden indirip kurun.
 
-S: Inject All çalışmıyor / zip işlenmiyor?
+S: Inject All çalışmıyor?
 C: Zip dosyalarının doğru formatta olduğundan
-   emin olun. İçinde .manifest ve .st/.lua
-   dosyaları olmalı.
+   emin olun.
 
-S: Guide İngilizce açılıyor?
-C: Ayarlar'dan dil seçimini değiştirin ve
-   kaydedin.
-
-S: Unlock Download çalışmıyor / hata veriyor?
+S: Unlock Download hata veriyor?
 C: .lua dosyasının stplug-in klasöründe olduğundan
    emin olun. İnternet bağlantınızı kontrol edin.
-   Manifest GitHub Mirror'da bulunamıyor olabilir.
 
 ─────────────────────────────────────────────
 
@@ -2661,7 +2636,7 @@ Uygulama hakkında sorun yaşarsanız:
                 'en': {
                     'title': 'COMPREHENSIVE USER GUIDE',
                     'content': """╔══════════════════════════════════════════╗
-║             FALSE USAGE GUİDE            ║
+║        COMPREHENSIVE USER GUIDE          ║
 ╚══════════════════════════════════════════╝
 
 📌 WHAT IS THIS APP?
@@ -2834,7 +2809,7 @@ A: Ensure the .lua file is in stplug-in folder. Check
                 'es': {
                     'title': 'GUÍA COMPLETA DE USUARIO',
                     'content': """╔══════════════════════════════════════════╗
-║      GUIA PARA DESCULPAS INDEVIDAS       ║
+║         GUIA COMPLETA DE USUARIO         ║
 ╚══════════════════════════════════════════╝
 
 📌 ¿QUÉ ES ESTA APLICACIÓN?
@@ -2964,7 +2939,7 @@ R: Asegúrate de que el .lua esté en stplug-in.
                 'fr': {
                     'title': 'GUIDE UTILISATEUR COMPLET',
                     'content': """╔══════════════════════════════════════════╗
-║       GUIDE DE FAUSSE UTILISATION        ║
+║      GUIDE UTILISATEUR COMPLET           ║
 ╚══════════════════════════════════════════╝
 
 📌 QU'EST-CE QUE CETTE APPLICATION ?
@@ -3078,7 +3053,7 @@ R: Vérifiez que le .lua est dans stplug-in.
                 'de': {
                     'title': 'UMFASSENDES BENUTZERHANDBUCH',
                     'content': """╔══════════════════════════════════════════╗
-║     LEITFADEN FÜR UNGERECHTE AUSREDEN    ║
+║        UMFASSENDES BENUTZERHANDBUCH      ║
 ╚══════════════════════════════════════════╝
 
 📌 WAS IST DIESE ANWENDUNG?
@@ -3192,7 +3167,7 @@ A: Stellen Sie sicher, dass .lua in stplug-in ist.
                 'ja': {
                     'title': '包括的なユーザーガイド',
                     'content': """╔══════════════════════════════════════════╗
-║            誤用に関する注意事項            ║
+║         包括的なユーザーガイド             ║
 ╚══════════════════════════════════════════╝
 
 📌 このアプリについて
@@ -3621,7 +3596,7 @@ A: .luaファイルがstplug-inフォルダにあることを
         _inst_frame.pack(fill=tk.X, padx=16, pady=(6, 2))
         _inst_row = tk.Frame(window, bg='#0d1724')
         _inst_row.pack(fill=tk.X, padx=16, pady=(0, 6))
-        tk.Label(_inst_row, text='Yuklu Oyunlar' if _tr(self,'_').startswith('Ayar') else 'Installed Games',
+        tk.Label(_inst_row, text=_tr(self, 'settings.installed_games'),
                  fg='#8fd3ff', bg='#0d1724', font=('Segoe UI Semibold', 11)).pack(side=tk.LEFT)
         def _show_installed():
             try:
@@ -3635,17 +3610,24 @@ A: .luaファイルがstplug-inフォルダにあることを
                         if _steam_path: break
                     except: pass
                 if not _steam_path or not _steam_path.exists():
-                    _messagebox.showinfo('Installed Games', 'Steam not found.')
+                    _messagebox.showinfo(_tr(self, 'settings.installed_games'), _tr(self, 'settings.steam_not_found'))
                     return
                 _library_folders = [_steam_path / 'steamapps']
                 _config_vdf = _steam_path / 'steamapps' / 'libraryfolders.vdf'
                 if _config_vdf.exists():
                     try:
                         _txt = _config_vdf.read_text(encoding='utf-8')
+                        # flat format: "1" "path"
                         for _m in re.finditer(r'"\d+"\s*"([^"]+)"', _txt):
                             _p = Path(_m.group(1))
                             if _p.exists():
                                 _library_folders.append(_p / 'steamapps')
+                        # nested format: "1" { "path" "path" ... }
+                        if not _library_folders or len(_library_folders) == 1:
+                            for _m in re.finditer(r'"path"\s*"([^"]+)"', _txt):
+                                _p = Path(_m.group(1))
+                                if _p.exists() and (_p / 'steamapps') not in _library_folders:
+                                    _library_folders.append(_p / 'steamapps')
                     except: pass
                 _games = []
                 for _lib in _library_folders:
@@ -3675,6 +3657,8 @@ A: .luaファイルがstplug-inフォルダにあることを
                 _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
                 _col_w = 200
                 _cols = max(1, 900 // _col_w)
+                _executor = __import__('concurrent.futures').futures.ThreadPoolExecutor(max_workers=6)
+                _w.protocol('WM_DELETE_WINDOW', lambda: (_executor.shutdown(wait=False), _w.destroy()))
                 for _i, _g in enumerate(_games):
                     _r = _i // _cols
                     _c = _i % _cols
@@ -3695,7 +3679,6 @@ A: .luaファイルがstplug-inフォルダにあることを
                         _ph = tk.Label(_card, text=_g['name'][0].upper() if _g['name'] else '?',
                                        bg='#16273a', fg='#4a6a8a', font=('Segoe UI', 24))
                         _ph.pack(side=tk.TOP, fill=tk.BOTH, expand=True, pady=(0, 2))
-                        # Fetch cover in background
                         def _fetch_cover(aid, card_frame, gname):
                             try:
                                 _r2 = requests.get(f'https://steamcdn-a.akamaihd.net/steam/apps/{aid}/library_600x900.jpg', timeout=10)
@@ -3708,7 +3691,6 @@ A: .luaファイルがstplug-inフォルダにあることを
                                     if not hasattr(self, '_inst_covers'): self._inst_covers = {}
                                     self._inst_covers[aid] = _tk_img
                                     card_frame.after(0, lambda cf=card_frame, ti=_tk_img, gn=gname: _update_card(cf, ti, gn))
-                                else: pass
                             except: pass
                         def _update_card(cf, ti, gn, cmd=_launch_cmd):
                             for _w2 in cf.winfo_children():
@@ -3717,10 +3699,9 @@ A: .luaファイルがstplug-inフォルダにあることを
                             tk.Label(cf, text=gn, fg='#dce7f4', bg='#0f1b2a',
                                      font=('Segoe UI', 8), wraplength=_col_w-20).pack(side=tk.BOTTOM, pady=2)
                             cf.image = ti
-                            # Re-bind click on new children
                             for _c in cf.winfo_children():
                                 _c.bind('<Button-1>', lambda e, c2=cmd: __import__('subprocess').Popen(c2), add='+')
-                        threading.Thread(target=lambda a=_appid, c=_card, g=_gname: _fetch_cover(a, c, g), daemon=True).start()
+                        _executor.submit(lambda a=_appid, c=_card, g=_gname: _fetch_cover(a, c, g))
                     _name_lbl = tk.Label(_card, text=_gname, fg='#dce7f4', bg='#0f1b2a',
                              font=('Segoe UI', 8), wraplength=_col_w-20)
                     _name_lbl.pack(side=tk.BOTTOM, pady=2)
@@ -4252,44 +4233,39 @@ A: .luaファイルがstplug-inフォルダにあることを
 
     except: pass
 
-    # ---- AI Correction Label (click to search with corrected name) ----
-    _ai_correction_label = None
+    # ---- AI Correction Toggle (next to search bar) ----
     try:
         if _srch_entry:
-            _ai_correction_label = tk.Label(
+            _ai_toggle_var = tk.BooleanVar(value=False)
+            def _toggle_ai(e=None):
+                _ai_toggle_var.set(not _ai_toggle_var.get())
+                _ai_toggle_btn.config(
+                    fg='#48bb78' if _ai_toggle_var.get() else '#666666',
+                    text='AI \u2713' if _ai_toggle_var.get() else 'AI \u2715'
+                )
+            _ai_toggle_btn = tk.Label(
                 _srch_entry.master,
-                text='', bg='#08080e', fg='#b098ff',
-                font=('Segoe UI', 10),
-                anchor='w', cursor='hand2'
+                text='AI \u2715', bg='#1f3348', fg='#666666',
+                font=('Segoe UI', 9, 'bold'), cursor='hand2',
+                padx=4, pady=1, relief=tk.RAISED
             )
-            _ai_correction_label.place(
-                x=_srch_entry.winfo_x(),
-                y=_srch_entry.winfo_y() + _srch_entry.winfo_height() + 4
+            _ai_toggle_btn.place(
+                x=_srch_entry.winfo_x() + _srch_entry.winfo_width() + 6,
+                y=_srch_entry.winfo_y() + 1
             )
-            _ai_correction_label.lower()
-            _label_corrected = None
-            def _clk_correction(e, en=_srch_entry, ap=app):
-                if _label_corrected:
-                    en.delete(0, tk.END)
-                    en.insert(0, _label_corrected)
-                    ap.arama_tetikle()
-            _ai_correction_label.bind('<Button-1>', _clk_correction)
+            _ai_toggle_btn.bind('<Button-1>', _toggle_ai)
             _orig_build = app.build_candidate_titles
-            def _patched_build(query, limit, _orig=_orig_build, _label=_ai_correction_label, _root=root):
-                nonlocal _label_corrected
+            def _patched_build(query, limit, _orig=_orig_build, _root=root):
                 try:
                     titles, ai_provider, query_mode = _orig(query, limit)
-                    if titles and titles[0].lower() != query.lower():
-                        c = titles[0]
-                        _label_corrected = c
-                        _root.after(0, lambda: (_label.config(text='\u2192 ' + c), _label.lift()))
-                    else:
-                        _label_corrected = None
-                        _root.after(0, _label.lower)
+                    if _ai_toggle_var.get() and titles and titles[0].lower() != query.lower():
+                        _root.after(0, lambda q=titles[0]: (
+                            _srch_entry.delete(0, tk.END),
+                            _srch_entry.insert(0, q),
+                            _srch_entry.event_generate('<Return>')
+                        ))
                     return titles, ai_provider, query_mode
                 except Exception:
-                    try: _root.after(0, _label.lower)
-                    except: pass
                     raise
             app.build_candidate_titles = _patched_build
     except: pass
