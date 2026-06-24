@@ -4237,6 +4237,7 @@ A: .luaファイルがstplug-inフォルダにあることを
     try:
         if _srch_entry:
             _ai_toggle_var = tk.BooleanVar(value=False)
+            _ai_correction_cache = None
             def _toggle_ai(e=None):
                 _ai_toggle_var.set(not _ai_toggle_var.get())
                 _ai_toggle_btn.config(
@@ -4254,25 +4255,25 @@ A: .luaファイルがstplug-inフォルダにあることを
                 y=_srch_entry.winfo_y() + 1
             )
             _ai_toggle_btn.bind('<Button-1>', _toggle_ai)
-            _orig_build = app.build_candidate_titles
-            def _patched_build(query, limit, _orig=_orig_build, _root=root):
-                try:
-                    titles, ai_provider, query_mode = _orig(query, limit)
-                    if _ai_toggle_var.get() and titles and titles[0].lower() != query.lower():
-                        _root.after(0, lambda q=titles[0]: (
-                            _srch_entry.delete(0, tk.END),
-                            _srch_entry.insert(0, q),
-                            _srch_entry.event_generate('<Return>')
-                        ))
-                    return titles, ai_provider, query_mode
-                except Exception:
-                    raise
-            app.build_candidate_titles = _patched_build
+            # Intercept arama_tetikle to pre-correct query before search
+            _orig_arama = app.arama_tetikle
+            def _patched_arama(ap=app, en=_srch_entry):
+                if _ai_toggle_var.get():
+                    q = en.get().strip()
+                    if q:
+                        try:
+                            titles, _, _ = app.build_candidate_titles(q, 1)
+                            if titles and titles[0].lower() != q.lower():
+                                en.delete(0, tk.END)
+                                en.insert(0, titles[0])
+                        except: pass
+                _orig_arama()
+            app.arama_tetikle = _patched_arama
     except: pass
 
     # ---- SteamDB Game Browser + Sidebar + Library ----
     _steamdb_path = _data_dir / "steamdb_cache.json"
-    _STEAMDB_LIMIT = 5000
+    _STEAMDB_LIMIT = 10000
     _STEAMDB_PAGE_SIZE = 12
 
     def _fetch_steamdb_games(offset=0, progress_callback=None):
@@ -4609,7 +4610,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                 activebackground='#2b4b68', activeforeground='#ffffff',
                 cursor='hand2', command=_refresh_list)
             _ref_btn.pack(side=tk.LEFT, padx=(0, 8))
-            _ref_btn.bind('<Enter>', lambda e: app.status_var.set('Sonraki 5000 oyun / Refresh List'))
+            _ref_btn.bind('<Enter>', lambda e: app.status_var.set(f'Sonraki {_STEAMDB_LIMIT} oyun / Refresh List'))
             _ref_btn.bind('<Leave>', lambda e: app.status_var.set(''))
             sd_nav = tk.Frame(sd_bar, bg='#0f1b2a')
             sd_nav.pack(side=tk.RIGHT)
