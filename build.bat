@@ -7,6 +7,8 @@ pyinstaller --onefile --windowed --icon=%~dp0icon.ico --name=SteamToolsLua ^
   --add-data "%~dp0icon.ico;." ^
   --add-data "%~dp0webviewer_module.py;." ^
   --add-data "%~dp0aria2c.exe;." ^
+  --add-data "%~dp0CloudRedirect.exe;." ^
+  --add-data "%~dp0cloud_redirect.dll;." ^
   --hidden-import=html --hidden-import=html.parser --hidden-import=html.entities ^
   --hidden-import=requests --hidden-import=urllib3 --hidden-import=certifi ^
   --hidden-import=charset_normalizer --hidden-import=idna ^

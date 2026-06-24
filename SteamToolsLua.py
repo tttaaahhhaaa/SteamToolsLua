@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.7.5"
+VERSION = "1.7.6"
 VERSION_NAME = "AI correction click + rebuild"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
@@ -3678,11 +3678,14 @@ A: .luaファイルがstplug-inフォルダにあることを
                 for _i, _g in enumerate(_games):
                     _r = _i // _cols
                     _c = _i % _cols
-                    _card = tk.Frame(_inner, bg='#0f1b2a', width=_col_w-10, height=120)
+                    _card = tk.Frame(_inner, bg='#0f1b2a', width=_col_w-10, height=140, cursor='hand2')
                     _card.grid(row=_r, column=_c, padx=5, pady=5, sticky='nw')
                     _card.grid_propagate(False)
-                    # Load cover from Steam CDN
                     _appid = _g['appid']
+                    _gname = _g['name'][:35]
+                    _launch_cmd = ['cmd', '/c', 'start', f'steam://rungameid/{_appid}']
+                    _card.bind('<Button-1>', lambda e, c=_launch_cmd: __import__('subprocess').Popen(c))
+                    # Load cover from Steam CDN
                     _img = getattr(self, '_inst_covers', {}).get(_appid)
                     if _img:
                         _lbl = tk.Label(_card, image=_img, bg='#0f1b2a')
@@ -3693,7 +3696,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                                        bg='#16273a', fg='#4a6a8a', font=('Segoe UI', 24))
                         _ph.pack(side=tk.TOP, fill=tk.BOTH, expand=True, pady=(0, 2))
                         # Fetch cover in background
-                        def _fetch_cover(aid, card_frame):
+                        def _fetch_cover(aid, card_frame, gname):
                             try:
                                 _r2 = requests.get(f'https://steamcdn-a.akamaihd.net/steam/apps/{aid}/library_600x900.jpg', timeout=10)
                                 if _r2.status_code == 200:
@@ -3704,17 +3707,24 @@ A: .luaファイルがstplug-inフォルダにあることを
                                     _tk_img = _PILTk.PhotoImage(_img_data)
                                     if not hasattr(self, '_inst_covers'): self._inst_covers = {}
                                     self._inst_covers[aid] = _tk_img
-                                    card_frame.after(0, lambda: _update_card(card_frame, _tk_img))
+                                    card_frame.after(0, lambda cf=card_frame, ti=_tk_img, gn=gname: _update_card(cf, ti, gn))
                                 else: pass
                             except: pass
-                        def _update_card(cf, ti):
+                        def _update_card(cf, ti, gn, cmd=_launch_cmd):
                             for _w2 in cf.winfo_children():
                                 _w2.destroy()
                             tk.Label(cf, image=ti, bg='#0f1b2a').pack(side=tk.TOP, fill=tk.X, pady=(0, 2))
+                            tk.Label(cf, text=gn, fg='#dce7f4', bg='#0f1b2a',
+                                     font=('Segoe UI', 8), wraplength=_col_w-20).pack(side=tk.BOTTOM, pady=2)
                             cf.image = ti
-                        threading.Thread(target=lambda: _fetch_cover(_appid, _card), daemon=True).start()
-                    tk.Label(_card, text=_g['name'][:35], fg='#dce7f4', bg='#0f1b2a',
-                             font=('Segoe UI', 8), wraplength=_col_w-20).pack(side=tk.BOTTOM, pady=2)
+                            # Re-bind click on new children
+                            for _c in cf.winfo_children():
+                                _c.bind('<Button-1>', lambda e, c2=cmd: __import__('subprocess').Popen(c2), add='+')
+                        threading.Thread(target=lambda a=_appid, c=_card, g=_gname: _fetch_cover(a, c, g), daemon=True).start()
+                    _name_lbl = tk.Label(_card, text=_gname, fg='#dce7f4', bg='#0f1b2a',
+                             font=('Segoe UI', 8), wraplength=_col_w-20)
+                    _name_lbl.pack(side=tk.BOTTOM, pady=2)
+                    _name_lbl.bind('<Button-1>', lambda e, cmd=_launch_cmd: __import__('subprocess').Popen(cmd), add='+')
                 _inner.update_idletasks()
                 _canv.configure(scrollregion=_canv.bbox('all'))
             except Exception as ex:
