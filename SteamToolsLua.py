@@ -3731,8 +3731,11 @@ A: .luaファイルがstplug-inフォルダにあることを
                         AB_lib(sort_frame, '\u2b07 Install', _install_lib_game, 100, 26,
                                '#1c3a2a', '#2a5a3a', '#48bb78', '#ffffff',
                                ('Segoe UI Semibold', 8)).pack(side=tk.RIGHT, padx=(4, 0))
-                        tv.bind('<Double-1>', lambda e: _install_lib_game())
-                        tv.bind('<MouseWheel>', lambda e: 'break')
+                         def _tv_scroll2(e):
+                             tv.yview_scroll(int(-1*(e.delta/120)), 'units')
+                             return 'break'
+                         tv.bind('<Double-1>', lambda e: _install_lib_game())
+                         tv.bind('<MouseWheel>', _tv_scroll2)
                         _populate()
                     _load_win.after(0, _build_ui)
                 except Exception as ex:
@@ -3853,8 +3856,11 @@ A: .luaファイルがstplug-inフォルダにあることを
                         AB(_top, '\u25b6 Baslat', _launch_game, 90, 28,
                            '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
                            ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=(4, 0))
+                        def _tv_scroll(e):
+                            _tv.yview_scroll(int(-1*(e.delta/120)), 'units')
+                            return 'break'
                         _tv.bind('<Double-1>', lambda e: _launch_game())
-                        _tv.bind('<MouseWheel>', lambda e: 'break')
+                        _tv.bind('<MouseWheel>', _tv_scroll)
                     _load_win.after(0, _build_ui)
                 except Exception as ex:
                     _load_win.after(0, _load_win.destroy)
