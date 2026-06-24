@@ -33,8 +33,8 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.7.4"
-VERSION_NAME = "No topmost + installed games"
+VERSION = "1.7.5"
+VERSION_NAME = "AI correction click + rebuild"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"
@@ -4240,6 +4240,48 @@ A: .luaファイルがstplug-inフォルダにあることを
                 root.after(100, _hide_hist)
             _srch_entry.bind('<Return>', _search_and_save, add='+')
 
+    except: pass
+
+    # ---- AI Correction Label (click to search with corrected name) ----
+    _ai_correction_label = None
+    try:
+        if _srch_entry:
+            _ai_correction_label = tk.Label(
+                _srch_entry.master,
+                text='', bg='#08080e', fg='#b098ff',
+                font=('Segoe UI', 10),
+                anchor='w', cursor='hand2'
+            )
+            _ai_correction_label.place(
+                x=_srch_entry.winfo_x(),
+                y=_srch_entry.winfo_y() + _srch_entry.winfo_height() + 4
+            )
+            _ai_correction_label.lower()
+            _label_corrected = None
+            def _clk_correction(e, en=_srch_entry, ap=app):
+                if _label_corrected:
+                    en.delete(0, tk.END)
+                    en.insert(0, _label_corrected)
+                    ap.arama_tetikle()
+            _ai_correction_label.bind('<Button-1>', _clk_correction)
+            _orig_build = app.build_candidate_titles
+            def _patched_build(query, limit, _orig=_orig_build, _label=_ai_correction_label, _root=root):
+                nonlocal _label_corrected
+                try:
+                    titles, ai_provider, query_mode = _orig(query, limit)
+                    if titles and titles[0].lower() != query.lower():
+                        c = titles[0]
+                        _label_corrected = c
+                        _root.after(0, lambda: (_label.config(text='\u2192 ' + c), _label.lift()))
+                    else:
+                        _label_corrected = None
+                        _root.after(0, _label.lower)
+                    return titles, ai_provider, query_mode
+                except Exception:
+                    try: _root.after(0, _label.lower)
+                    except: pass
+                    raise
+            app.build_candidate_titles = _patched_build
     except: pass
 
     # ---- SteamDB Game Browser + Sidebar + Library ----
