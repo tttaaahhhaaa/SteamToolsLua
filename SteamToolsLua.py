@@ -3773,7 +3773,8 @@ A: .luaファイルがstplug-inフォルダにあることを
                     if sel:
                         vals = _tv.item(sel[0], 'values')
                         if vals:
-                            _sp.Popen(['steam://rungameid/' + vals[0]])
+                            import webbrowser as _wb
+                            _wb.open('steam://rungameid/' + vals[0])
                 AB = g.get('AnimatedButton', AnimatedButton)
                 AB(_top, 'Baslat', _launch_game, 90, 28,
                    '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
