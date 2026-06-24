@@ -9,6 +9,7 @@ import marshal
 import os
 import random
 import sys
+import winreg
 from pathlib import Path
 import zlib as _zlib
 # PyInstaller: ensure these modules get bundled for the embedded code
@@ -78,7 +79,6 @@ def main():
         try: _old_lic.unlink()
         except: pass
     def _get_hwid():
-        import hashlib, winreg
         try:
             _k = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\Microsoft\Cryptography')
             _guid = winreg.QueryValueEx(_k, 'MachineGuid')[0]; _k.Close()
