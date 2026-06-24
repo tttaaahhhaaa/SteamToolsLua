@@ -78,8 +78,13 @@ def main():
         try: _old_lic.unlink()
         except: pass
     def _get_hwid():
-        import hashlib, uuid as _uu
-        return hashlib.sha256(f'{_uu.getnode()}:{os.environ.get("COMPUTERNAME","")}:{os.environ.get("USERNAME","")}'.encode()).hexdigest()[:32]
+        import hashlib, winreg
+        try:
+            _k = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\Microsoft\Cryptography')
+            _guid = winreg.QueryValueEx(_k, 'MachineGuid')[0]; _k.Close()
+        except:
+            _guid = os.environ.get('COMPUTERNAME', 'unknown')
+        return hashlib.sha256(f'{_guid}:{os.environ.get("USERNAME","")}'.encode()).hexdigest()[:32]
     def _chk_lic():
         if _LICENSE_FILE.exists():
             try: return json.loads(_LICENSE_FILE.read_text(encoding='utf-8')).get('hwid') == _get_hwid()
