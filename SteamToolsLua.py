@@ -33,8 +33,8 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.6.0"
-VERSION_NAME = "Update test build"
+VERSION = "1.7.4"
+VERSION_NAME = "No topmost + installed games"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"
@@ -142,13 +142,13 @@ def main():
     root.protocol('WM_DELETE_WINDOW', root.destroy)
     try: root.attributes('-toolwindow', False)
     except: pass
-    # Fix: bring window to front only when restored from taskbar
+    # Fix: bring window to front when restored from taskbar (no topmost)
     def _on_deiconify(_=None):
         try:
             if root.wm_state() == 'iconic':
                 return
-            root.attributes('-topmost', True)
-            root.after(10, lambda: root.attributes('-topmost', False))
+            root.lift()
+            root.focus_force()
         except: pass
     root.bind('<Map>', _on_deiconify)
     # --- Show update-completed dialog if .update_info.txt found ---
@@ -3614,6 +3614,115 @@ A: .luaファイルがstplug-inフォルダにあることを
            '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
         tk.Label(lib_row, text=_tr(self, 'library.desc'),
+                 fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=8)
+
+        # ---- Installed Steam Games section ----
+        _inst_frame = tk.Frame(window, bg='#0d1724')
+        _inst_frame.pack(fill=tk.X, padx=16, pady=(6, 2))
+        _inst_row = tk.Frame(window, bg='#0d1724')
+        _inst_row.pack(fill=tk.X, padx=16, pady=(0, 6))
+        tk.Label(_inst_row, text='Yuklu Oyunlar' if _tr(self,'_').startswith('Ayar') else 'Installed Games',
+                 fg='#8fd3ff', bg='#0d1724', font=('Segoe UI Semibold', 11)).pack(side=tk.LEFT)
+        def _show_installed():
+            try:
+                _steam_path = None
+                import winreg
+                for _hive in (winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE):
+                    try:
+                        _key = winreg.OpenKey(_hive, r'SOFTWARE\Valve\Steam')
+                        _steam_path = Path(winreg.QueryValueEx(_key, 'SteamPath')[0])
+                        winreg.CloseKey(_key)
+                        if _steam_path: break
+                    except: pass
+                if not _steam_path or not _steam_path.exists():
+                    _messagebox.showinfo('Installed Games', 'Steam not found.')
+                    return
+                _library_folders = [_steam_path / 'steamapps']
+                _config_vdf = _steam_path / 'steamapps' / 'libraryfolders.vdf'
+                if _config_vdf.exists():
+                    try:
+                        _txt = _config_vdf.read_text(encoding='utf-8')
+                        for _m in re.finditer(r'"\d+"\s*"([^"]+)"', _txt):
+                            _p = Path(_m.group(1))
+                            if _p.exists():
+                                _library_folders.append(_p / 'steamapps')
+                    except: pass
+                _games = []
+                for _lib in _library_folders:
+                    if not _lib.exists(): continue
+                    for _acf in _lib.glob('*.acf'):
+                        try:
+                            _acf_txt = _acf.read_text(encoding='utf-8')
+                            _aid_m = re.search(r'"appid"\s*"(\d+)"', _acf_txt)
+                            _name_m = re.search(r'"name"\s*"([^"]+)"', _acf_txt)
+                            _dir_m = re.search(r'"installdir"\s*"([^"]+)"', _acf_txt)
+                            if _aid_m and _name_m:
+                                _games.append({'appid': _aid_m.group(1), 'name': _name_m.group(1), 'dir': _dir_m.group(1) if _dir_m else ''})
+                        except: pass
+                _games.sort(key=lambda x: x['name'].lower())
+                # Open window
+                _w = tk.Toplevel(window)
+                _w.title(f'Installed Games ({len(_games)})')
+                _w.geometry('900x600')
+                _w.configure(bg='#08080e')
+                _w.transient(window)
+                _canv = tk.Canvas(_w, bg='#08080e', highlightthickness=0)
+                _scr = ttk.Scrollbar(_w, orient=tk.VERTICAL, command=_canv.yview)
+                _canv.configure(yscrollcommand=_scr.set)
+                _inner = tk.Frame(_canv, bg='#08080e')
+                _canv.create_window((0, 0), window=_inner, anchor='nw')
+                _scr.pack(side=tk.RIGHT, fill=tk.Y)
+                _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+                _col_w = 200
+                _cols = max(1, 900 // _col_w)
+                for _i, _g in enumerate(_games):
+                    _r = _i // _cols
+                    _c = _i % _cols
+                    _card = tk.Frame(_inner, bg='#0f1b2a', width=_col_w-10, height=120)
+                    _card.grid(row=_r, column=_c, padx=5, pady=5, sticky='nw')
+                    _card.grid_propagate(False)
+                    # Load cover from Steam CDN
+                    _appid = _g['appid']
+                    _img = getattr(self, '_inst_covers', {}).get(_appid)
+                    if _img:
+                        _lbl = tk.Label(_card, image=_img, bg='#0f1b2a')
+                        _lbl.image = _img
+                        _lbl.pack(side=tk.TOP, fill=tk.X, pady=(0, 2))
+                    else:
+                        _ph = tk.Label(_card, text=_g['name'][0].upper() if _g['name'] else '?',
+                                       bg='#16273a', fg='#4a6a8a', font=('Segoe UI', 24))
+                        _ph.pack(side=tk.TOP, fill=tk.BOTH, expand=True, pady=(0, 2))
+                        # Fetch cover in background
+                        def _fetch_cover(aid, card_frame):
+                            try:
+                                _r2 = requests.get(f'https://steamcdn-a.akamaihd.net/steam/apps/{aid}/library_600x900.jpg', timeout=10)
+                                if _r2.status_code == 200:
+                                    from PIL import Image as _PIL, ImageTk as _PILTk
+                                    import io
+                                    _img_data = _PIL.open(io.BytesIO(_r2.content))
+                                    _img_data.thumbnail((_col_w-20, 100))
+                                    _tk_img = _PILTk.PhotoImage(_img_data)
+                                    if not hasattr(self, '_inst_covers'): self._inst_covers = {}
+                                    self._inst_covers[aid] = _tk_img
+                                    card_frame.after(0, lambda: _update_card(card_frame, _tk_img))
+                                else: pass
+                            except: pass
+                        def _update_card(cf, ti):
+                            for _w2 in cf.winfo_children():
+                                _w2.destroy()
+                            tk.Label(cf, image=ti, bg='#0f1b2a').pack(side=tk.TOP, fill=tk.X, pady=(0, 2))
+                            cf.image = ti
+                        threading.Thread(target=lambda: _fetch_cover(_appid, _card), daemon=True).start()
+                    tk.Label(_card, text=_g['name'][:35], fg='#dce7f4', bg='#0f1b2a',
+                             font=('Segoe UI', 8), wraplength=_col_w-20).pack(side=tk.BOTTOM, pady=2)
+                _inner.update_idletasks()
+                _canv.configure(scrollregion=_canv.bbox('all'))
+            except Exception as ex:
+                _messagebox.showerror('Error', f'Failed to load games: {ex}')
+        AB(_inst_row, 'Installed', _show_installed, 130, 30,
+           '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
+        tk.Label(_inst_row, text='(Steam\'de yuklu oyunlar)',
                  fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=8)
 
         # Provider table

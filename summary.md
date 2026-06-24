@@ -17,9 +17,13 @@
 - `.update_info.txt` is the handshake file between old and new exe
 - Page viewed tracking persisted to disk
 
-## Known Issues
-- Need a working v1.6.0 exe with v1.6.0 bytecode to test full update flow
-- Push to GitHub blocked on secrets; remove tokens before committing
+## v1.7.3 Fixes
+- **UPDATE_URL**: `main` → `master` branch (was fetching old "1.7.1")
+- **Popup closeable**: `WM_DELETE_WINDOW` → `_skip_dlg` (X button works)
+- **Window minimize**: `wm_state() != 'iconic'` check added
+- **Password**: `('knkm', 'online-fix.me')` both tried
+- **Browser redirect**: only opens when ZIP download was attempted & failed
+- **Refresh**: resets `_sd_viewed` so purple markings clear on refresh
 
 ## Critical Context
 - `UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/main/latest_version.txt"`
