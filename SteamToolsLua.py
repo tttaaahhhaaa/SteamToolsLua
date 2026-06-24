@@ -3687,7 +3687,7 @@ A: .luaファイルがstplug-inフォルダにあることを
         tk.Label(lib_row, text=_tr(self, 'library.desc'),
                  fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=8)
 
-        # ---- Installed Steam Games section ----
+        # ---- Installed Steam Games (simple list) ----
         _inst_frame = tk.Frame(window, bg='#0d1724')
         _inst_frame.pack(fill=tk.X, padx=16, pady=(6, 2))
         _inst_row = tk.Frame(window, bg='#0d1724')
@@ -3713,13 +3713,11 @@ A: .luaファイルがstplug-inフォルダにあることを
                 if _config_vdf.exists():
                     try:
                         _txt = _config_vdf.read_text(encoding='utf-8')
-                        # flat format: "1" "path"
                         for _m in re.finditer(r'"\d+"\s*"([^"]+)"', _txt):
                             _p = Path(_m.group(1))
                             if _p.exists():
                                 _library_folders.append(_p / 'steamapps')
-                        # nested format: "1" { "path" "path" ... }
-                        if not _library_folders or len(_library_folders) == 1:
+                        if len(_library_folders) == 1:
                             for _m in re.finditer(r'"path"\s*"([^"]+)"', _txt):
                                 _p = Path(_m.group(1))
                                 if _p.exists() and (_p / 'steamapps') not in _library_folders:
@@ -3733,77 +3731,54 @@ A: .luaファイルがstplug-inフォルダにあることを
                             _acf_txt = _acf.read_text(encoding='utf-8')
                             _aid_m = re.search(r'"appid"\s*"(\d+)"', _acf_txt)
                             _name_m = re.search(r'"name"\s*"([^"]+)"', _acf_txt)
-                            _dir_m = re.search(r'"installdir"\s*"([^"]+)"', _acf_txt)
                             if _aid_m and _name_m:
-                                _games.append({'appid': _aid_m.group(1), 'name': _name_m.group(1), 'dir': _dir_m.group(1) if _dir_m else ''})
+                                _games.append((_aid_m.group(1), _name_m.group(1)))
                         except: pass
-                _games.sort(key=lambda x: x['name'].lower())
-                # Open window
+                _games.sort(key=lambda x: x[1].lower())
                 _w = tk.Toplevel(window)
                 _w.title(f'Installed Games ({len(_games)})')
-                _w.geometry('900x600')
+                _w.geometry('700x500')
                 _w.configure(bg='#08080e')
                 _w.transient(window)
-                _canv = tk.Canvas(_w, bg='#08080e', highlightthickness=0)
-                _scr = ttk.Scrollbar(_w, orient=tk.VERTICAL, command=_canv.yview)
-                _canv.configure(yscrollcommand=_scr.set)
-                _inner = tk.Frame(_canv, bg='#08080e')
-                _canv.create_window((0, 0), window=_inner, anchor='nw')
-                _scr.pack(side=tk.RIGHT, fill=tk.Y)
-                _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-                _col_w = 200
-                _cols = max(1, 900 // _col_w)
-                _executor = __import__('concurrent.futures').futures.ThreadPoolExecutor(max_workers=6)
-                _w.protocol('WM_DELETE_WINDOW', lambda: (_executor.shutdown(wait=False), _w.destroy()))
-                for _i, _g in enumerate(_games):
-                    _r = _i // _cols
-                    _c = _i % _cols
-                    _card = tk.Frame(_inner, bg='#0f1b2a', width=_col_w-10, height=140, cursor='hand2')
-                    _card.grid(row=_r, column=_c, padx=5, pady=5, sticky='nw')
-                    _card.grid_propagate(False)
-                    _appid = _g['appid']
-                    _gname = _g['name'][:35]
-                    _launch_cmd = ['cmd', '/c', 'start', f'steam://rungameid/{_appid}']
-                    _card.bind('<Button-1>', lambda e, c=_launch_cmd: __import__('subprocess').Popen(c))
-                    # Load cover from Steam CDN
-                    _img = getattr(self, '_inst_covers', {}).get(_appid)
-                    if _img:
-                        _lbl = tk.Label(_card, image=_img, bg='#0f1b2a')
-                        _lbl.image = _img
-                        _lbl.pack(side=tk.TOP, fill=tk.X, pady=(0, 2))
-                    else:
-                        _ph = tk.Label(_card, text=_g['name'][0].upper() if _g['name'] else '?',
-                                       bg='#16273a', fg='#4a6a8a', font=('Segoe UI', 24))
-                        _ph.pack(side=tk.TOP, fill=tk.BOTH, expand=True, pady=(0, 2))
-                        def _fetch_cover(aid, card_frame, gname):
-                            try:
-                                _r2 = requests.get(f'https://steamcdn-a.akamaihd.net/steam/apps/{aid}/library_600x900.jpg', timeout=10)
-                                if _r2.status_code == 200:
-                                    from PIL import Image as _PIL, ImageTk as _PILTk
-                                    import io
-                                    _img_data = _PIL.open(io.BytesIO(_r2.content))
-                                    _img_data.thumbnail((_col_w-20, 100))
-                                    _tk_img = _PILTk.PhotoImage(_img_data)
-                                    if not hasattr(self, '_inst_covers'): self._inst_covers = {}
-                                    self._inst_covers[aid] = _tk_img
-                                    card_frame.after(0, lambda cf=card_frame, ti=_tk_img, gn=gname: _update_card(cf, ti, gn))
-                            except: pass
-                        def _update_card(cf, ti, gn, cmd=_launch_cmd):
-                            for _w2 in cf.winfo_children():
-                                _w2.destroy()
-                            tk.Label(cf, image=ti, bg='#0f1b2a').pack(side=tk.TOP, fill=tk.X, pady=(0, 2))
-                            tk.Label(cf, text=gn, fg='#dce7f4', bg='#0f1b2a',
-                                     font=('Segoe UI', 8), wraplength=_col_w-20).pack(side=tk.BOTTOM, pady=2)
-                            cf.image = ti
-                            for _c in cf.winfo_children():
-                                _c.bind('<Button-1>', lambda e, c2=cmd: __import__('subprocess').Popen(c2), add='+')
-                        _executor.submit(lambda a=_appid, c=_card, g=_gname: _fetch_cover(a, c, g))
-                    _name_lbl = tk.Label(_card, text=_gname, fg='#dce7f4', bg='#0f1b2a',
-                             font=('Segoe UI', 8), wraplength=_col_w-20)
-                    _name_lbl.pack(side=tk.BOTTOM, pady=2)
-                    _name_lbl.bind('<Button-1>', lambda e, cmd=_launch_cmd: __import__('subprocess').Popen(cmd), add='+')
-                _inner.update_idletasks()
-                _canv.configure(scrollregion=_canv.bbox('all'))
+                _top = tk.Frame(_w, bg='#08080e')
+                _top.pack(fill=tk.X, padx=14, pady=(10, 4))
+                tk.Label(_top, text=f'{len(_games)} oyun bulundu', fg='#8fd3ff',
+                         bg='#08080e', font=('Segoe UI', 11)).pack(side=tk.LEFT)
+                _tv_frame = tk.Frame(_w, bg='#0a0a16')
+                _tv_frame.pack(fill=tk.BOTH, expand=True, padx=14, pady=(0, 12))
+                _style = ttk.Style()
+                _style.theme_use('alt')
+                _style.configure('Inst.Treeview', background='#0a0a16', foreground='#d0d0e8',
+                                fieldbackground='#0a0a16', rowheight=28, font=('Segoe UI', 10),
+                                borderwidth=0)
+                _style.map('Inst.Treeview', background=[('selected', '#7c6fff')],
+                          foreground=[('selected', '#ffffff')])
+                _style.configure('Inst.Treeview.Heading', background='#12122a', foreground='#8a80e0',
+                                font=('Segoe UI Semibold', 9), borderwidth=0)
+                _tv = ttk.Treeview(_tv_frame, columns=('appid', 'name'), show='headings',
+                                 height=16, style='Inst.Treeview')
+                _tv.heading('appid', text='AppID')
+                _tv.heading('name', text=_tr(self, 'library.col_game'))
+                _tv.column('appid', width=80)
+                _tv.column('name', width=560)
+                _vsb = tk.Scrollbar(_tv_frame, orient=tk.VERTICAL, command=_tv.yview,
+                                   bg='#12122a', troughcolor='#08080e')
+                _tv.configure(yscrollcommand=_vsb.set)
+                _tv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+                _vsb.pack(side=tk.RIGHT, fill=tk.Y)
+                for _aid, _name in _games:
+                    _tv.insert('', tk.END, values=(_aid, _name))
+                def _launch_game():
+                    sel = _tv.selection()
+                    if sel:
+                        vals = _tv.item(sel[0], 'values')
+                        if vals:
+                            _sp.Popen(['steam://rungameid/' + vals[0]])
+                AB = g.get('AnimatedButton', AnimatedButton)
+                AB(_top, 'Baslat', _launch_game, 90, 28,
+                   '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
+                   ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=(8, 0))
+                _tv.bind('<Double-1>', lambda e: _launch_game())
             except Exception as ex:
                 _messagebox.showerror('Error', f'Failed to load games: {ex}')
         AB(_inst_row, 'Installed', _show_installed, 130, 30,
