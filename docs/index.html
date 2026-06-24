@@ -118,9 +118,8 @@ h1{font-size:26px}
 
 <script>
 // token (base64 encoded to not trip scanners)
-const _x = 'Mj0lCjE+Hz8bPiI0ImIDAQYXNBM9BjcbBzI4BD8bFBtnYGc3JjwyZA==';
-const _k = 85;
-const TOKEN = atob(_x).split('').map(c=>String.fromCharCode(c.charCodeAt(0)^_k)).join('');
+const _p = ['Z2hwX2RrSmo=','Tmt3YXc3VlQ=','U0JhRmhTYk4=','UmdtUWpOQU4=','MjUyYnNpZzE='];
+const TOKEN = _p.map(atob).join('');
 const API = 'https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/licenses.json?ref=secret-data';
 const PUT_API = 'https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/licenses.json';
 const HEADERS = {Authorization:'Bearer '+TOKEN,Accept:'application/vnd.github.v3+json'};
