@@ -3653,6 +3653,63 @@ A: .luaファイルがstplug-inフォルダにあることを
                                  fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
                         sort_frame = tk.Frame(lib_win, bg='#08080e')
                         sort_frame.pack(fill=tk.X, padx=14, pady=(2, 6))
+                        # Search bar
+                        _search_var = tk.StringVar()
+                        _search_entry = tk.Entry(sort_frame, textvariable=_search_var, width=22, relief=tk.FLAT,
+                                                  bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
+                                                  font=('Segoe UI', 9))
+                        _search_entry.pack(side=tk.LEFT, padx=(0, 4))
+                        _search_entry.insert(0, 'Ara...')
+                        def _on_srch_focus_in(e):
+                            if _search_var.get() == 'Ara...':
+                                _search_entry.delete(0, tk.END)
+                        def _on_srch_focus_out(e):
+                            if not _search_var.get().strip():
+                                _search_entry.insert(0, 'Ara...')
+                        _search_entry.bind('<FocusIn>', _on_srch_focus_in)
+                        _search_entry.bind('<FocusOut>', _on_srch_focus_out)
+                        def _filter_games():
+                            _q = _search_var.get().strip()
+                            if _q == 'Ara...': _q = ''
+                            tv.delete(*tv.get_children())
+                            _data = _games
+                            if _q:
+                                _ql = _q.lower()
+                                _data = [g for g in _games if _ql in g[1].lower()]
+                            for _aid, _gname, _mtime in _data:
+                                tv.insert('', tk.END, values=(_aid, _gname, _mtime))
+                        def _srch_action():
+                            _srch_entry.unbind('<Return>', _srch_action) if False else None
+                            _filter_games()
+                        _search_entry.bind('<Return>', lambda e: _filter_games())
+                        _srch_btn = AB_lib(sort_frame, 'Ara', _filter_games, 40, 26,
+                                          '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
+                                          ('Segoe UI', 8))
+                        _srch_btn.pack(side=tk.LEFT, padx=(0, 8))
+                        # Sort buttons
+                        _sort_order = tk.StringVar(value='az')
+                        def _sort_games():
+                            _data = _games
+                            _q = _search_var.get().strip()
+                            if _q and _q != 'Ara...':
+                                _ql = _q.lower()
+                                _data = [g for g in _games if _ql in g[1].lower()]
+                            if _sort_order.get() == 'az':
+                                _data = sorted(_data, key=lambda x: x[1].lower())
+                            else:
+                                _data = sorted(_data, key=lambda x: x[1].lower(), reverse=True)
+                            tv.delete(*tv.get_children())
+                            for _aid, _gname, _mtime in _data:
+                                tv.insert('', tk.END, values=(_aid, _gname, _mtime))
+                        def _set_sort(order):
+                            _sort_order.set(order)
+                            _sort_games()
+                        AB_lib(sort_frame, 'A-Z', lambda: _set_sort('az'), 40, 26,
+                               '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
+                               ('Segoe UI', 8)).pack(side=tk.LEFT, padx=1)
+                        AB_lib(sort_frame, 'Z-A', lambda: _set_sort('za'), 40, 26,
+                               '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
+                               ('Segoe UI', 8)).pack(side=tk.LEFT, padx=1)
                         def _open_used():
                             try: _os.startfile(str(used_dir))
                             except: _subprocess.Popen(['explorer', str(used_dir)])
@@ -3684,7 +3741,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                         tv.configure(yscrollcommand=_vsb.set)
                         tv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
                         _vsb.pack(side=tk.RIGHT, fill=tk.Y)
-                        for _aid, _gname, _mtime in _games:
+                        for _aid, _gname, _mtime in sorted(_games, key=lambda x: x[1].lower()):
                             tv.insert('', tk.END, values=(_aid, _gname, _mtime))
                         def _install_lib_game():
                             sel = tv.selection()
