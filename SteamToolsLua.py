@@ -4233,41 +4233,44 @@ A: .luaファイルがstplug-inフォルダにあることを
 
     except: pass
 
-    # ---- AI Correction Label (click to copy corrected name) ----
-    _ai_correction_label = None
+    # ---- AI Correction Label (click to search with corrected name) ----
     _ai_corrected_text = None
     try:
         if _srch_entry:
-            _ai_correction_label = tk.Label(
-                _srch_entry.master, text='', bg='#08080e', fg='#b098ff',
+            _ai_clabel = tk.Label(
+                root, text='', bg='#122030', fg='#b098ff',
                 font=('Segoe UI', 10), anchor='w', cursor='hand2'
             )
-            _ai_correction_label.place(
-                x=_srch_entry.winfo_x(),
-                y=_srch_entry.winfo_y() + _srch_entry.winfo_height() + 4
-            )
-            _ai_correction_label.lower()
-            def _copy_corrected(e=None):
+            def _show_label(txt):
+                x = _srch_entry.winfo_rootx()
+                y = _srch_entry.winfo_rooty() + _srch_entry.winfo_height() + 4
+                _ai_clabel.place(x=x, y=y, anchor='nw')
+                _ai_clabel.config(text='\u2192 ' + txt)
+                _ai_clabel.lift()
+            def _hide_label():
+                _ai_clabel.place_forget()
+            _hide_label()
+            def _clk_corrected(e=None):
                 if _ai_corrected_text:
                     _srch_entry.delete(0, tk.END)
                     _srch_entry.insert(0, _ai_corrected_text)
                     _srch_entry.event_generate('<Return>')
-                    _ai_correction_label.lower()
-            _ai_correction_label.bind('<Button-1>', _copy_corrected)
+                    _hide_label()
+            _ai_clabel.bind('<Button-1>', _clk_corrected)
             _orig_build = app.build_candidate_titles
-            def _patched_build(query, limit, _orig=_orig_build, _label=_ai_correction_label, _root=root):
+            def _patched_build(query, limit, _orig=_orig_build, _root=root):
                 nonlocal _ai_corrected_text
                 try:
                     titles, ai_provider, query_mode = _orig(query, limit)
                     if titles and titles[0].lower() != query.lower():
                         _ai_corrected_text = titles[0]
-                        _root.after(0, lambda: (_label.config(text='\u2192 ' + _ai_corrected_text), _label.lift()))
+                        _root.after(0, lambda t=titles[0]: _show_label(t))
                     else:
                         _ai_corrected_text = None
-                        _root.after(0, _label.lower)
+                        _root.after(0, _hide_label)
                     return titles, ai_provider, query_mode
                 except Exception:
-                    try: _root.after(0, _label.lower)
+                    try: _root.after(0, _hide_label)
                     except: pass
                     raise
             app.build_candidate_titles = _patched_build
