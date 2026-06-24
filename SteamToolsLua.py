@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.7.7"
+VERSION = "1.7.8"
 VERSION_NAME = "AI correction click + rebuild"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
@@ -284,6 +284,21 @@ def install_ui_fixes(g):
         elif _old.exists():
             try: _old.unlink()
             except: pass
+    # Migrate old .ini to .json if needed
+    _old_ini = _data_dir / 'search_history.ini'
+    _new_json = _data_dir / 'search_history.json'
+    if _old_ini.exists() and not _new_json.exists():
+        try:
+            import configparser as _cp
+            _c = _cp.ConfigParser()
+            _c.read(str(_old_ini), encoding='utf-8')
+            _h = {'History': dict(_c['History'])} if 'History' in _c else {'History': {}}
+            _new_json.write_text(json.dumps(_h, ensure_ascii=False), encoding='utf-8')
+        except: pass
+    # Clean old .ini from data dir (now using .json)
+    if _old_ini.exists():
+        try: _old_ini.unlink()
+        except: pass
     def _save_dl_name(name):
         if not name: return
         try:
@@ -3439,8 +3454,89 @@ A: .luaファイルがstplug-inフォルダにあることを
                     _cr_light.config(fg='#f56565')
             _thr.Thread(target=_launch, daemon=True).start()
         AB(tools_row, 'CloudRedirect', _run_cr,
-           130, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
+            130, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
+        # SS (Screenshot + AI) button
+        def _ss_cloudredirect():
+            import threading as _ss_thr
+            def _ss_task():
+                try:
+                    from PIL import ImageGrab as _IG
+                    import win32gui as _wg
+                except:
+                    self.root.after(0, lambda: _messagebox.showinfo('SS', 'PIL/win32gui eksik'))
+                    return
+                try:
+                    _cr_hwnd = None
+                    def _enum_cb(hwnd, _):
+                        nonlocal _cr_hwnd
+                        if _wg.IsWindowVisible(hwnd) and 'CloudRedirect' in _wg.GetWindowText(hwnd):
+                            _cr_hwnd = hwnd
+                    _wg.EnumWindows(_enum_cb, None)
+                    if not _cr_hwnd:
+                        self.root.after(0, lambda: _messagebox.showinfo('SS', 'CloudRedirect penceresi bulunamadi'))
+                        return
+                    _l, _t, _r, _b = _wg.GetWindowRect(_cr_hwnd)
+                    _img = _IG.grab(bbox=(_l, _t, _r, _b))
+                    _tmp = Path(os.environ.get('TEMP', '.')) / 'cr_ss.png'
+                    _img.save(str(_tmp))
+                    self.root.after(0, lambda: _show_ss_dialog(_tmp, _cr_hwnd))
+                except Exception as _ss_ex:
+                    self.root.after(0, lambda: _messagebox.showerror('SS Hata', str(_ss_ex)))
+            def _show_ss_dialog(path, hwnd):
+                _win = tk.Toplevel(self.root)
+                _win.title('CloudRedirect SS')
+                _win.configure(bg='#0d1724')
+                _win.geometry('520x600')
+                _win.transient(self.root)
+                try:
+                    from PIL import Image as _PIL, ImageTk as _PILTk
+                    _pil_img = _PIL.open(str(path))
+                    _pil_img.thumbnail((480, 360))
+                    _tk_img = _PILTk.PhotoImage(_pil_img)
+                    _lbl = tk.Label(_win, image=_tk_img, bg='#0d1724')
+                    _lbl.image = _tk_img
+                    _lbl.pack(pady=(10, 4))
+                except: pass
+                tk.Label(_win, text='AI\'ya sor: Burada ne yaziyor?', fg='#8fd3ff', bg='#0d1724',
+                         font=('Segoe UI', 10)).pack(pady=(4, 2))
+                _q_var = tk.StringVar(value='Bu pencerede ne yaziyor? Turkce acikla')
+                tk.Entry(_win, textvariable=_q_var, width=50, relief=tk.FLAT,
+                         bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
+                         font=('Segoe UI', 9)).pack(pady=4)
+                _ans_lbl = tk.Label(_win, text='', fg='#b098ff', bg='#0d1724',
+                                    font=('Segoe UI', 10), wraplength=460, justify='left')
+                _ans_lbl.pack(pady=(4, 0), padx=16, fill=tk.X)
+                def _ask_ai():
+                    _ans_lbl.config(text='Yanit bekleniyor...')
+                    def _ai_task():
+                        try:
+                            import base64 as _b64
+                            _b64_img = _b64.b64encode(open(str(path), 'rb').read()).decode()
+                            _msg = _q_var.get().strip() or 'Bu pencerede ne yaziyor? Turkce acikla'
+                            _prompt = f"[Image Base64: {len(_b64_img)} bytes]\n\n{_msg}"
+                            try:
+                                _ans = app.ask_ai(_prompt)
+                            except AttributeError:
+                                try:
+                                    _ans = app._query_ai(_prompt)
+                                except AttributeError:
+                                    _ans = None
+                            self.root.after(0, lambda: _ans_lbl.config(text=_ans or 'Yanit alinamadi (ask_ai metodu yok)'))
+                        except Exception as _e:
+                            self.root.after(0, lambda: _ans_lbl.config(text=f'Hata: {_e}'))
+                    _ss_thr.Thread(target=_ai_task, daemon=True).start()
+                AB = g.get('AnimatedButton', AnimatedButton)
+                AB(_win, 'AI\'ya Sor', _ask_ai, 100, 30,
+                   '#244363', '#315f8e', '#66c0f4', '#ffffff',
+                   ('Segoe UI Semibold', 10)).pack(pady=10)
+                AB(_win, self.tr('button.close'), _win.destroy, 80, 30,
+                   '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
+                   ('Segoe UI Semibold', 10)).pack(pady=(0, 10))
+            _ss_thr.Thread(target=_ss_task, daemon=True).start()
+        AB(tools_row, 'SS', _ss_cloudredirect,
+           30, 30, '#1c1c3a', '#2a2a5a', '#7c6fff', '#ffffff',
+           ('Segoe UI Black', 9)).pack(side=tk.LEFT, padx=(0, 4))
 
         # Also add save_path field
         _sv_frame = tk.Frame(window, bg='#0d1724')
@@ -4175,19 +4271,17 @@ A: .luaファイルがstplug-inフォルダにあることを
         _srch_entry = _search_entries[0] if _search_entries else None
         if _srch_entry:
             _srch_entry.configure(highlightthickness=3, highlightbackground='#7c6fff', highlightcolor='#7c6fff')
-        # search history ini
-        _hist_path = _data_dir / "search_history.ini"
+        # search history (JSON)
+        _hist_path = _data_dir / "search_history.json"
         def _load_hist():
-            _h = _configparser.ConfigParser()
-            _h.optionxform = str
             try:
-                if _hist_path.exists(): _h.read(str(_hist_path), encoding='utf-8')
+                if _hist_path.exists():
+                    return json.loads(_hist_path.read_text(encoding='utf-8'))
             except: pass
-            if 'History' not in _h: _h['History'] = {}
-            return _h
+            return {'History': {}}
         def _save_hist(h):
             try:
-                with open(str(_hist_path), 'w', encoding='utf-8') as _f: h.write(_f)
+                _hist_path.write_text(json.dumps(h, ensure_ascii=False), encoding='utf-8')
             except: pass
         if _srch_entry:
             _hist_box = tk.Listbox(root, bg='#0a0a16', fg='#d0d0e8',
@@ -4195,7 +4289,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                                    relief=tk.FLAT, highlightthickness=1, highlightbackground='#7c6fff',
                                    font=('Segoe UI', 10), height=8)
             _hist_box.place_forget()
-            def _show_hist(e=None):
+            def _show_hist():
                 h = _load_hist()
                 items = list(h['History'].items())
                 items.sort(key=lambda x: x[1], reverse=True)
@@ -4206,7 +4300,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                     _hist_box.place(x=_srch_entry.winfo_x(), y=_srch_entry.winfo_y() + _srch_entry.winfo_height() + 2,
                                    width=_srch_entry.winfo_width())
                     _hist_box.lift()
-            def _hide_hist(e=None):
+            def _hide_hist():
                 _hist_box.place_forget()
             def _pick_hist(e=None):
                 sel = _hist_box.curselection()
@@ -4215,9 +4309,19 @@ A: .luaファイルがstplug-inフォルダにあることを
                     _srch_entry.insert(0, _hist_box.get(sel[0]))
                     _srch_entry.event_generate('<Return>')
                 _hide_hist()
-            _srch_entry.bind('<FocusIn>', lambda e: root.after(200, _show_hist), add='+')
-            _srch_entry.bind('<FocusOut>', lambda e: root.after(300, _hide_hist), add='+')
+            def _toggle_hist(e=None):
+                if _hist_box.winfo_viewable():
+                    _hide_hist()
+                else:
+                    _show_hist()
+            _srch_entry.bind('<Button-1>', _toggle_hist, add='+')
             _hist_box.bind('<<ListboxSelect>>', _pick_hist)
+            def _click_outside_hist(e):
+                if _hist_box.winfo_viewable():
+                    w = e.widget
+                    if w != _hist_box and w != _srch_entry:
+                        _hide_hist()
+            root.bind('<Button-1>', _click_outside_hist, add='+')
             # Intercept original search to also save history
             def _search_and_save(e=None):
                 q = _srch_entry.get().strip()
@@ -4233,30 +4337,54 @@ A: .luaファイルがstplug-inフォルダにあることを
 
     except: pass
 
-    # ---- AI Correction Label (click to search with corrected name) ----
+    # ---- AI Correction + Status overlay (bottom-right) ----
     _ai_corrected_text = None
+    _sb_overlay = tk.Frame(root, bg='#0a0a16', bd=1, relief=tk.SOLID, highlightbackground='#7c6fff', highlightthickness=1)
+    _ai_row = tk.Frame(_sb_overlay, bg='#0a0a16')
+    _ai_lbl = tk.Label(_ai_row, text='', fg='#b098ff', bg='#0a0a16', font=('Segoe UI', 9), cursor='hand2')
+    _ai_lbl.pack(side=tk.LEFT, padx=(4, 0))
+    _ai_copy = tk.Button(_ai_row, text='\U0001f4cb', bg='#0a0a16', fg='#888888', relief=tk.FLAT, bd=0,
+                         font=('Segoe UI', 9), cursor='hand2', padx=2,
+                         activebackground='#14142a', activeforeground='#ffffff')
+    _ai_copy.pack(side=tk.LEFT, padx=(0, 2))
+    _ai_row.pack_forget()
+    _status_lbl = tk.Label(_sb_overlay, text='', fg='#686880', bg='#0a0a16', font=('Segoe UI', 8), anchor='w')
+    _status_lbl.pack(fill=tk.X, padx=4, pady=(0, 1))
+    _sb_overlay.place_forget()
+
+    def _pos_overlay():
+        try:
+            _sb_overlay.place(relx=0.5, rely=1.0, anchor='s', x=0, y=-12)
+            _sb_overlay.lift()
+        except: pass
+    root.after(200, _pos_overlay)
+
+    def _show_ai_box(txt):
+        _ai_lbl.config(text='\u2192 ' + txt)
+        _ai_row.pack(fill=tk.X)
+        _sb_overlay.place(relx=0.5, rely=1.0, anchor='s', x=0, y=-12)
+        _sb_overlay.lift()
+    def _hide_ai_box():
+        _ai_row.pack_forget()
+        if not _status_lbl.cget('text'):
+            _sb_overlay.place_forget()
+    def _clk_ai_corrected(e=None):
+        if _ai_corrected_text and _srch_entry:
+            _srch_entry.delete(0, tk.END)
+            _srch_entry.insert(0, _ai_corrected_text)
+            _srch_entry.event_generate('<Return>')
+            _hide_ai_box()
+    def _copy_corrected():
+        if _ai_corrected_text:
+            root.clipboard_clear()
+            root.clipboard_append(_ai_corrected_text)
+            _ai_copy.config(text='\u2713')
+            root.after(1500, lambda: _ai_copy.config(text='\U0001f4cb'))
+    _ai_lbl.bind('<Button-1>', _clk_ai_corrected)
+    _ai_copy.config(command=_copy_corrected)
+
     try:
         if _srch_entry:
-            _ai_clabel = tk.Label(
-                root, text='', bg='#122030', fg='#b098ff',
-                font=('Segoe UI', 10), anchor='w', cursor='hand2'
-            )
-            def _show_label(txt):
-                x = _srch_entry.winfo_rootx()
-                y = _srch_entry.winfo_rooty() + _srch_entry.winfo_height() + 4
-                _ai_clabel.place(x=x, y=y, anchor='nw')
-                _ai_clabel.config(text='\u2192 ' + txt)
-                _ai_clabel.lift()
-            def _hide_label():
-                _ai_clabel.place_forget()
-            _hide_label()
-            def _clk_corrected(e=None):
-                if _ai_corrected_text:
-                    _srch_entry.delete(0, tk.END)
-                    _srch_entry.insert(0, _ai_corrected_text)
-                    _srch_entry.event_generate('<Return>')
-                    _hide_label()
-            _ai_clabel.bind('<Button-1>', _clk_corrected)
             _orig_build = app.build_candidate_titles
             def _patched_build(query, limit, _orig=_orig_build, _root=root):
                 nonlocal _ai_corrected_text
@@ -4264,16 +4392,29 @@ A: .luaファイルがstplug-inフォルダにあることを
                     titles, ai_provider, query_mode = _orig(query, limit)
                     if titles and titles[0].lower() != query.lower():
                         _ai_corrected_text = titles[0]
-                        _root.after(0, lambda t=titles[0]: _show_label(t))
+                        _root.after(0, lambda t=titles[0]: _show_ai_box(t))
                     else:
                         _ai_corrected_text = None
-                        _root.after(0, _hide_label)
+                        _root.after(0, _hide_ai_box)
                     return titles, ai_provider, query_mode
                 except Exception:
-                    try: _root.after(0, _hide_label)
+                    try: _root.after(0, _hide_ai_box)
                     except: pass
                     raise
             app.build_candidate_titles = _patched_build
+    except: pass
+
+    # Hook into app.log to update status line
+    try:
+        _orig_log = app.log
+        def _patched_log(msg, _orig=_orig_log, _sb=_status_lbl, _root=root):
+            try:
+                _orig(msg)
+                short = msg.strip()[:120]
+                if short:
+                    _root.after(0, lambda s=short: (_sb.config(text=s), _pos_overlay()))
+            except: pass
+        app.log = _patched_log
     except: pass
 
     # ---- SteamDB Game Browser + Sidebar + Library ----
