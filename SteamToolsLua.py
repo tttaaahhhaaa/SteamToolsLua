@@ -3653,6 +3653,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                                  fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
                         sort_frame = tk.Frame(lib_win, bg='#08080e')
                         sort_frame.pack(fill=tk.X, padx=14, pady=(2, 6))
+                        AB_lib = g.get('AnimatedButton', AnimatedButton)
                         # Search bar
                         _search_var = tk.StringVar()
                         _search_entry = tk.Entry(sort_frame, textvariable=_search_var, width=22, relief=tk.FLAT,
@@ -3713,7 +3714,6 @@ A: .luaファイルがstplug-inフォルダにあることを
                         def _open_used():
                             try: _os.startfile(str(used_dir))
                             except: _subprocess.Popen(['explorer', str(used_dir)])
-                        AB_lib = g.get('AnimatedButton', AnimatedButton)
                         AB_lib(sort_frame, _tr(self, 'library.open_folder'), _open_used, 100, 26,
                                '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
                                ('Segoe UI', 8)).pack(side=tk.RIGHT)

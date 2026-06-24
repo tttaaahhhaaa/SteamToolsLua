@@ -18,3 +18,5 @@ Desktop.ini
 .idea/
 *.swp
 *.swo
+
+.github_token
