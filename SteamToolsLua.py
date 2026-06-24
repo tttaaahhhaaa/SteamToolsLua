@@ -113,7 +113,8 @@ def main():
                 _cd = _cr.json(); _sha = _cd['sha']
                 _old = json.loads(_b64.b64decode(_cd['content']).decode('utf-8'))
                 if _c not in _old['codes']: _mv.set('Invalid code'); return
-                if _old['codes'][_c] is not None: _mv.set('Code already used'); return
+                _old_val = _old['codes'][_c]
+                if _old_val is not None and isinstance(_old_val, str) and len(_old_val) == 32: _mv.set('Code already used'); return
                 _old['codes'][_c] = _get_hwid()
                 _new = _b64.b64encode(json.dumps(_old, indent=2).encode()).decode()
                 _put_api = _LICENSE_API.replace('?ref=secret-data','')

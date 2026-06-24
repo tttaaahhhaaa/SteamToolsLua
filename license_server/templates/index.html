@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SteamToolsLua - License</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#08080e;color:#e8e8f8;font-family:system-ui,sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center}
+.card{background:#0f0f1e;padding:40px;border-radius:12px;text-align:center;max-width:440px;width:90%;box-shadow:0 0 40px rgba(124,111,255,.15)}
+h1{color:#7c6fff;font-size:22px;margin-bottom:8px}
+p{color:#9990c8;font-size:14px;margin-bottom:24px}
+#btn{background:#7c6fff;color:#fff;border:none;padding:14px 36px;font-size:16px;border-radius:8px;cursor:pointer;transition:background .2s}
+#btn:hover{background:#6a5ee6}
+#btn:disabled{background:#444;cursor:not-allowed}
+#result{margin-top:20px;padding:16px;border-radius:8px;font-size:18px;letter-spacing:2px;display:none}
+#result.ok{background:#0f2a1a;color:#50c878;display:block}
+#result.err{background:#2a0f0f;color:#e06060;display:block}
+#info{margin-top:16px;font-size:12px;color:#585878}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>SteamToolsLua</h1>
+<p>Get your license code below.</p>
+<button id="btn" onclick="getCode()">Get License Code</button>
+<div id="result"></div>
+<div id="info">Each code is single-use and device-bound.</div>
+</div>
+<script>
+async function getCode(){
+    const btn=document.getElementById('btn');
+    const res=document.getElementById('result');
+    btn.disabled=true;btn.textContent='Please wait...';res.className='';res.textContent='';
+    try{
+        const r=await fetch('/getcode');
+        const d=await r.json();
+        if(d.code){res.className='ok';res.textContent=d.code;btn.textContent='Get License Code'}
+        else{res.className='err';res.textContent='Error: '+(d.error||'Unknown');btn.textContent='Try Again'}
+    }catch(e){res.className='err';res.textContent='Connection error';btn.textContent='Try Again'}
+    btn.disabled=false;
+}
+</script>
+</body>
+</html>
