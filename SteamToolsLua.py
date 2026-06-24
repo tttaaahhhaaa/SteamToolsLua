@@ -3731,11 +3731,11 @@ A: .luaファイルがstplug-inフォルダにあることを
                         AB_lib(sort_frame, '\u2b07 Install', _install_lib_game, 100, 26,
                                '#1c3a2a', '#2a5a3a', '#48bb78', '#ffffff',
                                ('Segoe UI Semibold', 8)).pack(side=tk.RIGHT, padx=(4, 0))
-                         def _tv_scroll2(e):
-                             tv.yview_scroll(int(-1*(e.delta/120)), 'units')
-                             return 'break'
-                         tv.bind('<Double-1>', lambda e: _install_lib_game())
-                         tv.bind('<MouseWheel>', _tv_scroll2)
+                        def _tv_scroll2(e):
+                            tv.yview_scroll(int(-1*(e.delta/120)), 'units')
+                            return 'break'
+                        tv.bind('<Double-1>', lambda e: _install_lib_game())
+                        tv.bind('<MouseWheel>', _tv_scroll2)
                         _populate()
                     _load_win.after(0, _build_ui)
                 except Exception as ex:
