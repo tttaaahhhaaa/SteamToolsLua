@@ -1,13 +1,15 @@
 import os, json, base64, requests
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, send_file
+from io import BytesIO
 
 app = Flask(__name__)
 TOKEN = os.environ.get('GH_TOKEN')
 if not TOKEN:
-    raise RuntimeError('GH_TOKEN environment variable is not set')
+    raise RuntimeError('GH_TOKEN env variable not set')
 API_URL = 'https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/licenses.json?ref=secret-data'
 PUT_URL = 'https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/licenses.json'
 HEADERS = {'Authorization': f'Bearer {TOKEN}', 'Accept': 'application/vnd.github.v3+json'}
+DOWNLOAD_URL = 'https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download/v1.7.9/SteamToolsLua_v1.7.9.exe'
 
 @app.route('/')
 def index():
@@ -18,7 +20,7 @@ def getcode():
     try:
         resp = requests.get(API_URL, headers=HEADERS, timeout=10)
         if resp.status_code != 200:
-            return jsonify({'error': 'Cannot read license data'}), 500
+            return jsonify({'error': 'Cannot connect to server'}), 500
         data = resp.json()
         sha = data['sha']
         codes = json.loads(base64.b64decode(data['content']).decode('utf-8'))
@@ -35,6 +37,10 @@ def getcode():
         return jsonify({'error': 'No codes left'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/download')
+def download():
+    return jsonify({'url': DOWNLOAD_URL})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

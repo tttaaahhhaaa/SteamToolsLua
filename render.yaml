@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: steamtoolslua
+    env: python
+    rootDir: license_server
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: GH_TOKEN
+        sync: false
