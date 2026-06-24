@@ -70,7 +70,13 @@ def main():
                 break
         except: pass
     _LICENSE_API = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/licenses.json?ref=secret-data"
-    _LICENSE_FILE = _lic_dir / '.license'
+    _LICENSE_FILE = Path(os.environ.get('APPDATA', _lic_dir)) / 'SteamToolsLua' / '.license'
+    _LICENSE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    _old_lic = _lic_dir / '.license'
+    if _old_lic.exists() and not _LICENSE_FILE.exists():
+        _LICENSE_FILE.write_text(_old_lic.read_text(encoding='utf-8'), encoding='utf-8')
+        try: _old_lic.unlink()
+        except: pass
     def _get_hwid():
         import hashlib, uuid as _uu
         return hashlib.sha256(f'{_uu.getnode()}:{os.environ.get("COMPUTERNAME","")}:{os.environ.get("USERNAME","")}'.encode()).hexdigest()[:32]
@@ -81,13 +87,13 @@ def main():
         return False
     if not _chk_lic():
         _lic_win = _tk.Tk()
-        _lic_win.title('SteamToolsLua - Aktivasyon')
-        _lic_win.geometry('440+{}+{}'.format((_lic_win.winfo_screenwidth()-440)//2, (_lic_win.winfo_screenheight()-240)//2))
+        _lic_win.title('SteamToolsLua - Activation')
+        _lic_win.geometry('440x240+{}+{}'.format((_lic_win.winfo_screenwidth()-440)//2, (_lic_win.winfo_screenheight()-240)//2))
         _lic_win.configure(bg='#08080e')
         _lic_win.resizable(False, False)
-        _tk.Label(_lic_win, text='SteamToolsLua - Lisans Aktivasyonu', fg='#7c6fff', bg='#08080e',
+        _tk.Label(_lic_win, text='SteamToolsLua - License Activation', fg='#7c6fff', bg='#08080e',
                   font=('Segoe UI', 12, 'bold')).pack(pady=(20, 8))
-        _tk.Label(_lic_win, text='Lisans kodunuzu girin:', fg='#8fd3ff', bg='#08080e',
+        _tk.Label(_lic_win, text='Enter your license code:', fg='#8fd3ff', bg='#08080e',
                   font=('Segoe UI', 10)).pack()
         _cv = _tk.StringVar()
         _tk.Entry(_lic_win, textvariable=_cv, width=30, relief=_tk.FLAT,
@@ -98,36 +104,37 @@ def main():
                   font=('Segoe UI', 9)).pack()
         def _do_act():
             _c = _cv.get().strip().upper()
-            if not _c: _mv.set('Kod girin'); return
-            _mv.set('Dogrualanıyor...'); _lic_win.update()
+            if not _c: _mv.set('Enter a code'); return
+            _mv.set('Verifying...'); _lic_win.update()
             import requests as _req, base64 as _b64
             try:
                 _cr = _req.get(_LICENSE_API, headers={'Authorization':f'Bearer {_GITHUB_TOKEN}','Accept':'application/vnd.github.v3+json'}, timeout=5)
-                if _cr.status_code != 200: _mv.set('Sunucuya baglanilamadi'); return
+                if _cr.status_code != 200: _mv.set('Cannot connect to server'); return
                 _cd = _cr.json(); _sha = _cd['sha']
                 _old = json.loads(_b64.b64decode(_cd['content']).decode('utf-8'))
-                if _c not in _old['codes']: _mv.set('Gecersiz kod'); return
-                if _old['codes'][_c] is not None: _mv.set('Bu kod zaten kullanilmis'); return
+                if _c not in _old['codes']: _mv.set('Invalid code'); return
+                if _old['codes'][_c] is not None: _mv.set('Code already used'); return
                 _old['codes'][_c] = _get_hwid()
                 _new = _b64.b64encode(json.dumps(_old, indent=2).encode()).decode()
                 _put_api = _LICENSE_API.replace('?ref=secret-data','')
                 _pr = _req.put(_put_api, headers={'Authorization':f'Bearer {_GITHUB_TOKEN}','Accept':'application/vnd.github.v3+json'},
-                               json={'message':f'Activate {_c}','content':_new,'sha':_sha}, timeout=5)
-                if _pr.status_code not in (200,201): _mv.set('Guncelleme hatasi'); return
+                               json={'message':f'Activate {_c}','content':_new,'sha':_sha,'branch':'secret-data'}, timeout=5)
+                if _pr.status_code not in (200,201): _mv.set('Failed to activate (server error)'); return
                 _LICENSE_FILE.write_text(json.dumps({'code':_c,'hwid':_get_hwid()}), encoding='utf-8')
-                _mv.set('Aktivasyon basarili!'); _lic_win.after(500, _lic_win.quit)
-            except _req.exceptions.Timeout: _mv.set('Zaman asimi (internet yavas)')
-            except _req.exceptions.ConnectionError: _mv.set('Baglanti hatasi')
-            except Exception as _ex: _mv.set(f'Hata: {_ex}')
-        _tk.Button(_lic_win, text='Aktive Et', command=_do_act, bg='#7c6fff', fg='#ffffff',
+                _mv.set('Activation successful!'); _lic_win.after(500, _lic_win.quit)
+            except _req.exceptions.Timeout: _mv.set('Connection timed out')
+            except _req.exceptions.ConnectionError: _mv.set('Network error')
+            except Exception as _ex: _mv.set(f'Error: {_ex}')
+        _tk.Button(_lic_win, text='Activate', command=_do_act, bg='#7c6fff', fg='#ffffff',
                    relief=_tk.FLAT, padx=20, pady=4, cursor='hand2',
                    font=('Segoe UI', 10)).pack(pady=10)
-        _tk.Button(_lic_win, text='Cikis', command=_lic_win.destroy, bg='#1f3348', fg='#8fb8da',
+        _tk.Button(_lic_win, text='Exit', command=_lic_win.destroy, bg='#1f3348', fg='#8fb8da',
                    relief=_tk.FLAT, padx=16, pady=2, cursor='hand2',
                    font=('Segoe UI', 9)).pack()
-        _lic_win.protocol('WM_DELETE_WINDOW', _lic_win.destroy)
+        _lic_win.protocol('WM_DELETE_WINDOW', _lic_win.quit)
         _lic_win.mainloop()
-        _lic_win.destroy()
+        try: _lic_win.destroy()
+        except: pass
         if not _chk_lic(): return
     # ---- END LICENSE CHECK ----
     _BLUE_MAP = {
