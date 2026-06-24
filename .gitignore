@@ -20,3 +20,6 @@ Desktop.ini
 *.swo
 
 .github_token
+gh_token.txt
+licenses.json
+codes.txt

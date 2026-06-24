@@ -69,8 +69,7 @@ def main():
                 _GITHUB_TOKEN = _fp.read_text().strip()
                 break
         except: pass
-    _LICENSE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/licenses.json"
-    _LICENSE_API = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/licenses.json"
+    _LICENSE_API = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/licenses.json?ref=secret-data"
     _LICENSE_FILE = _lic_dir / '.license'
     def _get_hwid():
         import hashlib, uuid as _uu
@@ -103,18 +102,16 @@ def main():
             _mv.set('Dogrualanıyor...'); _lic_win.update()
             import requests as _req, base64 as _b64
             try:
-                _r = _req.get(_LICENSE_URL, timeout=5)
-                if _r.status_code != 200: _mv.set('Sunucuya baglanilamadi'); return
-                _lic = _r.json()
-                if _c not in _lic['codes']: _mv.set('Gecersiz kod'); return
-                if _lic['codes'][_c] is not None: _mv.set('Bu kod zaten kullanilmis'); return
-                _cr = _req.get(_LICENSE_API + '?ref=master', headers={'Authorization':f'Bearer {_GITHUB_TOKEN}','Accept':'application/vnd.github.v3+json'}, timeout=5)
-                if _cr.status_code != 200: _mv.set('GitHub hatasi'); return
+                _cr = _req.get(_LICENSE_API, headers={'Authorization':f'Bearer {_GITHUB_TOKEN}','Accept':'application/vnd.github.v3+json'}, timeout=5)
+                if _cr.status_code != 200: _mv.set('Sunucuya baglanilamadi'); return
                 _cd = _cr.json(); _sha = _cd['sha']
                 _old = json.loads(_b64.b64decode(_cd['content']).decode('utf-8'))
+                if _c not in _old['codes']: _mv.set('Gecersiz kod'); return
+                if _old['codes'][_c] is not None: _mv.set('Bu kod zaten kullanilmis'); return
                 _old['codes'][_c] = _get_hwid()
                 _new = _b64.b64encode(json.dumps(_old, indent=2).encode()).decode()
-                _pr = _req.put(_LICENSE_API, headers={'Authorization':f'Bearer {_GITHUB_TOKEN}','Accept':'application/vnd.github.v3+json'},
+                _put_api = _LICENSE_API.replace('?ref=secret-data','')
+                _pr = _req.put(_put_api, headers={'Authorization':f'Bearer {_GITHUB_TOKEN}','Accept':'application/vnd.github.v3+json'},
                                json={'message':f'Activate {_c}','content':_new,'sha':_sha}, timeout=5)
                 if _pr.status_code not in (200,201): _mv.set('Guncelleme hatasi'); return
                 _LICENSE_FILE.write_text(json.dumps({'code':_c,'hwid':_get_hwid()}), encoding='utf-8')
