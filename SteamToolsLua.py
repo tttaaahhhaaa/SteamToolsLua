@@ -3726,10 +3726,8 @@ A: .luaファイルがstplug-inフォルダにあることを
                                 vals = tv.item(sel[0], 'values')
                                 if vals and vals[0]:
                                     _subprocess.Popen(['start', 'steam://install/' + vals[0]], shell=True)
-                                elif vals:
-                                    import urllib.parse as _up
-                                    _q = _up.quote(vals[2].strip())
-                                    _subprocess.Popen(['start', f'https://store.steampowered.com/search/?term={_q}'], shell=True)
+                                else:
+                                    _messagebox.showinfo('Uyari', 'Bu oyunun AppID\'si bulunamadi.\nIndirmek icin once Online Fix ZIP\'inden yukleyin.')
                         AB_lib(sort_frame, '\u2b07 Install', _install_lib_game, 100, 26,
                                '#1c3a2a', '#2a5a3a', '#48bb78', '#ffffff',
                                ('Segoe UI Semibold', 8)).pack(side=tk.RIGHT, padx=(4, 0))
@@ -3851,18 +3849,9 @@ A: .luaファイルがstplug-inフォルダにあることを
                                 vals = _tv.item(sel[0], 'values')
                                 if vals:
                                     _subprocess.Popen(['start', 'steam://rungameid/' + vals[0]], shell=True)
-                        def _install_game():
-                            sel = _tv.selection()
-                            if sel:
-                                vals = _tv.item(sel[0], 'values')
-                                if vals:
-                                    _subprocess.Popen(['start', 'steam://install/' + vals[0]], shell=True)
                         AB = g.get('AnimatedButton', AnimatedButton)
                         AB(_top, '\u25b6 Baslat', _launch_game, 90, 28,
                            '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
-                           ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=(4, 0))
-                        AB(_top, '\u2b07 Install', _install_game, 90, 28,
-                           '#1c3a2a', '#2a5a3a', '#48bb78', '#ffffff',
                            ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=(4, 0))
                         _tv.bind('<Double-1>', lambda e: _launch_game())
                         _tv.bind('<MouseWheel>', lambda e: 'break')
