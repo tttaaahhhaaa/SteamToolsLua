@@ -3599,7 +3599,7 @@ A: .luaファイルがstplug-inフォルダにあることを
            '#4a1a2a', '#6a2a3a', '#ff6b6b', '#ffffff',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(6, 0))
 
-        # ---- Library section ----
+        # ---- Library (zip-based, appid from lua filename) ----
         lib_frame = tk.Frame(window, bg='#0d1724')
         lib_frame.pack(fill=tk.X, padx=16, pady=(6, 2))
         lib_row = tk.Frame(window, bg='#0d1724')
@@ -3612,91 +3612,51 @@ A: .luaファイルがstplug-inフォルダにあることを
             _saved = self.settings.get('save_path', '') or self.settings.get('new_games_folder', '')
             _gd = Path(_saved) if _saved and Path(_saved).exists() else _bd / "1 New Games"
             used_dir = _gd / "used"
-            # loading window
             _load_win = tk.Toplevel(window)
             _load_win.title('Yukleniyor...')
             _load_win.geometry('300x100')
             _load_win.configure(bg='#08080e')
-            _load_win.transient(window)
-            _load_win.grab_set()
             tk.Label(_load_win, text='\u23f3', fg='#7c6fff', bg='#08080e',
                      font=('Segoe UI', 28)).pack(pady=(10, 0))
-            tk.Label(_load_win, text='Enjekte edilen oyunlar taranıyor...', fg='#8fd3ff', bg='#08080e',
+            tk.Label(_load_win, text='Zip taranıyor...', fg='#8fd3ff', bg='#08080e',
                      font=('Segoe UI', 10)).pack()
             _load_win.update()
             def _lib_load():
                 try:
-                    _items = []
-                    ini_path = used_dir / "injected_games.ini"
-                    if ini_path.exists():
-                        try:
-                            _cfg = _configparser.ConfigParser()
-                            _cfg.read(str(ini_path), encoding='utf-8')
-                            if 'Games' in _cfg:
-                                _items = list(_cfg['Games'].items())
-                        except: pass
-                    # appid -> name mapping from used/ zips
-                    _appid_map = {}
+                    _games = []  # (appid, name, date)
                     if used_dir.exists():
                         import zipfile as _zf
-                        import re as _re2
-                        for _zip_f in used_dir.glob('*.zip'):
+                        for _zip_f in sorted(used_dir.glob('*.zip'), key=lambda f: f.stat().st_mtime, reverse=True):
                             try:
+                                _gname = _zip_f.stem
+                                _mtime = _time.strftime('%Y-%m-%d %H:%M', _time.localtime(_zip_f.stat().st_mtime))
+                                _aid = ''
                                 with _zf.ZipFile(str(_zip_f), 'r') as _z:
                                     for _zn in _z.namelist():
                                         if _zn.lower().endswith('.lua'):
-                                            _lua_text = _z.read(_zn).decode('utf-8', errors='ignore').lstrip()
-                                            # first try: number at very beginning of file
-                                            _am = _re2.match(r'(\d+)', _lua_text)
-                                            # second try: appid = X or "appid" "X"
-                                            if not _am:
-                                                _am = _re2.search(r'["\']?appid["\']?\s*[=:]\s*["\']?\s*(\d+)', _lua_text)
-                                            if _am:
-                                                _aid = _am.group(1)
-                                                _gn = _zip_f.stem
-                                                _appid_map[_gn] = _aid
-                                                break
+                                            _lua_only = _zn.rsplit('/', 1)[-1].rsplit('\\', 1)[-1]
+                                            _base = _lua_only.rsplit('.', 1)[0]
+                                            if _base.isdigit():
+                                                _aid = _base
+                                            break
+                                _games.append((_aid, _gname, _mtime))
                             except: pass
-                    # merge appid into items
-                    _merged = []
-                    for _name, _date in _items:
-                        _aid = _appid_map.get(_name, '')
-                        _merged.append((_aid, _name, _date))
-                    _merged.sort(key=lambda x: x[1].lower())
                     def _build_ui():
                         _load_win.destroy()
                         lib_win = tk.Toplevel(window)
                         lib_win.title(_tr(self, 'library.win_title'))
-                        lib_win.geometry('750x500')
+                        lib_win.geometry('780x500')
                         lib_win.configure(bg='#08080e')
-                        lib_win.transient(window)
                         top = tk.Frame(lib_win, bg='#08080e')
                         top.pack(fill=tk.X, padx=14, pady=(12, 4))
-                        tk.Label(top, text=_tr(self, 'library.win_title'), font=('Bahnschrift SemiBold', 18),
+                        tk.Label(top, text=f'{len(_games)} oyun', font=('Bahnschrift SemiBold', 18),
                                  fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
                         sort_frame = tk.Frame(lib_win, bg='#08080e')
                         sort_frame.pack(fill=tk.X, padx=14, pady=(2, 6))
-                        _sort_var = tk.StringVar(value='name')
-                        def _populate():
-                            tv.delete(*tv.get_children())
-                            s = _sort_var.get()
-                            if s == 'name':
-                                data = sorted(_merged, key=lambda x: x[1].lower())
-                            elif s == 'date_a':
-                                data = sorted(_merged, key=lambda x: x[2])
-                            else:
-                                data = sorted(_merged, key=lambda x: x[2], reverse=True)
-                            for _aid, _name, _date in data:
-                                tag = 'even'
-                                tv.insert('', tk.END, values=(_aid, _date, _name), tags=(tag,))
-                        AB_lib = g.get('AnimatedButton', AnimatedButton)
-                        for _val, _txt in [('name', _tr(self, 'library.name_az')), ('date_d', _tr(self, 'library.date_new')), ('date_a', _tr(self, 'library.date_old'))]:
-                            AB_lib(sort_frame, _txt, lambda v=_val: (_sort_var.set(v), _populate()),
-                                   90, 26, '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
-                                   ('Segoe UI', 8)).pack(side=tk.LEFT, padx=(0, 4))
                         def _open_used():
                             try: _os.startfile(str(used_dir))
                             except: _subprocess.Popen(['explorer', str(used_dir)])
+                        AB_lib = g.get('AnimatedButton', AnimatedButton)
                         AB_lib(sort_frame, _tr(self, 'library.open_folder'), _open_used, 100, 26,
                                '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
                                ('Segoe UI', 8)).pack(side=tk.RIGHT)
@@ -3711,35 +3671,37 @@ A: .luaファイルがstplug-inフォルダにあることを
                                   foreground=[('selected', '#ffffff')])
                         _style.configure('Lib.Treeview.Heading', background='#12122a', foreground='#8a80e0',
                                         font=('Segoe UI Semibold', 9), borderwidth=0)
-                        tv = ttk.Treeview(_tv_frame, columns=('appid','date','name'), show='headings',
+                        tv = ttk.Treeview(_tv_frame, columns=('appid','name','date'), show='headings',
                                          height=14, style='Lib.Treeview')
                         tv.heading('appid', text='AppID')
-                        tv.heading('date', text=_tr(self, 'library.col_date'), anchor='w')
                         tv.heading('name', text=_tr(self, 'library.col_game'), anchor='w')
-                        tv.column('appid', width=70)
-                        tv.column('date', width=130, anchor='w')
-                        tv.column('name', width=500, anchor='w')
+                        tv.heading('date', text=_tr(self, 'library.col_date'), anchor='w')
+                        tv.column('appid', width=80)
+                        tv.column('name', width=520, anchor='w')
+                        tv.column('date', width=140, anchor='w')
                         _vsb = tk.Scrollbar(_tv_frame, orient=tk.VERTICAL, command=tv.yview, bg='#12122a',
                                            troughcolor='#08080e')
                         tv.configure(yscrollcommand=_vsb.set)
                         tv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
                         _vsb.pack(side=tk.RIGHT, fill=tk.Y)
+                        for _aid, _gname, _mtime in _games:
+                            tv.insert('', tk.END, values=(_aid, _gname, _mtime))
                         def _install_lib_game():
                             sel = tv.selection()
                             if sel:
                                 vals = tv.item(sel[0], 'values')
-                                _aid = vals[0] if vals and vals[0] else ''
-                                _gname = vals[2] if vals and len(vals) > 2 else ''
-                                if not _aid:
+                                _aid = vals[0] if vals else ''
+                                _gname = vals[1] if vals and len(vals) > 1 else ''
+                                if _aid:
+                                    _subprocess.Popen(['start', 'steam://install/' + _aid], shell=True)
+                                else:
                                     _dlg = tk.Toplevel(lib_win)
                                     _dlg.title('AppID Gir')
                                     _dlg.geometry('350x140')
                                     _dlg.configure(bg='#08080e')
-                                    _dlg.transient(lib_win)
-                                    _dlg.grab_set()
-                                    tk.Label(_dlg, text=f'AppID bulunamadi: {_gname}', fg='#f6ad55',
+                                    tk.Label(_dlg, text=f'AppID yok: {_gname}', fg='#f6ad55',
                                              bg='#08080e', font=('Segoe UI', 10)).pack(pady=(12, 4))
-                                    tk.Label(_dlg, text='Steam App ID\'sini girin:', fg='#8fd3ff',
+                                    tk.Label(_dlg, text='Steam App ID girin:', fg='#8fd3ff',
                                              bg='#08080e', font=('Segoe UI', 9)).pack()
                                     _aid_var = tk.StringVar()
                                     tk.Entry(_dlg, textvariable=_aid_var, width=20, relief=tk.FLAT,
@@ -3750,11 +3712,10 @@ A: .luaファイルがstplug-inフォルダにあることを
                                         if _a:
                                             _subprocess.Popen(['start', 'steam://install/' + _a], shell=True)
                                         _dlg.destroy()
-                                    AnimatedButton(_dlg, 'Indir', _do_install, 80, 28,
-                                                   '#244363', '#315f8e', '#66c0f4', '#ffffff',
-                                                   ('Segoe UI Semibold', 10)).pack(pady=6)
-                                else:
-                                    _subprocess.Popen(['start', 'steam://install/' + _aid], shell=True)
+                                    gAB = g.get('AnimatedButton', AnimatedButton)
+                                    gAB(_dlg, 'Indir', _do_install, 80, 28,
+                                        '#244363', '#315f8e', '#66c0f4', '#ffffff',
+                                        ('Segoe UI Semibold', 10)).pack(pady=6)
                         AB_lib(sort_frame, '\u2b07 Install', _install_lib_game, 100, 26,
                                '#1c3a2a', '#2a5a3a', '#48bb78', '#ffffff',
                                ('Segoe UI Semibold', 8)).pack(side=tk.RIGHT, padx=(4, 0))
@@ -3763,7 +3724,6 @@ A: .luaファイルがstplug-inフォルダにあることを
                             return 'break'
                         tv.bind('<Double-1>', lambda e: _install_lib_game())
                         tv.bind('<MouseWheel>', _tv_scroll2)
-                        _populate()
                     _load_win.after(0, _build_ui)
                 except Exception as ex:
                     _load_win.after(0, _load_win.destroy)
@@ -3788,8 +3748,6 @@ A: .luaファイルがstplug-inフォルダにあることを
             _load_win.title('Yukleniyor...')
             _load_win.geometry('300x100')
             _load_win.configure(bg='#08080e')
-            _load_win.transient(window)
-            _load_win.grab_set()
             tk.Label(_load_win, text='\u23f3', fg='#7c6fff', bg='#08080e',
                      font=('Segoe UI', 28)).pack(pady=(10, 0))
             tk.Label(_load_win, text='Oyunlar taranıyor...', fg='#8fd3ff', bg='#08080e',
@@ -4920,7 +4878,6 @@ A: .luaファイルがstplug-inフォルダにあることを
             _popup.geometry('400x250')
             _popup.configure(bg='#0d1724')
             _popup.transient(app.root)
-            _popup.grab_set()
             tk.Label(_popup, text=('Yeni Surum Mevcut!' if is_tr else 'New Version Available!'),
                     fg='#48bb78', bg='#0d1724', font=('Bahnschrift SemiBold', 16)).pack(pady=(20, 8))
             tk.Label(_popup, text=f'v{VERSION} -> v{latest}', fg='#dce7f4', bg='#0d1724',
