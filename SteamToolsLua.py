@@ -4233,42 +4233,44 @@ A: .luaファイルがstplug-inフォルダにあることを
 
     except: pass
 
-    # ---- AI Correction Toggle (next to search bar) ----
+    # ---- AI Correction Label (click to copy corrected name) ----
+    _ai_correction_label = None
+    _ai_corrected_text = None
     try:
         if _srch_entry:
-            _ai_toggle_var = tk.BooleanVar(value=False)
-            _ai_correction_cache = None
-            def _toggle_ai(e=None):
-                _ai_toggle_var.set(not _ai_toggle_var.get())
-                _ai_toggle_btn.config(
-                    fg='#48bb78' if _ai_toggle_var.get() else '#666666',
-                    text='AI \u2713' if _ai_toggle_var.get() else 'AI \u2715'
-                )
-            _ai_toggle_btn = tk.Label(
-                _srch_entry.master,
-                text='AI \u2715', bg='#1f3348', fg='#666666',
-                font=('Segoe UI', 9, 'bold'), cursor='hand2',
-                padx=4, pady=1, relief=tk.RAISED
+            _ai_correction_label = tk.Label(
+                _srch_entry.master, text='', bg='#08080e', fg='#b098ff',
+                font=('Segoe UI', 10), anchor='w', cursor='hand2'
             )
-            _ai_toggle_btn.place(
-                x=_srch_entry.winfo_x() + _srch_entry.winfo_width() + 6,
-                y=_srch_entry.winfo_y() + 1
+            _ai_correction_label.place(
+                x=_srch_entry.winfo_x(),
+                y=_srch_entry.winfo_y() + _srch_entry.winfo_height() + 4
             )
-            _ai_toggle_btn.bind('<Button-1>', _toggle_ai)
-            # Intercept arama_tetikle to pre-correct query before search
-            _orig_arama = app.arama_tetikle
-            def _patched_arama(ap=app, en=_srch_entry):
-                if _ai_toggle_var.get():
-                    q = en.get().strip()
-                    if q:
-                        try:
-                            titles, _, _ = app.build_candidate_titles(q, 1)
-                            if titles and titles[0].lower() != q.lower():
-                                en.delete(0, tk.END)
-                                en.insert(0, titles[0])
-                        except: pass
-                _orig_arama()
-            app.arama_tetikle = _patched_arama
+            _ai_correction_label.lower()
+            def _copy_corrected(e=None):
+                if _ai_corrected_text:
+                    _srch_entry.delete(0, tk.END)
+                    _srch_entry.insert(0, _ai_corrected_text)
+                    _srch_entry.event_generate('<Return>')
+                    _ai_correction_label.lower()
+            _ai_correction_label.bind('<Button-1>', _copy_corrected)
+            _orig_build = app.build_candidate_titles
+            def _patched_build(query, limit, _orig=_orig_build, _label=_ai_correction_label, _root=root):
+                nonlocal _ai_corrected_text
+                try:
+                    titles, ai_provider, query_mode = _orig(query, limit)
+                    if titles and titles[0].lower() != query.lower():
+                        _ai_corrected_text = titles[0]
+                        _root.after(0, lambda: (_label.config(text='\u2192 ' + _ai_corrected_text), _label.lift()))
+                    else:
+                        _ai_corrected_text = None
+                        _root.after(0, _label.lower)
+                    return titles, ai_provider, query_mode
+                except Exception:
+                    try: _root.after(0, _label.lower)
+                    except: pass
+                    raise
+            app.build_candidate_titles = _patched_build
     except: pass
 
     # ---- SteamDB Game Browser + Sidebar + Library ----
