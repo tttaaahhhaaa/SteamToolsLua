@@ -60,7 +60,79 @@ def main():
         pass
     _tk = __import__('tkinter')
     __import__('html')
-    # --- PURPLE PALETTE - intercept blue colors at widget birth ---
+    # ---- LICENSE CHECK (standalone, no app behind) ----
+    _GITHUB_TOKEN = ''
+    _lic_dir = Path(sys.argv[0]).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
+    for _fp in (resource_path('gh_token.txt'), _lic_dir / 'gh_token.txt'):
+        try:
+            if _fp.exists():
+                _GITHUB_TOKEN = _fp.read_text().strip()
+                break
+        except: pass
+    _LICENSE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/licenses.json"
+    _LICENSE_API = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/licenses.json"
+    _LICENSE_FILE = _lic_dir / '.license'
+    def _get_hwid():
+        import hashlib, uuid as _uu
+        return hashlib.sha256(f'{_uu.getnode()}:{os.environ.get("COMPUTERNAME","")}:{os.environ.get("USERNAME","")}'.encode()).hexdigest()[:32]
+    def _chk_lic():
+        if _LICENSE_FILE.exists():
+            try: return json.loads(_LICENSE_FILE.read_text(encoding='utf-8')).get('hwid') == _get_hwid()
+            except: pass
+        return False
+    if not _chk_lic():
+        _lic_win = _tk.Tk()
+        _lic_win.title('SteamToolsLua - Aktivasyon')
+        _lic_win.geometry('440+{}+{}'.format((_lic_win.winfo_screenwidth()-440)//2, (_lic_win.winfo_screenheight()-240)//2))
+        _lic_win.configure(bg='#08080e')
+        _lic_win.resizable(False, False)
+        _tk.Label(_lic_win, text='SteamToolsLua - Lisans Aktivasyonu', fg='#7c6fff', bg='#08080e',
+                  font=('Segoe UI', 12, 'bold')).pack(pady=(20, 8))
+        _tk.Label(_lic_win, text='Lisans kodunuzu girin:', fg='#8fd3ff', bg='#08080e',
+                  font=('Segoe UI', 10)).pack()
+        _cv = _tk.StringVar()
+        _tk.Entry(_lic_win, textvariable=_cv, width=30, relief=_tk.FLAT,
+                  bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
+                  font=('Segoe UI', 10)).pack(pady=8)
+        _mv = _tk.StringVar()
+        _tk.Label(_lic_win, textvariable=_mv, fg='#f6ad55', bg='#08080e',
+                  font=('Segoe UI', 9)).pack()
+        def _do_act():
+            _c = _cv.get().strip().upper()
+            if not _c: _mv.set('Kod girin'); return
+            _mv.set('Dogrualanıyor...'); _lic_win.update()
+            import requests as _req, base64 as _b64
+            try:
+                _r = _req.get(_LICENSE_URL, timeout=5)
+                if _r.status_code != 200: _mv.set('Sunucuya baglanilamadi'); return
+                _lic = _r.json()
+                if _c not in _lic['codes']: _mv.set('Gecersiz kod'); return
+                if _lic['codes'][_c] is not None: _mv.set('Bu kod zaten kullanilmis'); return
+                _cr = _req.get(_LICENSE_API + '?ref=master', headers={'Authorization':f'Bearer {_GITHUB_TOKEN}','Accept':'application/vnd.github.v3+json'}, timeout=5)
+                if _cr.status_code != 200: _mv.set('GitHub hatasi'); return
+                _cd = _cr.json(); _sha = _cd['sha']
+                _old = json.loads(_b64.b64decode(_cd['content']).decode('utf-8'))
+                _old['codes'][_c] = _get_hwid()
+                _new = _b64.b64encode(json.dumps(_old, indent=2).encode()).decode()
+                _pr = _req.put(_LICENSE_API, headers={'Authorization':f'Bearer {_GITHUB_TOKEN}','Accept':'application/vnd.github.v3+json'},
+                               json={'message':f'Activate {_c}','content':_new,'sha':_sha}, timeout=5)
+                if _pr.status_code not in (200,201): _mv.set('Guncelleme hatasi'); return
+                _LICENSE_FILE.write_text(json.dumps({'code':_c,'hwid':_get_hwid()}), encoding='utf-8')
+                _mv.set('Aktivasyon basarili!'); _lic_win.after(500, _lic_win.quit)
+            except _req.exceptions.Timeout: _mv.set('Zaman asimi (internet yavas)')
+            except _req.exceptions.ConnectionError: _mv.set('Baglanti hatasi')
+            except Exception as _ex: _mv.set(f'Hata: {_ex}')
+        _tk.Button(_lic_win, text='Aktive Et', command=_do_act, bg='#7c6fff', fg='#ffffff',
+                   relief=_tk.FLAT, padx=20, pady=4, cursor='hand2',
+                   font=('Segoe UI', 10)).pack(pady=10)
+        _tk.Button(_lic_win, text='Cikis', command=_lic_win.destroy, bg='#1f3348', fg='#8fb8da',
+                   relief=_tk.FLAT, padx=16, pady=2, cursor='hand2',
+                   font=('Segoe UI', 9)).pack()
+        _lic_win.protocol('WM_DELETE_WINDOW', _lic_win.destroy)
+        _lic_win.mainloop()
+        _lic_win.destroy()
+        if not _chk_lic(): return
+    # ---- END LICENSE CHECK ----
     _BLUE_MAP = {
         '#0d1724':'#08080e','#122030':'#0a0a12','#0d1825':'#08080e',
         '#16273a':'#0c0c18','#0f1b2a':'#0a0a14','#122235':'#0a0a16',
