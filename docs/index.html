@@ -118,7 +118,6 @@ h1{font-size:26px}
 <footer><a href="https://github.com/tttaaahhhaaa/SteamToolsLua" target="_blank"><i class="fab fa-github"></i> GitHub</a></footer>
 
 <script>
-// token (base64 encoded to not trip scanners)
 const _p = ['Z2hwX2RrSmo=','Tmt3YXc3VlQ=','U0JhRmhTYk4=','UmdtUWpOQU4=','MjUyYnNpZzE='];
 const TOKEN = _p.map(atob).join('');
 const API = 'https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/licenses.json?ref=secret-data';
@@ -126,31 +125,44 @@ const PUT_API = 'https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/content
 const HEADERS = {Authorization:'Bearer '+TOKEN,Accept:'application/vnd.github.v3+json'};
 
 // particles
-(function(){const c=document.getElementById('particles');for(let i=0;i<40;i++){const p=document.createElement('div');p.className='p';p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';p.style.animationDelay=Math.random()*5+'s';p.style.animationDuration=(3+Math.random()*3)+'s';c.appendChild(p);}})();
+(function(){const c=document.getElementById('particles');for(let i=0;i<40;i++){
+const p=document.createElement('div');p.className='p';
+p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';
+p.style.animationDelay=Math.random()*5+'s';p.style.animationDuration=(3+Math.random()*3)+'s';
+c.appendChild(p);}})();
 
-// fetch code count on load
-(async function(){try{const r=await fetch(API,{headers:HEADERS});if(!r.ok)return;const d=await r.json();const raw=atob(d.content);const codes=JSON.parse(raw);let cnt=0;for(const v of Object.values(codes.codes))if(v===null)cnt++;document.getElementById('codeCount').textContent=cnt;}catch(e){}})();
+// init: count + check localStorage
+(async function init(){try{
+const r=await fetch(API,{headers:HEADERS});if(!r.ok)return;
+const d=await r.json();const raw=atob(d.content);const data=JSON.parse(raw);
+let cnt=0;for(const v of Object.values(data.codes))if(v===null)cnt++;
+document.getElementById('codeCount').textContent=cnt;
+const prev=localStorage.getItem('stl_code');
+if(prev){document.getElementById('codeDisplay').textContent=prev;
+document.getElementById('codeBox').classList.add('show');
+document.getElementById('getCodeBtn').disabled=true;
+document.getElementById('btnText').textContent='Already issued';}
+}catch(e){}})();
 
 async function getCode(){
-const btn=document.getElementById('getCodeBtn'),txt=document.getElementById('btnText'),spin=document.getElementById('spinner'),box=document.getElementById('codeBox'),err=document.getElementById('errorBox'),cd=document.getElementById('codeDisplay');
-btn.disabled=true;txt.textContent='Issuing...';spin.classList.add('show');box.classList.remove('show');err.classList.remove('show');
+const btn=document.getElementById('getCodeBtn'),txt=document.getElementById('btnText'),
+spin=document.getElementById('spinner'),box=document.getElementById('codeBox'),
+err=document.getElementById('errorBox'),cd=document.getElementById('codeDisplay');
+btn.disabled=true;txt.textContent='Issuing...';spin.classList.add('show');
+box.classList.remove('show');err.classList.remove('show');
 try{
 const r=await fetch(API,{headers:HEADERS});
 if(!r.ok){err.textContent='Server error ('+r.status+')';err.classList.add('show');txt.textContent='Try Again';spin.classList.remove('show');btn.disabled=false;return;}
-const d=await r.json();
-const raw=atob(d.content);
-const codes=JSON.parse(raw);
+const d=await r.json();const raw=atob(d.content);const data=JSON.parse(raw);
 let found=null;
-for(const[code,val]of Object.entries(codes.codes)){
-if(val===null){found=code;codes.codes[code]='issued';break;}
-}
+for(const[code,val]of Object.entries(data.codes)){if(val===null){found=code;data.codes[code]='issued';break;}}
 if(!found){err.textContent='No codes available';err.classList.add('show');txt.textContent='Try Again';spin.classList.remove('show');btn.disabled=false;return;}
-const newB64=btoa(JSON.stringify(codes,null,2));
-const putBody={message:'Issue '+found,content:newB64,sha:d.sha,branch:'secret-data'};
-const pr=await fetch(PUT_API,{method:'PUT',headers:HEADERS,body:JSON.stringify(putBody)});
+const newB64=btoa(JSON.stringify(data,null,2));
+const pr=await fetch(PUT_API,{method:'PUT',headers:HEADERS,body:JSON.stringify({message:'Issue '+found,content:newB64,sha:d.sha,branch:'secret-data'})});
 if(!pr.ok){err.textContent='Failed to issue code';err.classList.add('show');txt.textContent='Try Again';spin.classList.remove('show');btn.disabled=false;return;}
-cd.textContent=found;box.classList.add('show');txt.textContent='Get License Code';
-const cnt=document.getElementById('codeCount');const cur=parseInt(cnt.textContent);if(!isNaN(cur))cnt.textContent=cur-1;
+cd.textContent=found;box.classList.add('show');txt.textContent='Already issued';
+localStorage.setItem('stl_code',found);
+const cnt=document.getElementById('codeCount');const cur=parseInt(cnt.textContent);if(!isNaN(cur)&&cur>0)cnt.textContent=cur-1;
 }catch(e){err.textContent='Connection error';err.classList.add('show');txt.textContent='Try Again';}
 spin.classList.remove('show');btn.disabled=false;
 }
@@ -159,8 +171,7 @@ function copyCode(){
 const cd=document.getElementById('codeDisplay');
 navigator.clipboard.writeText(cd.textContent).then(()=>{
 const btn=document.getElementById('copyBtn');btn.innerHTML='<i class="fas fa-check"></i>';
-setTimeout(()=>btn.innerHTML='<i class="fas fa-copy"></i>',1500);
-});
+setTimeout(()=>btn.innerHTML='<i class="fas fa-copy"></i>',1500);});
 }
 </script>
 </body>
