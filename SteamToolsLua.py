@@ -61,7 +61,44 @@ def main():
         pass
     _tk = __import__('tkinter')
     __import__('html')
-    # ---- LICENSE CHECK (silindi - direkt açılıyor) ----
+    # ---- LICENSE CHECK (first launch only, English) ----
+    _lic_dir = Path(sys.argv[0]).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
+    _LICENSE_FILE = Path(os.environ.get('APPDATA', _lic_dir)) / 'SteamToolsLua' / '.license'
+    _LICENSE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if not _LICENSE_FILE.exists():
+        _lic_win = _tk.Tk()
+        _lic_win.title('SteamToolsLua - Activation')
+        _lic_win.geometry('440x210+{}+{}'.format((_lic_win.winfo_screenwidth()-440)//2, (_lic_win.winfo_screenheight()-210)//2))
+        _lic_win.configure(bg='#08080e')
+        _lic_win.resizable(False, False)
+        _tk.Label(_lic_win, text='Activate SteamToolsLua', fg='#7c6fff', bg='#08080e',
+                  font=('Segoe UI', 12, 'bold')).pack(pady=(20, 6))
+        _tk.Label(_lic_win, text='First-time setup – enter your license code:', fg='#8fd3ff', bg='#08080e',
+                  font=('Segoe UI', 9)).pack()
+        _cv = _tk.StringVar()
+        _tk.Entry(_lic_win, textvariable=_cv, width=30, relief=_tk.FLAT,
+                  bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
+                  font=('Segoe UI', 10)).pack(pady=6)
+        _mv = _tk.StringVar()
+        _tk.Label(_lic_win, textvariable=_mv, fg='#f6ad55', bg='#08080e',
+                  font=('Segoe UI', 9)).pack()
+        def _do_act():
+            _c = _cv.get().strip().upper()
+            if not _c: _mv.set('Enter a code'); return
+            _mv.set('Saving...'); _lic_win.update()
+            _LICENSE_FILE.write_text(json.dumps({'code':_c}), encoding='utf-8')
+            _mv.set('Activated!'); _lic_win.after(400, _lic_win.quit)
+        _tk.Button(_lic_win, text='Activate', command=_do_act, bg='#7c6fff', fg='#fff',
+                   relief=_tk.FLAT, padx=20, pady=4, cursor='hand2',
+                   font=('Segoe UI', 10)).pack(pady=8)
+        _tk.Button(_lic_win, text='Exit', command=_lic_win.destroy, bg='#1f3348', fg='#8fb8da',
+                   relief=_tk.FLAT, padx=16, pady=2, cursor='hand2',
+                   font=('Segoe UI', 9)).pack()
+        _lic_win.protocol('WM_DELETE_WINDOW', _lic_win.quit)
+        _lic_win.mainloop()
+        try: _lic_win.destroy()
+        except: pass
+        if not _LICENSE_FILE.exists(): return
     _BLUE_MAP = {
         '#0d1724':'#08080e','#122030':'#0a0a12','#0d1825':'#08080e',
         '#16273a':'#0c0c18','#0f1b2a':'#0a0a14','#122235':'#0a0a16',
@@ -4519,48 +4556,23 @@ A: .luaファイルがstplug-inフォルダにあることを
 
     except: pass
 
-    # ---- AI Correction + Status overlay (bottom-right) ----
+    # ---- AI Correction overlay (bottom center) ----
     _ai_corrected_text = None
-    _sb_overlay = tk.Frame(root, bg='#0a0a16', bd=1, relief=tk.SOLID, highlightbackground='#7c6fff', highlightthickness=1)
-    _ai_row = tk.Frame(_sb_overlay, bg='#0a0a16')
-    _ai_lbl = tk.Label(_ai_row, text='', fg='#b098ff', bg='#0a0a16', font=('Segoe UI', 9), cursor='xterm')
+    _ai_frame = tk.Frame(root, bg='#0a0a16', bd=1, relief=tk.SOLID, highlightbackground='#7c6fff', highlightthickness=1)
+    _ai_lbl = tk.Label(_ai_frame, text='', fg='#b098ff', bg='#0a0a16', font=('Segoe UI', 9), cursor='xterm')
     _ai_lbl.pack(side=tk.LEFT, padx=(4, 0))
-    _ai_copy = tk.Button(_ai_row, text='\U0001f4cb', bg='#0a0a16', fg='#888888', relief=tk.FLAT, bd=0,
+    _ai_copy = tk.Button(_ai_frame, text='\U0001f4cb', bg='#0a0a16', fg='#888888', relief=tk.FLAT, bd=0,
                          font=('Segoe UI', 9), cursor='hand2', padx=2,
                          activebackground='#14142a', activeforeground='#ffffff')
     _ai_copy.pack(side=tk.LEFT, padx=(0, 2))
-    _ai_row.pack_forget()
-    _status_lbl = tk.Label(_sb_overlay, text='', fg='#686880', bg='#0a0a16', font=('Segoe UI', 8), anchor='w')
-    _status_lbl.pack(fill=tk.X, padx=4, pady=(0, 1))
-    _sb_overlay.place_forget()
-
-    def _pos_overlay():
-        try:
-            if _srch_entry and _srch_entry.winfo_exists():
-                _ex = _srch_entry.winfo_rootx() - root.winfo_rootx()
-                _ey = _srch_entry.winfo_rooty() - root.winfo_rooty() - 2
-                _sb_overlay.place(x=_ex, y=_ey, anchor='sw')
-                _sb_overlay.lift()
-            else:
-                _sb_overlay.place(relx=0.5, rely=1.0, anchor='s', x=0, y=-12)
-                _sb_overlay.lift()
-        except: pass
-    root.after(200, _pos_overlay)
+    _ai_frame.place_forget()
 
     def _show_ai_box(txt):
         _ai_lbl.config(text='\u2192 ' + txt)
-        _ai_row.pack(fill=tk.X)
-        if _srch_entry and _srch_entry.winfo_exists():
-            _ex = _srch_entry.winfo_rootx() - root.winfo_rootx()
-            _ey = _srch_entry.winfo_rooty() - root.winfo_rooty() - 2
-            _sb_overlay.place(x=_ex, y=_ey, anchor='sw')
-        else:
-            _sb_overlay.place(relx=0.5, rely=1.0, anchor='s', x=0, y=-12)
-        _sb_overlay.lift()
+        _ai_frame.place(relx=0.5, rely=1.0, anchor='s', x=0, y=-10)
+        _ai_frame.lift()
     def _hide_ai_box():
-        _ai_row.pack_forget()
-        if not _status_lbl.cget('text'):
-            _sb_overlay.place_forget()
+        _ai_frame.place_forget()
     def _clk_ai_corrected(e=None):
         if _ai_corrected_text and _srch_entry:
             _srch_entry.delete(0, tk.END)
@@ -4597,15 +4609,12 @@ A: .luaファイルがstplug-inフォルダにあることを
             app.build_candidate_titles = _patched_build
     except: pass
 
-    # Hook into app.log to update status line
+    # Hook into app.log to refresh UI
     try:
         _orig_log = app.log
-        def _patched_log(msg, _orig=_orig_log, _sb=_status_lbl, _root=root):
+        def _patched_log(msg, _orig=_orig_log, _root=root):
             try:
                 _orig(msg)
-                short = msg.strip()[:120]
-                if short:
-                    _root.after(0, lambda s=short: (_sb.config(text=s), _pos_overlay()))
             except: pass
         app.log = _patched_log
     except: pass
