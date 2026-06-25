@@ -1783,8 +1783,52 @@ def install_ui_fixes(g):
             files.append({'path': name, 'length': info.get(b'length', 0)})
         return files
 
+    # ---- Helper: extract archive with multiple backends ----
+    def _extract_archive(dl_path, extract_tmp, passwords, log):
+        """Try multiple extractors: 7z, unrar, patool, zipfile. Returns True on success."""
+        ext = os.path.splitext(str(dl_path))[1].lower()
+        is_zip = ext == '.zip'
+        if is_zip:
+            try:
+                import zipfile as _zf
+                with _zf.ZipFile(str(dl_path), 'r') as _z:
+                    _z.extractall(str(extract_tmp))
+                log('[OnlineFix] zipfile ile çıkartıldı')
+                return True
+            except Exception as _ez:
+                log(f'[OnlineFix] zipfile hata: {_ez}')
+        # Try command-line extractors
+        extractors = []
+        if shutil.which('7z'): extractors.append(('7z', ['7z', 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']))
+        if shutil.which('unrar'): extractors.append(('unrar', ['unrar', 'x', '-y', str(dl_path), str(extract_tmp)]))
+        if shutil.which('bsdtar'): extractors.append(('bsdtar', ['bsdtar', '-xf', str(dl_path), f'-C{str(extract_tmp)}']))
+        for exe_name, base_cmd in extractors:
+            for pw in passwords:
+                try:
+                    cmd = list(base_cmd)
+                    if pw: cmd.append(f'-p{pw}') if exe_name != 'bsdtar' else cmd.extend(['--password', pw])
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                    if result.returncode == 0:
+                        log(f'[OnlineFix] {exe_name} pw#? ({pw or "none"}): rc=0')
+                        return True
+                    log(f'[OnlineFix] {exe_name} pw ({pw or "none"}): rc={result.returncode}')
+                    if result.stderr: log(f'[OnlineFix] {exe_name} std: {result.stderr[:150]}')
+                except subprocess.TimeoutExpired:
+                    log(f'[OnlineFix] {exe_name} timeout')
+                except Exception as _ex_ex:
+                    log(f'[OnlineFix] {exe_name} hata: {_ex_ex}')
+        # Try patool as last resort
+        try:
+            import patoolib
+            patoolib.extract_archive(str(dl_path), outdir=str(extract_tmp), interactive=False)
+            log('[OnlineFix] patool ile çıkartıldı')
+            return True
+        except Exception:
+            pass
+        return False
+
     # ---- Helper: download structured (Fix Repair or torrent) ----
-    def _download_structured(sess, dl_urls, out_dir, appid, headers, cookies, find_func, log, indicator):
+    def _download_structured(sess, dl_urls, out_dir, appid, headers, cookies, find_func, log, indicator, game_name=''):
         import time as _t
         # Try Fix Repair
         upload_base = None
@@ -1821,23 +1865,12 @@ def install_ui_fixes(g):
                     extract_tmp = out_dir / '__extract__'
                     extract_ok = False
                     # Try passwords: online-fix.me (site standard), empty, game name, knkm
-                    _game_pw = re.sub(r'[^a-z0-9]', '', out_dir.name.lower())[:20] if out_dir else ''
-                    _pw_list = ['online-fix.me'] + [''] + ([_game_pw] if _game_pw else []) + ['knkm']
-                    for pwi, pw in enumerate(_pw_list):
-                        try:
-                            cmd = ['7z', 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']
-                            if pw: cmd.append(f'-p{pw}')
-                            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-                            if result.returncode == 0: extract_ok = True; break
-                            log(f'[OnlineFix] 7z pw#{pwi} ({pw or "none"}): rc={result.returncode}')
-                            if result.stderr: log(f'[OnlineFix] 7z std: {result.stderr[:150]}')
-                        except subprocess.TimeoutExpired:
-                            log('[OnlineFix] 7z timeout')
-                        except Exception as _ex7z:
-                            log(f'[OnlineFix] 7z hata: {_ex7z}')
+                    _game_slug = re.sub(r'[^a-z0-9]', '', (game_name or out_dir.name).lower())[:20]
+                    _pw_list = ['online-fix.me'] + [''] + ([_game_slug] if _game_slug else []) + ['knkm']
+                    extract_ok = _extract_archive(dl_path, extract_tmp, _pw_list, log)
                     if extract_ok:
                         log(f'[OnlineFix] Çıkartıldı, flatten ediliyor...')
-                        try: dl_path.unlink(); log('[OnlineFix] .rar silindi')
+                        try: dl_path.unlink(); log('[OnlineFix] arşiv silindi')
                         except: pass
                         # Flatten: move all files from extract_tmp into out_dir
                         moved = 0
@@ -1857,7 +1890,7 @@ def install_ui_fixes(g):
                         os.startfile(str(out_dir))
                         return True
                     else:
-                        log('[OnlineFix] 7z çıkartılamadı')
+                        log('[OnlineFix] çıkartılamadı')
                         indicator('OnlineFix: çıkartılamadı', 'offline')
                         os.startfile(str(out_dir))
                         return False
@@ -1964,6 +1997,8 @@ def install_ui_fixes(g):
                 if dl_urls:
                     for _u in dl_urls:
                         self.log(f'[OnlineFix] URL bulundu: {_u}')
+                # Compute safe name early (used both for output dir and direct URL fallback)
+                _safe_name = _re.sub(r'[\\/:*?"<>|]', '_', game_name.strip())[:80]
                 # Direct upload server URL construction (if page parsing failed)
                 if not dl_urls:
                     _name_variants = set()
@@ -1993,7 +2028,6 @@ def install_ui_fixes(g):
                 _sv = self.settings.get('save_path', '') or ''
                 _of_root = Path(_sv, 'Online Fixes') if _sv and Path(_sv).exists() else Path(_os.environ['TEMP'], 'SteamToolsLua', 'OnlineFix')
                 _of_root.mkdir(parents=True, exist_ok=True)
-                _safe_name = _re.sub(r'[\\/:*?"<>|]', '_', game_name.strip())[:80]
                 _out_dir = _of_root / _safe_name
                 _out_dir.mkdir(parents=True, exist_ok=True)
                 _of_headers = {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://online-fix.me/'}
@@ -2003,7 +2037,7 @@ def install_ui_fixes(g):
                 if dl_urls:
                     dl_attempted = True
                     _downloaded = _download_structured(sess, dl_urls, _out_dir, appid, _of_headers, _of_cookies, _find_steam_game_path,
-                        lambda m: self.log(m), lambda t,s: self._set_indicator(t,s))
+                        lambda m: self.log(m), lambda t,s: self._set_indicator(t,s), game_name)
                     if _downloaded:
                         _save_dl_name(game_name)
                         return
