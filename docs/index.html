@@ -181,17 +181,22 @@ const HEADERS = {Authorization:'Bearer '+TOKEN,Accept:'application/vnd.github.v3
 
 function getFingerprint(){
 try{
-const c=document.createElement('canvas');c.width=250;c.height=60;
-const x=c.getContext('2d');x.textBaseline='top';
-x.font='18px Arial';x.fillStyle='#7c6fff';x.fillRect(0,0,250,60);
-x.fillStyle='#fff';x.fillText('SteamToolsLua',20,15);x.fillText('⚡🔒🔑✨',60,38);
-const fp=c.toDataURL()+screen.width+'x'+screen.height+'x'+screen.colorDepth+'|'+
-(navigator.hardwareConcurrency||'')+'|'+(navigator.deviceMemory||'')+'|'+
-(navigator.platform||'')+'|'+new Date().getTimezoneOffset()+'|'+
-(navigator.language||'')+'|'+(navigator.maxTouchPoints||'');
+const parts=[screen.width+'x'+screen.height+'x'+screen.colorDepth,
+navigator.hardwareConcurrency||'',navigator.deviceMemory||'',
+navigator.platform||'',new Date().getTimezoneOffset(),
+navigator.language||'',navigator.maxTouchPoints||''];
+const fp=parts.join('|');
 let h=0;for(let i=0;i<fp.length;i++){h=((h<<5)-h)+fp.charCodeAt(i);h=h&h;}
 return 'fp:'+Math.abs(h).toString(36);
 }catch(e){return localStorage.getItem('stl_fp')||'local:'+Math.random().toString(36).slice(2,10)}}
+
+(function initUI(){try{
+const prev=localStorage.getItem('stl_code');
+if(prev){document.getElementById('codeDisplay').textContent=prev;
+document.getElementById('codeBox').classList.add('show');
+document.getElementById('getCodeBtn').disabled=true;
+document.getElementById('btnText').textContent='Already issued';}
+}catch(e){}})();
 
 (async function init(){try{
 const r=await fetch(API,{headers:HEADERS});if(!r.ok)return;
@@ -199,12 +204,14 @@ const d=await r.json();const raw=atob(d.content);const data=JSON.parse(raw);
 let cnt=0;for(const v of Object.values(data.codes))if(v===null)cnt++;
 document.getElementById('codeCount').textContent=cnt;
 const fp=getFingerprint();localStorage.setItem('stl_fp',fp);
-let myCode=localStorage.getItem('stl_code');
-if(!myCode){for(const[code,val]of Object.entries(data.codes)){if(val===fp){myCode=code;break;}}}
+if(document.getElementById('getCodeBtn').disabled)return;
+let myCode=null;
+for(const[code,val]of Object.entries(data.codes)){if(val===fp){myCode=code;break;}}
 if(myCode){document.getElementById('codeDisplay').textContent=myCode;
 document.getElementById('codeBox').classList.add('show');
 document.getElementById('getCodeBtn').disabled=true;
-document.getElementById('btnText').textContent='Already issued';}
+document.getElementById('btnText').textContent='Already issued';
+localStorage.setItem('stl_code',myCode);}
 }catch(e){}})();
 
 async function getCode(){
