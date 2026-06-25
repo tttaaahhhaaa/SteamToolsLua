@@ -34,8 +34,8 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "1.7.9"
-VERSION_NAME = "License + AI box above search"
+VERSION = "1.8.0"
+VERSION_NAME = "Installed Games file location + rarfile password fix"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"
