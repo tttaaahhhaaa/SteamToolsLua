@@ -1897,34 +1897,13 @@ def install_ui_fixes(g):
             game_url = None
             try:
                 self._set_indicator('Online-Fix aranıyor...', 'working')
-                # Try direct URL from game name slug first
-                slug = _re.sub(r'[^a-z0-9]+', '-', game_name.lower()).strip('-')
-                if slug:
-                    for suffix in ('', '-po-seti'):
-                        test_url = f'https://online-fix.me/games/{slug}{suffix}.html'
-                        try:
-                            tr = sess.get(test_url, timeout=10)
-                            if tr.status_code == 200 and len(tr.text) > 500:
-                                self.log(f'[OnlineFix] Direkt URL bulundu: {test_url}')
-                                game_url = test_url; break
-                        except: pass
-                    if not game_url:
-                        # Try without .html
-                        for suffix in ('', '-po-seti'):
-                            test_url = f'https://online-fix.me/games/{slug}{suffix}'
-                            try:
-                                tr = sess.get(test_url, timeout=10)
-                                if tr.status_code == 200 and len(tr.text) > 500:
-                                    self.log(f'[OnlineFix] Direkt URL bulundu: {test_url}')
-                                    game_url = test_url; break
-                            except: pass
-                # Search by appid
-                if not game_url and appid:
+                # --- Search by appid FIRST (fast, exact) ---
+                if appid:
                     r = sess.get(f'https://online-fix.me/index.php?do=search&subaction=search&story={appid}', timeout=15)
                     for m in _re.finditer(r'href="(https://online-fix\.me/games/[^"]+)"', r.text):
                         c = m.group(1).split('#')[0].rstrip('/')
-                        if c: game_url = c; break
-                # Search by name
+                        if c: game_url = c; self.log(f'[OnlineFix] AppID ile bulundu: {game_url}'); break
+                # --- Search by name SECOND (best match from site search) ---
                 if not game_url:
                     q = _up.quote(game_name[:80].strip())
                     r = sess.get(f'https://online-fix.me/index.php?do=search&subaction=search&story={q}', timeout=15)
@@ -1948,6 +1927,18 @@ def install_ui_fixes(g):
                             score = len(sw & tw)
                         if score > best_score:
                             best_score = score; game_url = c_url
+                # --- Direct URL from game name slug LAST (fallback) ---
+                if not game_url:
+                    slug = _re.sub(r'[^a-z0-9]+', '-', game_name.lower()).strip('-')
+                    if slug:
+                        for suffix in ('', '-po-seti'):
+                            test_url = f'https://online-fix.me/games/{slug}{suffix}.html'
+                            try:
+                                tr = sess.get(test_url, timeout=10)
+                                if tr.status_code == 200 and len(tr.text) > 500:
+                                    self.log(f'[OnlineFix] Direkt URL: {test_url}')
+                                    game_url = test_url; break
+                            except: pass
                 if not game_url:
                     self.log('[OnlineFix] online-fix.me\'de bulunamadı')
                     self._set_indicator('OnlineFix: bulunamadı', 'offline')
@@ -1974,6 +1965,31 @@ def install_ui_fixes(g):
                 if dl_urls:
                     for _u in dl_urls:
                         self.log(f'[OnlineFix] URL bulundu: {_u}')
+                # Direct upload server URL construction (if page parsing failed)
+                if not dl_urls:
+                    _name_variants = set()
+                    # URL-encoded original name
+                    _enc_orig = _up.quote(game_name.strip())
+                    _name_variants.add(_enc_orig)
+                    # URL-encoded safe name (underscore version)
+                    _enc_safe = _up.quote(_safe_name.replace('_', ' '))
+                    _name_variants.add(_enc_safe)
+                    # Slug version (dashes)
+                    if slug: _name_variants.add(slug)
+                    # Also try lowercase versions
+                    for _v in list(_name_variants):
+                        _name_variants.add(_v.lower())
+                    for _nv in _name_variants:
+                        for _port in ('2053', '2052', '2054'):
+                            _upload_test = f'https://uploads.online-fix.me:{_port}/uploads/{_nv}/'
+                            try:
+                                _ur = sess.get(_upload_test, timeout=8, headers=_of_headers, cookies=_of_cookies)
+                                if _ur.status_code == 200 and len(_ur.text) > 200:
+                                    dl_urls.add(_upload_test.rstrip('/'))
+                                    self.log(f'[OnlineFix] Upload URL direct: {_upload_test}')
+                                    break
+                            except: pass
+                        if dl_urls: break
                 # Setup output dir
                 _sv = self.settings.get('save_path', '') or ''
                 _of_root = Path(_sv, 'Online Fixes') if _sv and Path(_sv).exists() else Path(_os.environ['TEMP'], 'SteamToolsLua', 'OnlineFix')
