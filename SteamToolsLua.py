@@ -1785,12 +1785,22 @@ def install_ui_fixes(g):
 
     # ---- Helper: extract archive with multiple backends ----
     def _extract_archive(dl_path, extract_tmp, passwords, log):
-        """Try multiple extractors: 7z, unrar, bsdtar, patool, zipfile. Returns True on success."""
-        ext = os.path.splitext(str(dl_path))[1].lower()
+        """Try multiple extractors: rarfile (primary), zipfile, 7z, unrar, patool."""
         if not dl_path.exists() or dl_path.stat().st_size == 0:
             log(f'[OnlineFix] Dosya yok/boş, extract iptal')
             return False
-        # Try zipfile first (direct from dl_path)
+        ext = os.path.splitext(str(dl_path))[1].lower()
+        # Try rarfile first (pure-Python, handles most RAR archives)
+        try:
+            import rarfile as _rf
+            _rf.UNRAR_TOOL = None
+            with _rf.RarFile(str(dl_path)) as _rz:
+                _rz.extractall(str(extract_tmp))
+            log('[OnlineFix] rarfile ile çıkartıldı')
+            return True
+        except Exception as _rfe:
+            log(f'[OnlineFix] rarfile hata: {_rfe}')
+        # Try zipfile
         if ext == '.zip':
             try:
                 import zipfile as _zf
@@ -1814,80 +1824,65 @@ def install_ui_fixes(g):
         for _p in _7z_paths:
             if os.path.isfile(_p):
                 _7z_exe = _p; break
-        # Build extractor list with temp paths (avoid dots/spaces in paths confusing 7z)
-        _tmp_root = Path(_os.environ.get('TEMP', 'C:\\Temp'), 'SteamToolsLuaExtract')
-        _tmp_root.mkdir(parents=True, exist_ok=True)
-        _cleanup = []
-        _extractors = []
+        # Try 7z via temp path (avoids dot/space issues in -o flag)
         if _7z_exe:
+            _tmp_root = Path(_os.environ.get('TEMP', 'C:\\Temp'), 'SteamToolsLuaExtract')
+            _tmp_root.mkdir(parents=True, exist_ok=True)
             _in = _tmp_root / 'input.rar'
             _out = _tmp_root / 'out'
-            _extractors.append(('7z', _7z_exe, _in, _out))
-            _cleanup.extend([_in, _out])
-        for exe_name, exe_path, _in_path, _out_path in _extractors:
             try:
                 import shutil as _sh
-                _sh.copy2(str(dl_path), str(_in_path))
-                _out_path.mkdir(parents=True, exist_ok=True)
-            except Exception as _ec:
-                log(f'[OnlineFix] {exe_name} temp hata: {_ec}')
-                continue
+                _sh.copy2(str(dl_path), str(_in))
+                _out.mkdir(parents=True, exist_ok=True)
+            except Exception:
+                _in = dl_path
+                _out = extract_tmp
             for pw in passwords:
                 try:
-                    cmd = [exe_path, 'x', str(_in_path), f'-o{str(_out_path)}', '-y']
+                    cmd = [_7z_exe, 'x', str(_in), f'-o{str(_out)}', '-y']
                     if pw: cmd.append(f'-p{pw}')
-                    log(f'[OnlineFix] {exe_name} cmd: {" ".join(str(c) for c in cmd)}')
+                    log(f'[OnlineFix] 7z cmd: {" ".join(str(c) for c in cmd)}')
                     si = subprocess.STARTUPINFO()
                     si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                     result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, startupinfo=si, creationflags=0x08000000)
                     if result.returncode == 0:
-                        log(f'[OnlineFix] {exe_name} pw ({pw or "none"}): rc=0')
-                        _flatten_extracted(_out_path, extract_tmp, log)
-                        _cleanup_temp_files(_cleanup, dl_path, log)
+                        log(f'[OnlineFix] 7z pw ({pw or "none"}): rc=0')
+                        # Flatten temp to extract_tmp
+                        if _out != extract_tmp:
+                            _flatten_extracted(_out, extract_tmp, log)
+                        # Cleanup temp
+                        try: _sh.rmtree(str(_tmp_root))
+                        except: pass
                         return True
-                    log(f'[OnlineFix] {exe_name} pw ({pw or "none"}): rc={result.returncode}')
-                    if result.stderr: log(f'[OnlineFix] {exe_name} stderr: {result.stderr[:300]}')
-                    if result.stdout: log(f'[OnlineFix] {exe_name} stdout: {result.stdout[:300]}')
+                    log(f'[OnlineFix] 7z pw ({pw or "none"}): rc={result.returncode}')
+                    if result.stderr: log(f'[OnlineFix] 7z stderr: {result.stderr[:300]}')
+                    if result.stdout: log(f'[OnlineFix] 7z stdout: {result.stdout[:300]}')
                 except subprocess.TimeoutExpired:
-                    log(f'[OnlineFix] {exe_name} timeout')
-                except Exception as _ex_ex:
-                    log(f'[OnlineFix] {exe_name} hata: {_ex_ex}')
-        # Try unrar directly (no temp path needed)
+                    log('[OnlineFix] 7z timeout')
+                except Exception as _ex7:
+                    log(f'[OnlineFix] 7z hata: {_ex7}')
+            try: _sh.rmtree(str(_tmp_root))
+            except: pass
+        # Try unrar
         if shutil.which('unrar'):
-            _unrar = shutil.which('unrar')
             for pw in passwords:
                 try:
                     cmd = ['unrar', 'x', '-y', str(dl_path), str(extract_tmp)]
                     if pw: cmd.extend(['-p' + pw])
                     log(f'[OnlineFix] unrar cmd: {" ".join(str(c) for c in cmd)}')
-                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-                    if result.returncode == 0:
+                    r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                    if r.returncode == 0:
                         log('[OnlineFix] unrar rc=0')
-                        _cleanup_temp_files(_cleanup, dl_path, log)
                         return True
-                except Exception:
-                    pass
-        # Try patool as last resort
+                except: pass
+        # Try patool
         try:
             import patoolib
             patoolib.extract_archive(str(dl_path), outdir=str(extract_tmp), interactive=False)
             log('[OnlineFix] patool ile çıkartıldı')
-            _cleanup_temp_files(_cleanup, dl_path, log)
             return True
         except Exception:
             pass
-        # Try rarfile pure-Python
-        try:
-            import rarfile as _rf
-            _rf.UNRAR_TOOL = None
-            with _rf.RarFile(str(dl_path)) as _rz:
-                _rz.extractall(str(extract_tmp))
-            log('[OnlineFix] rarfile ile çıkartıldı')
-            _cleanup_temp_files(_cleanup, dl_path, log)
-            return True
-        except Exception as _rfe:
-            log(f'[OnlineFix] rarfile hata: {_rfe}')
-        _cleanup_temp_files(_cleanup, None, log)
         return False
 
     def _flatten_extracted(src, dst, log):
