@@ -1807,11 +1807,14 @@ def install_ui_fixes(g):
             try:
                 import rarfile as _rf
                 _rf.UNRAR_TOOL = None
-                with _rf.RarFile(str(dl_path)) as _rz:
-                    if pw: _rz.setpassword(pw)
+                _rf.NEED_COMMENTS = 0
+                _kw = {'pwd': pw} if pw else {}
+                with _rf.RarFile(str(dl_path), **_kw) as _rz:
                     _rz.extractall(str(extract_tmp))
                 log(f'[OnlineFix] rarfile ile çıkartıldı (pw: {pw or "none"})')
-                return True
+                if extract_tmp.exists() and any(extract_tmp.iterdir()):
+                    return True
+                log('[OnlineFix] rarfile: dosyalar boş, sonraki deneniyor')
             except Exception as _rfe:
                 log(f'[OnlineFix] rarfile hata (pw: {pw or "none"}): {_rfe}')
         # Try zipfile
@@ -4113,11 +4116,18 @@ A: .luaファイルがstplug-inフォルダにあることを
                            '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
                            ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=(4, 0))
                         def _open_folder():
-                            sel = _tv.selection()
-                            if sel:
-                                vals = _tv.item(sel[0], 'values')
-                                if vals and vals[0] in paths and paths[vals[0]]:
-                                    _subprocess.Popen(['explorer', str(paths[vals[0]])])
+                            try:
+                                sel = _tv.selection()
+                                if sel:
+                                    vals = _tv.item(sel[0], 'values')
+                                    if vals:
+                                        _p = paths.get(vals[0])
+                                        if _p and _p.exists():
+                                            _subprocess.Popen(['explorer', str(_p.resolve())])
+                                        else:
+                                            _subprocess.Popen(['start', vals[0]], shell=True)
+                            except Exception:
+                                pass
                         AB(_top, _tr(self, 'button.game_location'), _open_folder, 120, 28,
                            '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
                            ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=(4, 0))
