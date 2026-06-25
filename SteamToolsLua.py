@@ -1896,6 +1896,12 @@ def install_ui_fixes(g):
                                     speed = downloaded/(_t.time()-t0)/1024 if (_t.time()-t0) > 0 else 0
                                     indicator(f'OnlineFix: %{pct} ({speed:.0f} KB/s)', 'working')
                     log(f'[OnlineFix] İndirme tamam: {dl_path}')
+                    # Verify file exists and has size
+                    if not dl_path.exists() or dl_path.stat().st_size == 0:
+                        log(f'[OnlineFix] Dosya boş veya yok!')
+                        indicator('OnlineFix: dosya hatası', 'offline')
+                        return False
+                    log(f'[OnlineFix] Dosya boyutu: {dl_path.stat().st_size} bytes')
                     # Extract directly into out_dir (flatten subfolders)
                     extract_tmp = out_dir / '__extract__'
                     extract_ok = False
