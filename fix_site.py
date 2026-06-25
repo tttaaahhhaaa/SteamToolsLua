@@ -1,0 +1,10 @@
+content = open(r'C:\Users\Taha\Desktop\SteamToolsLua_Repo\temp_restore.html', 'rb').read()
+text = content.decode('utf-8')
+text = text.replace('1.7.9', '1.8.0')
+text = text.replace('SteamToolsLua_v1.7.9.exe', 'SteamToolsLua_v1.8.0.exe')
+text = text.replace('v1.7.9', 'v1.8.0')
+text = text.replace('btn-discord" href="#"', 'btn-discord" href="https://discord.gg/EwVcjdh6u"')
+text = text.replace('href="#">Discord</a>', 'href="https://discord.gg/EwVcjdh6u" target="_blank">Discord</a>')
+with open(r'C:\Users\Taha\Desktop\SteamToolsLua_Repo\docs\index.html', 'wb') as f:
+    f.write(text.encode('utf-8'))
+print('Done')
