@@ -1820,9 +1820,9 @@ def install_ui_fixes(g):
                     # Extract directly into out_dir (flatten subfolders)
                     extract_tmp = out_dir / '__extract__'
                     extract_ok = False
-                    # Try passwords: empty, game name, online-fix.me, knkm
+                    # Try passwords: online-fix.me (site standard), empty, game name, knkm
                     _game_pw = re.sub(r'[^a-z0-9]', '', out_dir.name.lower())[:20] if out_dir else ''
-                    _pw_list = [''] + ([_game_pw] if _game_pw else []) + ['online-fix.me', 'knkm']
+                    _pw_list = ['online-fix.me'] + [''] + ([_game_pw] if _game_pw else []) + ['knkm']
                     for pwi, pw in enumerate(_pw_list):
                         try:
                             cmd = ['7z', 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']
