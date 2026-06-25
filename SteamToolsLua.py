@@ -1952,6 +1952,9 @@ def install_ui_fixes(g):
                     self.log('[OnlineFix] online-fix.me\'de bulunamadı')
                     self._set_indicator('OnlineFix: bulunamadı', 'offline')
                     return
+                # Ensure .html extension for proper content
+                if game_url and not game_url.endswith('.html'):
+                    game_url += '.html'
                 self.log(f'[OnlineFix] Sayfa: {game_url}')
                 # Fetch page for download links
                 r = sess.get(game_url, timeout=15)
@@ -1980,14 +1983,13 @@ def install_ui_fixes(g):
                     if _downloaded:
                         _save_dl_name(game_name)
                         return
-                # Only open browser if ZIP download was attempted but failed
+                # Always open browser if we have a game URL
                 if dl_attempted:
                     self.log('[OnlineFix] Yapısal indirme başarısız, tarayıcı açılıyor')
-                    self._set_indicator('OnlineFix: tarayıcı açıldı', 'online')
-                    _wb.open(game_url)
                 else:
-                    self.log('[OnlineFix] Yapısal link yok')
-                    self._set_indicator('OnlineFix: link yok', 'offline')
+                    self.log('[OnlineFix] Yapısal link yok, tarayıcı açılıyor')
+                self._set_indicator('OnlineFix: tarayıcı açıldı', 'online')
+                _wb.open(game_url)
                 _save_dl_name(game_name)
             except Exception as ex:
                 self.log(f'[OnlineFix] Hata: {ex}')
