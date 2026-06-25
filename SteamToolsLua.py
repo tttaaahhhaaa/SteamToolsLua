@@ -1961,10 +1961,19 @@ def install_ui_fixes(g):
                 phpsessid = sess.cookies.get('PHPSESSID', '')
                 # Extract structured URLs
                 dl_urls = set()
-                for m in _re.finditer(r'(https?://(?:uploads|hosters|drive|torrents)\.online-fix\.me:\d+/[^"\']+)', r.text):
+                # Standard patterns
+                for m in _re.finditer(r'(https?://(?:uploads|hosters|drive|torrents)\.online-fix\.me:\d+/[^"\'>\s]+)', r.text):
                     dl_urls.add(m.group(1).rstrip('/'))
-                for m in _re.finditer(r'(https?://uploads\.online-fix\.me:\d+/(?:uploads|torrents)/[^"\']+)', r.text):
+                for m in _re.finditer(r'(https?://uploads\.online-fix\.me:\d+/(?:uploads|torrents)/[^"\'>\s]+)', r.text):
                     dl_urls.add(m.group(1).rstrip('/'))
+                # Broader: any online-fix.me subdomain URL (handles encoded & raw)
+                if not dl_urls:
+                    for m in _re.finditer(r'(https?://[a-z]+\.online-fix\.me:\d+/[^"\'>\s]+)', r.text):
+                        dl_urls.add(m.group(1).rstrip('/'))
+                # Log if found
+                if dl_urls:
+                    for _u in dl_urls:
+                        self.log(f'[OnlineFix] URL bulundu: {_u}')
                 # Setup output dir
                 _sv = self.settings.get('save_path', '') or ''
                 _of_root = Path(_sv, 'Online Fixes') if _sv and Path(_sv).exists() else Path(_os.environ['TEMP'], 'SteamToolsLua', 'OnlineFix')
