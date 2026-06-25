@@ -1896,13 +1896,20 @@ def install_ui_fixes(g):
                     # Extract directly into out_dir (flatten subfolders)
                     extract_tmp = out_dir / '__extract__'
                     extract_ok = False
-                    for pw in ('knkm', 'online-fix.me'):
+                    # Try passwords: empty, game name, online-fix.me, knkm
+                    _game_pw = re.sub(r'[^a-z0-9]', '', out_dir.name.lower())[:20] if out_dir else ''
+                    _pw_list = [''] + ([_game_pw] if _game_pw else []) + ['online-fix.me', 'knkm']
+                    for pwi, pw in enumerate(_pw_list):
                         try:
                             cmd = ['7z', 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']
                             if pw: cmd.append(f'-p{pw}')
                             result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, creationflags=0x08000000)
                             if result.returncode == 0: extract_ok = True; break
-                        except: pass
+                            log(f'[OnlineFix] 7z pw#{pwi} ({pw or "none"}): rc={result.returncode} {result.stderr[:120]}')
+                        except subprocess.TimeoutExpired:
+                            log('[OnlineFix] 7z timeout')
+                        except Exception as _ex7z:
+                            log(f'[OnlineFix] 7z hata: {_ex7z}')
                     if extract_ok:
                         log(f'[OnlineFix] Çıkartıldı, flatten ediliyor...')
                         try: dl_path.unlink(); log('[OnlineFix] .rar silindi')
@@ -1966,8 +1973,29 @@ def install_ui_fixes(g):
             game_url = None
             try:
                 self._set_indicator('Online-Fix aranıyor...', 'working')
-                # Search by appid first
-                if appid:
+                # Try direct URL from game name slug first
+                slug = _re.sub(r'[^a-z0-9]+', '-', game_name.lower()).strip('-')
+                if slug:
+                    for suffix in ('', '-po-seti'):
+                        test_url = f'https://online-fix.me/games/{slug}{suffix}.html'
+                        try:
+                            tr = sess.get(test_url, timeout=10)
+                            if tr.status_code == 200 and len(tr.text) > 500:
+                                self.log(f'[OnlineFix] Direkt URL bulundu: {test_url}')
+                                game_url = test_url; break
+                        except: pass
+                    if not game_url:
+                        # Try without .html
+                        for suffix in ('', '-po-seti'):
+                            test_url = f'https://online-fix.me/games/{slug}{suffix}'
+                            try:
+                                tr = sess.get(test_url, timeout=10)
+                                if tr.status_code == 200 and len(tr.text) > 500:
+                                    self.log(f'[OnlineFix] Direkt URL bulundu: {test_url}')
+                                    game_url = test_url; break
+                            except: pass
+                # Search by appid
+                if not game_url and appid:
                     r = sess.get(f'https://online-fix.me/index.php?do=search&subaction=search&story={appid}', timeout=15)
                     for m in _re.finditer(r'href="(https://online-fix\.me/games/[^"]+)"', r.text):
                         c = m.group(1).split('#')[0].rstrip('/')
