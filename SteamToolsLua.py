@@ -1797,17 +1797,28 @@ def install_ui_fixes(g):
                 return True
             except Exception as _ez:
                 log(f'[OnlineFix] zipfile hata: {_ez}')
-        # Try command-line extractors
-        _extractor_defs = [
-            ('7z',    ['7z', 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']),
-            ('7za',   ['7za', 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']),
-            ('unrar', ['unrar', 'x', '-y', str(dl_path), str(extract_tmp)]),
-            ('bsdtar',['bsdtar', '-xf', str(dl_path), f'-C{str(extract_tmp)}']),
+        # Find real 7z (skip broken WindowsApps wrapper)
+        _7z_paths = [
+            r'C:\Program Files\7-Zip\7z.exe',
+            r'C:\Program Files\NanaZip\7z.exe',
+            r'C:\Program Files (x86)\7-Zip\7z.exe',
+            r'C:\Program Files (x86)\NanaZip\7z.exe',
         ]
+        _shutil_7z = shutil.which('7z')
+        if _shutil_7z and 'WindowsApps' not in _shutil_7z:
+            _7z_paths.insert(0, _shutil_7z)
+        _7z_exe = None
+        for _p in _7z_paths:
+            if os.path.isfile(_p):
+                _7z_exe = _p; break
+        # Build extractor list
         extractors = []
-        for exe_name, base_cmd in _extractor_defs:
-            if shutil.which(exe_name):
-                extractors.append((exe_name, base_cmd))
+        if _7z_exe:
+            extractors.append(('7z', [_7z_exe, 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']))
+        if shutil.which('unrar'):
+            extractors.append(('unrar', ['unrar', 'x', '-y', str(dl_path), str(extract_tmp)]))
+        if shutil.which('bsdtar'):
+            extractors.append(('bsdtar', ['bsdtar', '-xf', str(dl_path), f'-C{str(extract_tmp)}']))
         for exe_name, base_cmd in extractors:
             for pw in passwords:
                 try:
@@ -1831,24 +1842,21 @@ def install_ui_fixes(g):
                     log(f'[OnlineFix] {exe_name} timeout')
                 except Exception as _ex_ex:
                     log(f'[OnlineFix] {exe_name} hata: {_ex_ex}')
-            # If exe exists but returned non-zero for all passwords, try shell=True as fallback
-            try:
-                import subprocess as _sp2
-                for pw in passwords:
-                    pw_arg = f'-p{pw}' if pw else ''
-                    shell_cmd = f'"{shutil.which(exe_name)}" x "{dl_path}" -o"{extract_tmp}" -y {pw_arg}'.strip()
-                    log(f'[OnlineFix] {exe_name} shell: {shell_cmd}')
-                    result2 = _sp2.run(shell_cmd, capture_output=True, text=True, timeout=60, shell=True)
-                    if result2.returncode == 0:
-                        log(f'[OnlineFix] {exe_name} shell pw ({pw or "none"}): rc=0')
-                        return True
-            except Exception:
-                pass
         # Try patool as last resort
         try:
             import patoolib
             patoolib.extract_archive(str(dl_path), outdir=str(extract_tmp), interactive=False)
             log('[OnlineFix] patool ile çıkartıldı')
+            return True
+        except Exception:
+            pass
+        # Try rarfile pure-Python
+        try:
+            import rarfile as _rf
+            _rf.UNRAR_TOOL = None  # force pure python
+            with _rf.RarFile(str(dl_path)) as _rz:
+                _rz.extractall(str(extract_tmp))
+            log('[OnlineFix] rarfile ile çıkartıldı')
             return True
         except Exception:
             pass
