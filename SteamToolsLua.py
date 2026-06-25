@@ -1785,7 +1785,7 @@ def install_ui_fixes(g):
 
     # ---- Helper: extract archive with multiple backends ----
     def _extract_archive(dl_path, extract_tmp, passwords, log):
-        """Try multiple extractors: 7z, unrar, patool, zipfile. Returns True on success."""
+        """Try multiple extractors: 7z, unrar, bsdtar, patool, zipfile. Returns True on success."""
         ext = os.path.splitext(str(dl_path))[1].lower()
         is_zip = ext == '.zip'
         if is_zip:
@@ -1798,25 +1798,52 @@ def install_ui_fixes(g):
             except Exception as _ez:
                 log(f'[OnlineFix] zipfile hata: {_ez}')
         # Try command-line extractors
+        _extractor_defs = [
+            ('7z',    ['7z', 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']),
+            ('7za',   ['7za', 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']),
+            ('unrar', ['unrar', 'x', '-y', str(dl_path), str(extract_tmp)]),
+            ('bsdtar',['bsdtar', '-xf', str(dl_path), f'-C{str(extract_tmp)}']),
+        ]
         extractors = []
-        if shutil.which('7z'): extractors.append(('7z', ['7z', 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']))
-        if shutil.which('unrar'): extractors.append(('unrar', ['unrar', 'x', '-y', str(dl_path), str(extract_tmp)]))
-        if shutil.which('bsdtar'): extractors.append(('bsdtar', ['bsdtar', '-xf', str(dl_path), f'-C{str(extract_tmp)}']))
+        for exe_name, base_cmd in _extractor_defs:
+            if shutil.which(exe_name):
+                extractors.append((exe_name, base_cmd))
         for exe_name, base_cmd in extractors:
             for pw in passwords:
                 try:
                     cmd = list(base_cmd)
-                    if pw: cmd.append(f'-p{pw}') if exe_name != 'bsdtar' else cmd.extend(['--password', pw])
-                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                    if pw:
+                        if exe_name == 'bsdtar':
+                            cmd.extend(['--password', pw])
+                        else:
+                            cmd.append(f'-p{pw}')
+                    log(f'[OnlineFix] {exe_name} cmd: {" ".join(str(c) for c in cmd)}')
+                    si = subprocess.STARTUPINFO()
+                    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, startupinfo=si, creationflags=0x08000000)
                     if result.returncode == 0:
-                        log(f'[OnlineFix] {exe_name} pw#? ({pw or "none"}): rc=0')
+                        log(f'[OnlineFix] {exe_name} pw ({pw or "none"}): rc=0')
                         return True
                     log(f'[OnlineFix] {exe_name} pw ({pw or "none"}): rc={result.returncode}')
-                    if result.stderr: log(f'[OnlineFix] {exe_name} std: {result.stderr[:150]}')
+                    if result.stderr: log(f'[OnlineFix] {exe_name} stderr: {result.stderr[:200]}')
+                    if result.stdout: log(f'[OnlineFix] {exe_name} stdout: {result.stdout[:200]}')
                 except subprocess.TimeoutExpired:
                     log(f'[OnlineFix] {exe_name} timeout')
                 except Exception as _ex_ex:
                     log(f'[OnlineFix] {exe_name} hata: {_ex_ex}')
+            # If exe exists but returned non-zero for all passwords, try shell=True as fallback
+            try:
+                import subprocess as _sp2
+                for pw in passwords:
+                    pw_arg = f'-p{pw}' if pw else ''
+                    shell_cmd = f'"{shutil.which(exe_name)}" x "{dl_path}" -o"{extract_tmp}" -y {pw_arg}'.strip()
+                    log(f'[OnlineFix] {exe_name} shell: {shell_cmd}')
+                    result2 = _sp2.run(shell_cmd, capture_output=True, text=True, timeout=60, shell=True)
+                    if result2.returncode == 0:
+                        log(f'[OnlineFix] {exe_name} shell pw ({pw or "none"}): rc=0')
+                        return True
+            except Exception:
+                pass
         # Try patool as last resort
         try:
             import patoolib
@@ -1926,7 +1953,12 @@ def install_ui_fixes(g):
             return
         def _task():
             import re as _re, urllib.parse as _up, webbrowser as _wb
-            sess = requests.Session()
+            # Try cloudscraper first (handles anti-bot), fallback to requests
+            try:
+                import cloudscraper as _cs
+                sess = _cs.create_scraper()
+            except Exception:
+                sess = requests.Session()
             sess.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
             game_url = None
             try:
@@ -1967,6 +1999,9 @@ def install_ui_fixes(g):
                 if not game_url:
                     self.log('[OnlineFix] online-fix.me\'de bulunamadı')
                     self._set_indicator('OnlineFix: bulunamadı', 'offline')
+                    # Open search in browser as fallback
+                    search_url = f'https://online-fix.me/index.php?do=search&subaction=search&story={_up.quote(game_name[:80].strip())}'
+                    _wb.open(search_url)
                     return
                 self.log(f'[OnlineFix] Sayfa: {game_url}')
                 # Fetch page for download links
