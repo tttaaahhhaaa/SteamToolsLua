@@ -4121,11 +4121,9 @@ A: .luaファイルがstplug-inフォルダにあることを
                                 if sel:
                                     vals = _tv.item(sel[0], 'values')
                                     if vals:
-                                        _p = paths.get(vals[0])
+                                        _p = paths.get(str(vals[0]))
                                         if _p and _p.exists():
                                             _subprocess.Popen(['explorer', str(_p.resolve())])
-                                        else:
-                                            _subprocess.Popen(['start', vals[0]], shell=True)
                             except Exception:
                                 pass
                         AB(_top, _tr(self, 'button.game_location'), _open_folder, 120, 28,
