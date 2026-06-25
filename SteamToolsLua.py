@@ -1827,9 +1827,10 @@ def install_ui_fixes(g):
                         try:
                             cmd = ['7z', 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']
                             if pw: cmd.append(f'-p{pw}')
-                            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, creationflags=0x08000000)
+                            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
                             if result.returncode == 0: extract_ok = True; break
-                            log(f'[OnlineFix] 7z pw#{pwi} ({pw or "none"}): rc={result.returncode} {result.stderr[:120]}')
+                            log(f'[OnlineFix] 7z pw#{pwi} ({pw or "none"}): rc={result.returncode}')
+                            if result.stderr: log(f'[OnlineFix] 7z std: {result.stderr[:150]}')
                         except subprocess.TimeoutExpired:
                             log('[OnlineFix] 7z timeout')
                         except Exception as _ex7z:
@@ -1897,37 +1898,36 @@ def install_ui_fixes(g):
             game_url = None
             try:
                 self._set_indicator('Online-Fix aranıyor...', 'working')
-                # --- Search by appid FIRST (fast, exact) ---
-                if appid:
+                # --- Search by name FIRST (most reliable) ---
+                q = _up.quote(game_name[:80].strip())
+                r = sess.get(f'https://online-fix.me/index.php?do=search&subaction=search&story={q}', timeout=15)
+                candidates = []
+                seen = set()
+                for m in _re.finditer(r'href="(https://online-fix\.me/games/[^"]+)"[^>]*>([^<]+)', r.text):
+                    u = m.group(1).split('#')[0].rstrip('/')
+                    t = m.group(2).strip()
+                    if u not in seen: seen.add(u); candidates.append((u, t))
+                q_lower = game_name.lower().strip()
+                best_score = -1
+                for c_url, c_title in candidates:
+                    t_lower = c_title.lower()
+                    if t_lower == q_lower:
+                        best_score = 999; game_url = c_url; break
+                    if q_lower in t_lower or t_lower in q_lower:
+                        score = 100
+                    else:
+                        sw = set(_re.findall(r'[a-z0-9]+', q_lower))
+                        tw = set(_re.findall(r'[a-z0-9]+', t_lower))
+                        score = len(sw & tw)
+                    if score > best_score:
+                        best_score = score; game_url = c_url
+                # --- Search by appid SECOND (fallback) ---
+                if not game_url and appid:
                     r = sess.get(f'https://online-fix.me/index.php?do=search&subaction=search&story={appid}', timeout=15)
                     for m in _re.finditer(r'href="(https://online-fix\.me/games/[^"]+)"', r.text):
                         c = m.group(1).split('#')[0].rstrip('/')
-                        if c: game_url = c; self.log(f'[OnlineFix] AppID ile bulundu: {game_url}'); break
-                # --- Search by name SECOND (best match from site search) ---
-                if not game_url:
-                    q = _up.quote(game_name[:80].strip())
-                    r = sess.get(f'https://online-fix.me/index.php?do=search&subaction=search&story={q}', timeout=15)
-                    candidates = []
-                    seen = set()
-                    for m in _re.finditer(r'href="(https://online-fix\.me/games/[^"]+)"[^>]*>([^<]+)', r.text):
-                        u = m.group(1).split('#')[0].rstrip('/')
-                        t = m.group(2).strip()
-                        if u not in seen: seen.add(u); candidates.append((u, t))
-                    q_lower = game_name.lower().strip()
-                    best_score = -1
-                    for c_url, c_title in candidates:
-                        t_lower = c_title.lower()
-                        if t_lower == q_lower:
-                            best_score = 999; game_url = c_url; break
-                        if q_lower in t_lower or t_lower in q_lower:
-                            score = 100
-                        else:
-                            sw = set(_re.findall(r'[a-z0-9]+', q_lower))
-                            tw = set(_re.findall(r'[a-z0-9]+', t_lower))
-                            score = len(sw & tw)
-                        if score > best_score:
-                            best_score = score; game_url = c_url
-                # --- Direct URL from game name slug LAST (fallback) ---
+                        if c: game_url = c; break
+                # --- Direct URL from game name slug LAST ---
                 if not game_url:
                     slug = _re.sub(r'[^a-z0-9]+', '-', game_name.lower()).strip('-')
                     if slug:
@@ -1936,7 +1936,6 @@ def install_ui_fixes(g):
                             try:
                                 tr = sess.get(test_url, timeout=10)
                                 if tr.status_code == 200 and len(tr.text) > 500:
-                                    self.log(f'[OnlineFix] Direkt URL: {test_url}')
                                     game_url = test_url; break
                             except: pass
                 if not game_url:
