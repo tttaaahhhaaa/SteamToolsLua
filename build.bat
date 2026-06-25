@@ -9,6 +9,7 @@ pyinstaller --onefile --windowed --icon=%~dp0icon.ico --name=SteamToolsLua ^
   --add-data "%~dp0aria2c.exe;." ^
   --add-data "%~dp0CloudRedirect.exe;." ^
   --add-data "%~dp0cloud_redirect.dll;." ^
+  --add-data "%~dp0gh_token.txt;." ^
   --hidden-import=html --hidden-import=html.parser --hidden-import=html.entities ^
   --hidden-import=requests --hidden-import=urllib3 --hidden-import=certifi ^
   --hidden-import=charset_normalizer --hidden-import=idna ^

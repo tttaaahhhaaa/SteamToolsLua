@@ -1969,8 +1969,8 @@ def install_ui_fixes(g):
                 # Search by appid first
                 if appid:
                     r = sess.get(f'https://online-fix.me/index.php?do=search&subaction=search&story={appid}', timeout=15)
-                    for m in _re.finditer(r'href="(https://online-fix\.me/games/[^"]+\.html)"', r.text):
-                        c = m.group(1).split('#')[0]
+                    for m in _re.finditer(r'href="(https://online-fix\.me/games/[^"]+)"', r.text):
+                        c = m.group(1).split('#')[0].rstrip('/')
                         if c: game_url = c; break
                 # Search by name
                 if not game_url:
@@ -1978,16 +1978,24 @@ def install_ui_fixes(g):
                     r = sess.get(f'https://online-fix.me/index.php?do=search&subaction=search&story={q}', timeout=15)
                     candidates = []
                     seen = set()
-                    for m in _re.finditer(r'href="(https://online-fix\.me/games/[^"]+\.html)"', r.text):
-                        u = m.group(1).split('#')[0]
-                        if u not in seen: seen.add(u); candidates.append(u)
-                    sw = set(_re.findall(r'[a-z0-9]+', game_name.lower()))
-                    best_score = 0
-                    for c in candidates:
-                        slug = c.split('/')[-1].replace('.html','').replace('-po-seti','').replace('-',' ').lower()
-                        words = set(_re.findall(r'[a-z0-9]+', slug))
-                        score = len(sw & words)
-                        if score > best_score: best_score = score; game_url = c
+                    for m in _re.finditer(r'href="(https://online-fix\.me/games/[^"]+)"[^>]*>([^<]+)', r.text):
+                        u = m.group(1).split('#')[0].rstrip('/')
+                        t = m.group(2).strip()
+                        if u not in seen: seen.add(u); candidates.append((u, t))
+                    q_lower = game_name.lower().strip()
+                    best_score = -1
+                    for c_url, c_title in candidates:
+                        t_lower = c_title.lower()
+                        if t_lower == q_lower:
+                            best_score = 999; game_url = c_url; break
+                        if q_lower in t_lower or t_lower in q_lower:
+                            score = 100
+                        else:
+                            sw = set(_re.findall(r'[a-z0-9]+', q_lower))
+                            tw = set(_re.findall(r'[a-z0-9]+', t_lower))
+                            score = len(sw & tw)
+                        if score > best_score:
+                            best_score = score; game_url = c_url
                 if not game_url:
                     self.log('[OnlineFix] online-fix.me\'de bulunamadı')
                     self._set_indicator('OnlineFix: bulunamadı', 'offline')

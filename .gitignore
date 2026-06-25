@@ -6,6 +6,7 @@ dist/
 __pycache__/
 SteamToolsLua.exe
 SteamToolsLua v1.0.3.exe
+SteamToolsLua_v*.exe
 *.pyc
 create_release.py
 
