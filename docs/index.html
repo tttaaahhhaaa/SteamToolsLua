@@ -182,9 +182,8 @@ const HEADERS = {Authorization:'Bearer '+TOKEN,Accept:'application/vnd.github.v3
 function getFingerprint(){
 try{
 const parts=[screen.width+'x'+screen.height+'x'+screen.colorDepth,
-navigator.hardwareConcurrency||'',navigator.deviceMemory||'',
-navigator.platform||'',new Date().getTimezoneOffset(),
-navigator.language||'',navigator.maxTouchPoints||''];
+navigator.hardwareConcurrency||'',navigator.platform||'',
+new Date().getTimezoneOffset(),navigator.language||''];
 const fp=parts.join('|');
 let h=0;for(let i=0;i<fp.length;i++){h=((h<<5)-h)+fp.charCodeAt(i);h=h&h;}
 return 'fp:'+Math.abs(h).toString(36);
