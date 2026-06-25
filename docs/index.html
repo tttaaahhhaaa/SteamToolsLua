@@ -179,13 +179,29 @@ const HEADERS = {Authorization:'Bearer '+TOKEN,Accept:'application/vnd.github.v3
 
 (function(){const c=document.getElementById('particles');for(let i=0;i<40;i++){const p=document.createElement('div');p.className='p';p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';p.style.animationDelay=Math.random()*5+'s';p.style.animationDuration=(3+Math.random()*3)+'s';c.appendChild(p);}})();
 
+function getFingerprint(){
+try{
+const c=document.createElement('canvas');c.width=250;c.height=60;
+const x=c.getContext('2d');x.textBaseline='top';
+x.font='18px Arial';x.fillStyle='#7c6fff';x.fillRect(0,0,250,60);
+x.fillStyle='#fff';x.fillText('SteamToolsLua',20,15);x.fillText('⚡🔒🔑✨',60,38);
+const fp=c.toDataURL()+screen.width+'x'+screen.height+'x'+screen.colorDepth+'|'+
+(navigator.hardwareConcurrency||'')+'|'+(navigator.deviceMemory||'')+'|'+
+(navigator.platform||'')+'|'+new Date().getTimezoneOffset()+'|'+
+(navigator.language||'')+'|'+(navigator.maxTouchPoints||'');
+let h=0;for(let i=0;i<fp.length;i++){h=((h<<5)-h)+fp.charCodeAt(i);h=h&h;}
+return 'fp:'+Math.abs(h).toString(36);
+}catch(e){return localStorage.getItem('stl_fp')||'local:'+Math.random().toString(36).slice(2,10)}}
+
 (async function init(){try{
 const r=await fetch(API,{headers:HEADERS});if(!r.ok)return;
 const d=await r.json();const raw=atob(d.content);const data=JSON.parse(raw);
 let cnt=0;for(const v of Object.values(data.codes))if(v===null)cnt++;
 document.getElementById('codeCount').textContent=cnt;
-const prev=localStorage.getItem('stl_code');
-if(prev){document.getElementById('codeDisplay').textContent=prev;
+const fp=getFingerprint();localStorage.setItem('stl_fp',fp);
+let myCode=localStorage.getItem('stl_code');
+if(!myCode){for(const[code,val]of Object.entries(data.codes)){if(val===fp){myCode=code;break;}}}
+if(myCode){document.getElementById('codeDisplay').textContent=myCode;
 document.getElementById('codeBox').classList.add('show');
 document.getElementById('getCodeBtn').disabled=true;
 document.getElementById('btnText').textContent='Already issued';}
@@ -201,8 +217,10 @@ try{
 const r=await fetch(API,{headers:HEADERS});
 if(!r.ok){err.textContent='Server error ('+r.status+')';err.classList.add('show');txt.textContent='Try Again';spin.classList.remove('show');btn.disabled=false;return;}
 const d=await r.json();const raw=atob(d.content);const data=JSON.parse(raw);
+const fp=getFingerprint();localStorage.setItem('stl_fp',fp);
 let found=null;
-for(const[code,val]of Object.entries(data.codes)){if(val===null){found=code;data.codes[code]='issued';break;}}
+for(const[code,val]of Object.entries(data.codes)){if(val===fp){found=code;break;}}
+if(!found){for(const[code,val]of Object.entries(data.codes)){if(val===null){found=code;data.codes[code]=fp;break;}}}
 if(!found){err.textContent='No codes available';err.classList.add('show');txt.textContent='Try Again';spin.classList.remove('show');btn.disabled=false;return;}
 const newB64=btoa(JSON.stringify(data,null,2));
 const pr=await fetch(PUT_API,{method:'PUT',headers:HEADERS,body:JSON.stringify({message:'Issue '+found,content:newB64,sha:d.sha,branch:'secret-data'})});
