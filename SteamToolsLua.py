@@ -382,6 +382,18 @@ def install_ui_fixes(g):
     for _lang, _data in _more_text.items():
         extra_text.setdefault(_lang, {}).update(_data)
 
+    # Game location button translations
+    _game_loc_text = {
+        'tr': {'button.game_location': 'Dosya Konumu'},
+        'en': {'button.game_location': 'File Location'},
+        'es': {'button.game_location': 'Ubicaci\u00f3n'},
+        'fr': {'button.game_location': 'Emplacement'},
+        'de': {'button.game_location': 'Dateipfad'},
+        'ja': {'button.game_location': '\u30d5\u30a1\u30a4\u30eb\u4f4d\u7f6e'},
+    }
+    for _lang, _data in _game_loc_text.items():
+        extra_text.setdefault(_lang, {}).update(_data)
+
     # Provider guide text
     guide_text = {
         'tr': '1. Sa\u011flay\u0131c\u0131n\u0131n resmi panelinden API anahtar\u0131n\u0131 al.\n2. API Key alan\u0131na yap\u0131\u015ft\u0131r.\n3. Model alan\u0131n\u0131 bo\u015f b\u0131rak\u0131rsan varsay\u0131lan model kullan\u0131l\u0131r.\n4. Oto Zincir a\u00e7\u0131ksa hata oldu\u011funda s\u0131radaki sa\u011flay\u0131c\u0131 denenir.',
@@ -1791,15 +1803,17 @@ def install_ui_fixes(g):
             return False
         ext = os.path.splitext(str(dl_path))[1].lower()
         # Try rarfile first (pure-Python, handles most RAR archives)
-        try:
-            import rarfile as _rf
-            _rf.UNRAR_TOOL = None
-            with _rf.RarFile(str(dl_path)) as _rz:
-                _rz.extractall(str(extract_tmp))
-            log('[OnlineFix] rarfile ile çıkartıldı')
-            return True
-        except Exception as _rfe:
-            log(f'[OnlineFix] rarfile hata: {_rfe}')
+        for pw in passwords:
+            try:
+                import rarfile as _rf
+                _rf.UNRAR_TOOL = None
+                with _rf.RarFile(str(dl_path)) as _rz:
+                    if pw: _rz.setpassword(pw)
+                    _rz.extractall(str(extract_tmp))
+                log(f'[OnlineFix] rarfile ile çıkartıldı (pw: {pw or "none"})')
+                return True
+            except Exception as _rfe:
+                log(f'[OnlineFix] rarfile hata (pw: {pw or "none"}): {_rfe}')
         # Try zipfile
         if ext == '.zip':
             try:
@@ -4036,6 +4050,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                                         _library_folders.append(_p / 'steamapps')
                         except: pass
                     _games = []
+                    _app_paths = {}
                     for _lib in _library_folders:
                         if not _lib.exists(): continue
                         for _acf in _lib.glob('*.acf'):
@@ -4045,9 +4060,14 @@ A: .luaファイルがstplug-inフォルダにあることを
                                 _name_m = re.search(r'"name"\s*"([^"]+)"', _acf_txt)
                                 if _aid_m and _name_m:
                                     _games.append((_aid_m.group(1), _name_m.group(1)))
+                                    _dir_m = re.search(r'"installdir"\s*"([^"]+)"', _acf_txt)
+                                    if _dir_m:
+                                        _p = _lib.parent / 'common' / _dir_m.group(1)
+                                        if _p.exists():
+                                            _app_paths[_aid_m.group(1)] = _p
                             except: pass
                     _games.sort(key=lambda x: x[1].lower())
-                    def _build_ui():
+                    def _build_ui(paths=_app_paths):
                         _load_win.destroy()
                         _w = tk.Toplevel(window)
                         _w.title(f'Installed Games ({len(_games)})')
@@ -4090,6 +4110,15 @@ A: .luaファイルがstplug-inフォルダにあることを
                                     _subprocess.Popen(['start', 'steam://rungameid/' + vals[0]], shell=True)
                         AB = g.get('AnimatedButton', AnimatedButton)
                         AB(_top, '\u25b6 Baslat', _launch_game, 90, 28,
+                           '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
+                           ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=(4, 0))
+                        def _open_folder():
+                            sel = _tv.selection()
+                            if sel:
+                                vals = _tv.item(sel[0], 'values')
+                                if vals and vals[0] in paths and paths[vals[0]]:
+                                    _subprocess.Popen(['explorer', str(paths[vals[0]])])
+                        AB(_top, _tr(self, 'button.game_location'), _open_folder, 120, 28,
                            '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
                            ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=(4, 0))
                         def _tv_scroll(e):
