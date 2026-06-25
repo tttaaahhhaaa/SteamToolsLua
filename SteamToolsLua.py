@@ -4064,10 +4064,10 @@ A: .luaファイルがstplug-inフォルダにあることを
                                 if _aid_m and _name_m:
                                     _games.append((_aid_m.group(1), _name_m.group(1)))
                                     _dir_m = re.search(r'"installdir"\s*"([^"]+)"', _acf_txt)
-                                    if _dir_m:
-                                        _p = _lib.parent / 'common' / _dir_m.group(1)
-                                        if _p.exists():
-                                            _app_paths[_aid_m.group(1)] = _p
+                                if _dir_m:
+                                    _p = _lib / 'common' / _dir_m.group(1)
+                                    if _p.exists():
+                                        _app_paths[_aid_m.group(1)] = _p
                             except: pass
                     _games.sort(key=lambda x: x[1].lower())
                     def _build_ui(paths=_app_paths):
