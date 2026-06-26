@@ -1,193 +1,227 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="cache-control" content="no-cache, must-revalidate">
 <title>SteamToolsLua</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="style.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+html{scroll-behavior:smooth}
+body{font-family:Inter,system-ui,sans-serif;background:#05050a;color:#e8e8f8;min-height:100vh;overflow-x:hidden}
+/* bg */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+.bg .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.25;animation:float 20s infinite ease-in-out}
+.bg .orb:nth-child(1){width:600px;height:600px;background:#7c6fff;top:-200px;left:-200px}
+.bg .orb:nth-child(2){width:500px;height:500px;background:#b098ff;bottom:-150px;right:-150px;animation-delay:-7s}
+.bg .orb:nth-child(3){width:400px;height:400px;background:#4a3fbf;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-14s}
+@keyframes float{
+0%,100%{transform:translate(0,0) scale(1)}
+25%{transform:translate(60px,-40px) scale(1.08)}
+50%{transform:translate(-30px,50px) scale(.95)}
+75%{transform:translate(40px,30px) scale(1.05)}
+}
+.grid{position:fixed;inset:0;z-index:0;background-image:
+linear-gradient(rgba(124,111,255,.04) 1px,transparent 1px),
+linear-gradient(90deg,rgba(124,111,255,.04) 1px,transparent 1px);
+background-size:60px 60px;pointer-events:none}
+.particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+.p{position:absolute;width:3px;height:3px;background:#7c6fff;border-radius:50%;opacity:0;animation:twinkle 4s infinite}
+@keyframes twinkle{0%,100%{opacity:0;transform:translateY(0)}50%{opacity:.6;transform:translateY(-30px)}}
+/* container */
+.container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:40px 20px 80px}
+/* hero card */
+.hero{background:rgba(15,15,30,.75);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+border:1px solid rgba(124,111,255,.15);border-radius:24px;padding:60px 48px;text-align:center;
+box-shadow:0 0 80px rgba(124,111,255,.08);animation:fadeUp .8s ease-out;margin-bottom:24px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.logo{width:72px;height:72px;background:linear-gradient(135deg,#7c6fff,#b098ff);border-radius:18px;
+display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;
+box-shadow:0 0 40px rgba(124,111,255,.25);animation:pulse 3s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 40px rgba(124,111,255,.25)}50%{box-shadow:0 0 60px rgba(124,111,255,.45)}}
+h1{font-size:32px;font-weight:800;background:linear-gradient(135deg,#e8e8f8,#b098ff);-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.sub{color:#8880b0;font-size:15px;margin-bottom:28px}
+.stats{display:flex;gap:24px;justify-content:center;margin-bottom:28px}
+.stat{text-align:center}
+.stat-num{font-size:22px;font-weight:700;color:#7c6fff}
+.stat-label{font-size:12px;color:#686880;margin-top:2px}
+.btns{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;
+padding:14px 24px;border-radius:12px;border:none;font-size:15px;font-weight:600;
+cursor:pointer;transition:all .25s;text-decoration:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#7c6fff,#6a5ee6);color:#fff;box-shadow:0 0 30px rgba(124,111,255,.2)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 50px rgba(124,111,255,.35)}
+.btn-discord{background:#5865f2;color:#fff}
+.btn-discord:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(88,101,242,.3)}
+.btn-secondary{background:rgba(124,111,255,.1);color:#b098ff;border:1px solid rgba(124,111,255,.2)}
+.btn-secondary:hover{background:rgba(124,111,255,.18);transform:translateY(-2px)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.code-box{display:none;background:rgba(0,0,0,.3);border:1px solid rgba(124,111,255,.2);
+border-radius:12px;padding:16px;margin-top:6px;position:relative;animation:fadeUp .4s ease-out}
+.code-box.show{display:block}
+.code-box .code{font-size:20px;font-weight:700;letter-spacing:3px;color:#7c6fff;margin-bottom:4px;user-select:all}
+.code-box .small{font-size:11px;color:#686880}
+.code-box .copy-btn{position:absolute;top:12px;right:12px;background:rgba(124,111,255,.15);
+border:none;color:#b098ff;width:30px;height:30px;border-radius:8px;cursor:pointer}
+.error-box{display:none;background:rgba(240,80,80,.1);border:1px solid rgba(240,80,80,.25);
+border-radius:12px;padding:12px;margin-top:6px;color:#e06060;font-size:13px}
+.error-box.show{display:block}
+.spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.2);
+border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.spinner.show{display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* info cards */
+.card{background:rgba(15,15,30,.6);backdrop-filter:blur(12px);border:1px solid rgba(124,111,255,.1);
+border-radius:16px;padding:28px;margin-bottom:16px;animation:fadeUp .8s ease-out}
+.card h2{font-size:18px;color:#7c6fff;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card p,.card li{font-size:14px;color:#b0a8d0;line-height:1.7;margin-bottom:8px}
+.card ul{padding-left:20px}
+.card li{margin-bottom:4px}
+.card .tag{display:inline-block;background:rgba(124,111,255,.12);color:#b098ff;padding:2px 10px;border-radius:6px;font-size:12px;margin:2px}
+.guide-step{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+.guide-num{background:#7c6fff;color:#fff;width:26px;height:26px;border-radius:50%;display:flex;
+align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;margin-top:2px}
+.guide-step p{margin:0;font-size:14px;color:#c0b8e0}
+.guide-step .hl{color:#7c6fff;font-weight:600}
+footer{position:relative;z-index:1;text-align:center;padding:20px;font-size:13px;color:#484860}
+footer a{color:#7c6fff;text-decoration:none}
+footer a:hover{text-decoration:underline}
+@media(max-width:480px){
+.hero{padding:32px 20px}
+h1{font-size:24px}
+.logo{width:56px;height:56px;font-size:24px}
+.stats{gap:12px}
+.card{padding:20px}
+}
+</style>
 </head>
 <body>
 <div class="bg"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
 <div class="grid"></div>
+<div class="particles" id="particles"></div>
 
-<div id="app">
-  <!-- SIDEBAR -->
-  <aside id="sidebar">
-    <div class="sidebar-header">
-      <div class="logo-mini"><i class="fas fa-cubes"></i></div>
-      <span class="sidebar-title">SteamTools</span>
-      <span class="version-badge" id="versionBadge">1.9.0</span>
-    </div>
-    <nav class="sidebar-nav">
-      <button class="nav-btn active" data-page="dashboard"><i class="fas fa-th-large"></i> Dashboard</button>
-      <button class="nav-btn" data-page="games"><i class="fas fa-gamepad"></i> Games</button>
-      <button class="nav-btn" data-page="onlinefix"><i class="fas fa-download"></i> Online Fix</button>
-      <button class="nav-btn" data-page="cloudredirect"><i class="fas fa-cloud"></i> CloudRedirect</button>
-      <button class="nav-btn" data-page="settings"><i class="fas fa-cog"></i> Settings</button>
+<div class="container">
 
-    </nav>
-    <div class="sidebar-footer">
-      <div class="steam-status" id="steamStatus">
-        <span class="status-dot" id="steamDot"></span>
-        <span id="steamLabel">Checking Steam...</span>
-      </div>
-    </div>
-  </aside>
-
-  <!-- MAIN -->
-  <main id="main">
-    <!-- DASHBOARD -->
-    <section class="page active" id="page-dashboard">
-      <div class="page-header"><h1><i class="fas fa-th-large"></i> Dashboard</h1></div>
-      <div class="cards">
-        <div class="card stat-card" id="statGames">
-          <div class="stat-icon"><i class="fas fa-gamepad"></i></div>
-          <div class="stat-info"><span class="stat-val" id="gameCount">-</span><span class="stat-lbl">Games</span></div>
-        </div>
-        <div class="card stat-card" id="statOnlinefix">
-          <div class="stat-icon"><i class="fas fa-download"></i></div>
-          <div class="stat-info"><span class="stat-val">Online Fix</span><span class="stat-lbl">Downloader</span></div>
-        </div>
-        <div class="card stat-card" id="statCloud">
-          <div class="stat-icon"><i class="fas fa-cloud"></i></div>
-          <div class="stat-info"><span class="stat-val">CloudRedirect</span><span class="stat-lbl">Built-in</span></div>
-        </div>
-      </div>
-      <div class="card">
-        <h2><i class="fas fa-sync"></i> Quick Actions</h2>
-        <div class="action-row">
-          <button class="btn" onclick="scanGames()"><i class="fas fa-search"></i> Scan Games</button>
-          <button class="btn" onclick="launchCloudRedirect()"><i class="fas fa-cloud"></i> CloudRedirect</button>
-          <button class="btn" onclick="restartSteam()"><i class="fas fa-power-off"></i> Restart Steam</button>
-          <button class="btn" onclick="checkUpdate()"><i class="fas fa-sync-alt"></i> Check Update</button>
-        </div>
-      </div>
-      <div id="updateBanner" class="card update-banner" style="display:none">
-        <p><strong id="updateText">Update available!</strong></p>
-        <a id="updateLink" class="btn btn-primary" target="_blank"><i class="fas fa-download"></i> Download</a>
-      </div>
-    </section>
-
-    <!-- GAMES -->
-    <section class="page" id="page-games">
-      <div class="page-header">
-        <h1><i class="fas fa-gamepad"></i> Games</h1>
-        <div class="header-actions">
-          <button class="btn btn-sm" onclick="scanGames()"><i class="fas fa-sync"></i> Refresh</button>
-        </div>
-      </div>
-      <div class="filter-row">
-        <div class="search-box">
-          <i class="fas fa-search"></i>
-          <input type="text" id="gameSearch" placeholder="Search by name or appid..." oninput="filterGames()">
-        </div>
-        <div class="tab-group">
-          <button class="tab-btn active" data-tab="all" onclick="switchTab('all')">All</button>
-          <button class="tab-btn" data-tab="installed" onclick="switchTab('installed')">Installed</button>
-          <button class="tab-btn" data-tab="depot" onclick="switchTab('depot')">Depot</button>
-          <button class="tab-btn" data-tab="verified" onclick="switchTab('verified')">Verified</button>
-        </div>
-      </div>
-      <div class="table-container" id="gamesContainer">
-        <div class="virtual-scroll-viewport" id="vsViewport">
-          <div class="virtual-scroll-phantom" id="vsPhantom"></div>
-          <div class="virtual-scroll-content" id="vsContent"></div>
-        </div>
-        <div class="pagination" id="pagination"></div>
-      </div>
-      <div id="gameDetail" class="card game-detail" style="display:none">
-        <div class="detail-header">
-          <h2 id="detailName"></h2>
-          <span class="appid-badge" id="detailAppid"></span>
-        </div>
-        <div class="detail-actions">
-          <button class="btn btn-primary btn-lg" onclick="launchGame()"><i class="fas fa-play"></i> Launch</button>
-          <button class="btn" onclick="searchOnlineFix()"><i class="fas fa-download"></i> Online Fix</button>
-          <button class="btn" onclick="verifySingle()"><i class="fas fa-check"></i> Verify AI</button>
-        </div>
-        <div id="detailInfo" class="detail-info"></div>
-      </div>
-    </section>
-
-    <!-- ONLINE FIX -->
-    <section class="page" id="page-onlinefix">
-      <div class="page-header"><h1><i class="fas fa-download"></i> Online Fix</h1></div>
-      <div class="card">
-        <div class="search-box" style="max-width:500px">
-          <i class="fas fa-search"></i>
-          <input type="text" id="ofSearch" placeholder="Search online-fix.me..." onkeydown="if(event.key==='Enter')searchOnlineFix()">
-        </div>
-        <button class="btn btn-primary" onclick="searchOnlineFix()"><i class="fas fa-search"></i> Search</button>
-      </div>
-      <div id="ofResults" class="card" style="display:none">
-        <h2>Results</h2>
-        <div id="ofList"></div>
-      </div>
-      <div id="ofDetail" class="card" style="display:none">
-        <h2 id="ofDetailName"></h2>
-        <div id="ofLinks"></div>
-      </div>
-    </section>
-
-    <!-- CLOUDREDIRECT -->
-    <section class="page" id="page-cloudredirect">
-      <div class="page-header"><h1><i class="fas fa-cloud"></i> CloudRedirect</h1></div>
-      <div class="card">
-        <p>CloudRedirect is built into SteamToolsLua. It fixes "No internet connection" errors in Online Fix games by redirecting Steam Cloud to local/Google Drive/OneDrive.</p>
-        <div class="action-row">
-          <button class="btn btn-primary btn-lg" onclick="launchCloudRedirect()"><i class="fas fa-cloud"></i> Launch CloudRedirect</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- SETTINGS -->
-    <section class="page" id="page-settings">
-      <div class="page-header"><h1><i class="fas fa-cog"></i> Settings</h1></div>
-      <div class="card">
-        <h2><i class="fas fa-folder"></i> Folder Paths</h2>
-        <div class="setting-row"><label>Setups:</label><input type="text" id="setupsPath" placeholder="C:\Setups"><button class="btn btn-sm" onclick="browseFolder('setupsPath')"><i class="fas fa-folder-open"></i></button></div>
-        <div class="setting-row"><label>Online Fixes:</label><input type="text" id="onlinefixPath" placeholder="C:\Online-Fixes"><button class="btn btn-sm" onclick="browseFolder('onlinefixPath')"><i class="fas fa-folder-open"></i></button></div>
-        <div class="setting-row"><label>Game Files:</label><input type="text" id="gamefilesPath" placeholder="C:\GameFiles"><button class="btn btn-sm" onclick="browseFolder('gamefilesPath')"><i class="fas fa-folder-open"></i></button></div>
-        <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Paths</button>
-      </div>
-      <div class="card">
-        <h2><i class="fas fa-robot"></i> AI Providers</h2>
-        <div id="aiProviders"></div>
-        <div class="setting-row"><label>Preferred:</label>
-          <select id="preferredProvider" onchange="setPreferredProvider()"></select>
-        </div>
-      </div>
-      <div class="card">
-        <h2><i class="fas fa-palette"></i> Preferences</h2>
-        <div class="setting-row"><label>Language:</label>
-          <select id="languageSelect"><option value="tr">Türkçe</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select>
-        </div>
-      </div>
-    </section>
-
-
-  </main>
-
-  <!-- RIGHT PANEL -->
-  <aside id="rightPanel">
-    <div id="rpContent">
-      <div class="rp-placeholder">
-        <i class="fas fa-cube"></i>
-        <p>Select a game to see details</p>
-      </div>
-    </div>
-  </aside>
+<div class="hero">
+<div class="logo"><i class="fas fa-cubes" style="color:#fff"></i></div>
+<h1>SteamToolsLua</h1>
+<p class="sub">Online Fix downloader &middot; Lua injection &middot; AI translation &middot; CloudRedirect</p>
+<div class="stats">
+<div class="stat"><div class="stat-num" id="webVersion">Yükleniyor...</div><div class="stat-label">Sürüm</div></div>
+<div class="stat"><div class="stat-num" id="codeCount">&mdash;</div><div class="stat-label">Codes Left</div></div>
+</div>
+<div class="btns">
+<a class="btn btn-primary" id="dynamicDownloadBtn" href="https://github.com/tttaaahhhaaa/SteamToolsLua/releases" target="_blank">
+    <i class="fas fa-download"></i> <span id="dynamicBtnText">Uygulamayı İndir</span>
+</a>
+<a class="btn btn-discord" href="https://discord.gg/EwVcjdh6u" target="_blank"><i class="fab fa-discord"></i> Discord Server</a>
+<button class="btn btn-secondary" id="getCodeBtn" onclick="getCode()"><i class="fas fa-key"></i> <span id="btnText">Get License Code</span><span class="spinner" id="spinner"></span></button>
+</div>
+<div class="code-box" id="codeBox"><div class="code" id="codeDisplay"></div><div class="small">Enter this code in the app to activate</div><button class="copy-btn" id="copyBtn" onclick="copyCode()" title="Copy"><i class="fas fa-copy"></i></button></div>
+<div class="error-box" id="errorBox"></div>
 </div>
 
-<!-- TOAST -->
-<div id="toast"></div>
-
-<!-- LOADER -->
-<div id="loader" class="loader-overlay">
-  <div class="loader"><div class="spinner"></div><p id="loaderText">SteamToolsLua v1.9.0 starting...</p></div>
+<div class="card">
+<h2><i class="fas fa-info-circle"></i> What is SteamToolsLua?</h2>
+<p><b>SteamToolsLua</b> is a desktop tool that automates downloading, extracting, and managing <b>Online Fix</b> game releases. It integrates with <b>Steam</b>, <b>LuaTools</b>, and <b>CloudRedirect</b> to provide a seamless experience for playing LAN / online multiplayer games without the official Steam servers.</p>
+<ul>
+<li><span class="tag">Online Fix</span> Download &amp; extract game fixes from online-fix.me</li>
+<li><span class="tag">SteamDB</span> Browse Steam app database, view depots &amp; manifests</li>
+<li><span class="tag">Lua Injection</span> Inject Lua scripts into Steam client to unlock features</li>
+<li><span class="tag">CloudRedirect</span> Fix "No internet connection" errors in games</li>
+<li><span class="tag">AI Translation</span> Translate game UI text using AI</li>
+<li><span class="tag">Auto-Update</span> One-click update to the latest version</li>
+</ul>
 </div>
 
-<script src="main.js"></script>
+<div class="card">
+<h2><i class="fas fa-book"></i> How to Use &ndash; Step by Step</h2>
+<div class="guide-step"><div class="guide-num">1</div><p><span class="hl">Download</span> the app using the button above.</p></div>
+<div class="guide-step"><div class="guide-num">2</div><p>Click <span class="hl">Get License Code</span> and copy the code.</p></div>
+<div class="guide-step"><div class="guide-num">3</div><p>Open the app, enter the code on the <span class="hl">first-time activation</span> screen.</p></div>
+<div class="guide-step"><div class="guide-num">4</div><p>Browse <span class="hl">Online Fix</span> games, download &amp; extract them automatically.</p></div>
+<div class="guide-step"><div class="guide-num">5</div><p>Use <span class="hl">CloudRedirect</span> (built-in) to fix internet-required errors in games.</p></div>
+<div class="guide-step"><div class="guide-num">6</div><p>Launch games directly from your <span class="hl">Steam library</span> via the app.</p></div>
+<div class="guide-step"><div class="guide-num">7</div><p>When a <span class="hl">new version</span> is available, re-open the app to update.</p></div>
+</div>
+
+<div class="card">
+<h2><i class="fas fa-sync"></i> Updates</h2>
+<p>The app checks for updates on every launch. If a new version is available, it will prompt you to download and install it automatically. No manual re-downloading needed.</p>
+<p><b>Note:</b> CloudRedirect is bundled inside the app. When you update, the latest CloudRedirect version is included automatically.</p>
+<p><b>v1.9.0:</b> CloudRedirectTR &mdash; Full-featured Turkish CloudRedirect (no update check). All original features preserved, Turkish UI.</p>
+</div>
+
+<div class="card">
+<h2><i class="fas fa-cloud"></i> CloudRedirect &ndash; No Internet Fix</h2>
+<p>Some Online Fix games require CloudRedirect to bypass the "No internet connection" / "Offline mode" error. This tool is <b>embedded directly</b> in SteamToolsLua. Simply use the <span class="hl">CloudRedirect SS</span> button inside the app to configure it per-game. No separate download needed.</p>
+<p><span class="tag">Important</span> The bundled CloudRedirect may not always be the latest version. If you encounter issues, check for an app update first.</p>
+</div>
+
+<div class="card">
+<h2><i class="fas fa-times-circle"></i> Unlock Removed</h2>
+<p>The old <b>"Unlock"</b> function has been removed. All unlock-related functionality is now handled through <span class="hl">CloudRedirect</span>. If you previously used the Unlock feature, simply use the CloudRedirect option instead &mdash; it covers the same use cases and more.</p>
+</div>
+
+</div>
+
+<footer>
+<a href="https://github.com/tttaaahhhaaa/SteamToolsLua" target="_blank"><i class="fab fa-github"></i> GitHub</a> &middot;
+<a href="https://discord.gg/EwVcjdh6u" target="_blank">Discord</a>
+</footer>
+
+<script>
+// Arka plan partikül efekti
+(function(){const c=document.getElementById('particles');for(let i=0;i<40;i++){const p=document.createElement('div');p.className='p';p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';p.style.animationDelay=Math.random()*5+'s';p.style.animationDuration=(3+Math.random()*3)+'s';c.appendChild(p);}})();
+
+// --- %100 BEDAVA VE OTOMATİK GÜNCELLEME MOTORU ---
+async function fetchLatestAppVersion() {
+    try {
+        // Herkese açık ve şifresiz API çağrısı
+        const response = await fetch('https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest');
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        const currentTag = data.tag_name; // Örn: v1.9.0
+        
+        // Üst paneldeki sürüm numarasını otomatik yaz
+        document.getElementById('webVersion').textContent = currentTag.replace('v', '');
+        
+        // .exe uzantılı dosyayı bul
+        const appAsset = data.assets.find(a => a.name.endsWith('.exe'));
+        const dBtn = document.getElementById('dynamicDownloadBtn');
+        const dText = document.getElementById('dynamicBtnText');
+        
+        if (appAsset) {
+            // Direkt güncel exe indirme linkini atar
+            dBtn.href = appAsset.browser_download_url;
+            dBtnText.textContent = `Download App (${currentTag})`;
+        } else {
+            // Exe yoksa genel release sayfasına yollar
+            dBtn.href = data.html_url;
+            dBtnText.textContent = `View Releases (${currentTag})`;
+        }
+    } catch (err) {
+        console.error("Sürüm kontrol hatası:", err);
+    }
+}
+// Sayfa yüklenince güncel sürümü yakala
+document.addEventListener('DOMContentLoaded', fetchLatestAppVersion);
+
+// --- LİSANS SİSTEMİ (Mevcut yapıyı bozmamak için boş fonksiyon olarak bırakıldı) ---
+function getFingerprint(){ return 'fp:' + Math.random().toString(36).slice(2,10); }
+function getCode() {
+    alert("Lisans kodu sistemi altyapı güncellemesindedir. Lütfen Discord üzerinden talep edin.");
+}
+function copyCode(){
+    const cd=document.getElementById('codeDisplay');
+    navigator.clipboard.writeText(cd.textContent).then(()=>{
+    const btn=document.getElementById('copyBtn');btn.innerHTML='<i class="fas fa-check"></i>';
+    setTimeout(()=>btn.innerHTML='<i class="fas fa-copy"></i>',1500);});
+}
+</script>
 </body>
 </html>
