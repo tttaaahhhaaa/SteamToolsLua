@@ -3657,7 +3657,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                         shutil.copy2(str(cr_exe), str(dest_exe))
                         if cr_dll.exists():
                             shutil.copy2(str(cr_dll), str(dest_dll))
-                        _sp.Popen([str(dest_exe)])
+                        _sp.Popen([str(dest_exe), '--all'])
                         _cr_light.config(fg='#48bb78')
                     else:
                         _cr_light.config(fg='#f56565')
@@ -3667,88 +3667,6 @@ A: .luaファイルがstplug-inフォルダにあることを
         AB(tools_row, 'CloudRedirect', _run_cr,
             130, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
-        # SS (Screenshot + AI) button
-        def _ss_cloudredirect():
-            import threading as _ss_thr
-            def _ss_task():
-                try:
-                    from PIL import ImageGrab as _IG
-                    import win32gui as _wg
-                except:
-                    self.root.after(0, lambda: _messagebox.showinfo('SS', 'PIL/win32gui eksik'))
-                    return
-                try:
-                    _cr_hwnd = None
-                    def _enum_cb(hwnd, _):
-                        nonlocal _cr_hwnd
-                        if _wg.IsWindowVisible(hwnd) and 'CloudRedirect' in _wg.GetWindowText(hwnd):
-                            _cr_hwnd = hwnd
-                    _wg.EnumWindows(_enum_cb, None)
-                    if not _cr_hwnd:
-                        self.root.after(0, lambda: _messagebox.showinfo('SS', 'CloudRedirect penceresi bulunamadi'))
-                        return
-                    _l, _t, _r, _b = _wg.GetWindowRect(_cr_hwnd)
-                    _img = _IG.grab(bbox=(_l, _t, _r, _b))
-                    _tmp = Path(os.environ.get('TEMP', '.')) / 'cr_ss.png'
-                    _img.save(str(_tmp))
-                    self.root.after(0, lambda: _show_ss_dialog(_tmp, _cr_hwnd))
-                except Exception as _ss_ex:
-                    self.root.after(0, lambda: _messagebox.showerror('SS Hata', str(_ss_ex)))
-            def _show_ss_dialog(path, hwnd):
-                _win = tk.Toplevel(self.root)
-                _win.title('CloudRedirect SS')
-                _win.configure(bg='#0d1724')
-                _win.geometry('520x600')
-                _win.transient(self.root)
-                try:
-                    from PIL import Image as _PIL, ImageTk as _PILTk
-                    _pil_img = _PIL.open(str(path))
-                    _pil_img.thumbnail((480, 360))
-                    _tk_img = _PILTk.PhotoImage(_pil_img)
-                    _lbl = tk.Label(_win, image=_tk_img, bg='#0d1724')
-                    _lbl.image = _tk_img
-                    _lbl.pack(pady=(10, 4))
-                except: pass
-                tk.Label(_win, text='AI\'ya sor: Burada ne yaziyor?', fg='#8fd3ff', bg='#0d1724',
-                         font=('Segoe UI', 10)).pack(pady=(4, 2))
-                _q_var = tk.StringVar(value='Bu pencerede ne yaziyor? Turkce acikla')
-                tk.Entry(_win, textvariable=_q_var, width=50, relief=tk.FLAT,
-                         bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
-                         font=('Segoe UI', 9)).pack(pady=4)
-                _ans_lbl = tk.Label(_win, text='', fg='#b098ff', bg='#0d1724',
-                                    font=('Segoe UI', 10), wraplength=460, justify='left')
-                _ans_lbl.pack(pady=(4, 0), padx=16, fill=tk.X)
-                def _ask_ai():
-                    _ans_lbl.config(text='Yanit bekleniyor...')
-                    def _ai_task():
-                        try:
-                            import base64 as _b64
-                            _b64_img = _b64.b64encode(open(str(path), 'rb').read()).decode()
-                            _msg = _q_var.get().strip() or 'Bu pencerede ne yaziyor? Turkce acikla'
-                            _prompt = f"[Image Base64: {len(_b64_img)} bytes]\n\n{_msg}"
-                            try:
-                                _ans = app.ask_ai(_prompt)
-                            except AttributeError:
-                                try:
-                                    _ans = app._query_ai(_prompt)
-                                except AttributeError:
-                                    _ans = None
-                            self.root.after(0, lambda: _ans_lbl.config(text=_ans or 'Yanit alinamadi (ask_ai metodu yok)'))
-                        except Exception as _e:
-                            self.root.after(0, lambda: _ans_lbl.config(text=f'Hata: {_e}'))
-                    _ss_thr.Thread(target=_ai_task, daemon=True).start()
-                AB = g.get('AnimatedButton', AnimatedButton)
-                AB(_win, 'AI\'ya Sor', _ask_ai, 100, 30,
-                   '#244363', '#315f8e', '#66c0f4', '#ffffff',
-                   ('Segoe UI Semibold', 10)).pack(pady=10)
-                AB(_win, self.tr('button.close'), _win.destroy, 80, 30,
-                   '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
-                   ('Segoe UI Semibold', 10)).pack(pady=(0, 10))
-            _ss_thr.Thread(target=_ss_task, daemon=True).start()
-        AB(tools_row, 'SS', _ss_cloudredirect,
-           30, 30, '#1c1c3a', '#2a2a5a', '#7c6fff', '#ffffff',
-           ('Segoe UI Black', 9)).pack(side=tk.LEFT, padx=(0, 4))
-
         # Also add save_path field
         _sv_frame = tk.Frame(window, bg='#0d1724')
         _sv_frame.pack(fill=tk.X, padx=16, pady=(4, 2))
