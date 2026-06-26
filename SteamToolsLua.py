@@ -5203,12 +5203,12 @@ A: .luaファイルがstplug-inフォルダにあることを
 
 if __name__ == '__main__':
     if sys.version_info < (3, 14):
-        print('HATA: Bu uygulama Python 3.14 gerektirir. Su anki surum: ' + sys.version, file=sys.stderr)
-        input('Enter tusuna basin...')
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(0, 'Bu uygulama Python 3.14 gerektirir.\nSu anki surum: ' + sys.version, 'Hata', 0)
         sys.exit(1)
     try:
         main()
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        input('Hata olustu. Enter tusuna basin...')
+        import traceback, ctypes
+        err = traceback.format_exc()
+        ctypes.windll.user32.MessageBoxW(0, err, 'Hata', 0)
