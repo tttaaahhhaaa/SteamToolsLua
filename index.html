@@ -114,9 +114,7 @@ h1{font-size:24px}
 <div class="stat"><div class="stat-num" id="codeCount">&mdash;</div><div class="stat-label">Codes Left</div></div>
 </div>
 <div class="btns">
-<a class="btn btn-primary" id="dynamicDownloadBtn" href="https://github.com/tttaaahhhaaa/SteamToolsLua/releases" target="_blank">
-    <i class="fas fa-download"></i> <span id="dynamicBtnText">Uygulamayı İndir</span>
-</a>
+<a class="btn btn-primary" id="dynamicDownloadBtn" href="https://github.com/tttaaahhhaaa/SteamToolsLua/releases" target="_blank"><i class="fas fa-download"></i> <span id="dynamicBtnText">Uygulamayı İndir</span></a>
 <a class="btn btn-discord" href="https://discord.gg/EwVcjdh6u" target="_blank"><i class="fab fa-discord"></i> Discord Server</a>
 <button class="btn btn-secondary" id="getCodeBtn" onclick="getCode()"><i class="fas fa-key"></i> <span id="btnText">Get License Code</span><span class="spinner" id="spinner"></span></button>
 </div>
@@ -174,53 +172,115 @@ h1{font-size:24px}
 </footer>
 
 <script>
+// Eski Orijinal Lisans ve İletişim Token Şifresi (Geri Bağlandı)
+const _p = ['Z2hwX2RrSmo=','Tmt3YXc3VlQ=','U0JhRmhTYk4=','UmdtUWpOQU4=','MjUyYnNpZzE='];
+const TOKEN = _p.map(atob).join('');
+const API = 'https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/licenses.json?ref=secret-data';
+const PUT_API = 'https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/licenses.json';
+const HEADERS = {Authorization:'Bearer '+TOKEN,Accept:'application/vnd.github.v3+json'};
+
 // Arka plan partikül efekti
 (function(){const c=document.getElementById('particles');for(let i=0;i<40;i++){const p=document.createElement('div');p.className='p';p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';p.style.animationDelay=Math.random()*5+'s';p.style.animationDuration=(3+Math.random()*3)+'s';c.appendChild(p);}})();
 
-// --- %100 BEDAVA VE OTOMATİK GÜNCELLEME MOTORU ---
-async function fetchLatestAppVersion() {
-    try {
-        // Herkese açık ve şifresiz API çağrısı
-        const response = await fetch('https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest');
-        if (!response.ok) return;
+// Kullanıcı parmak izi fonksiyonu
+function getFingerprint(){
+try{
+const parts=[screen.width+'x'+screen.height+'x'+screen.colorDepth,
+navigator.hardwareConcurrency||'',navigator.platform||'',
+new Date().getTimezoneOffset(),navigator.language||''];
+const fp=parts.join('|');
+let h=0;for(let i=0;i<fp.length;i++){h=((h<<5)-h)+fp.charCodeAt(i);h=h&h;}
+return 'fp:'+Math.abs(h).toString(36);
+}catch(e){return localStorage.getItem('stl_fp')||'local:'+Math.random().toString(36).slice(2,10)}}
+
+// UI Ön Yükleme Kontrolü
+(function initUI(){try{
+const prev=localStorage.getItem('stl_code');
+if(prev){document.getElementById('codeDisplay').textContent=prev;
+document.getElementById('codeBox').classList.add('show');
+document.getElementById('getCodeBtn').disabled=true;
+document.getElementById('btnText').textContent='Already issued';}
+}catch(e){}})();
+
+// GitHub'dan lisansları ve en son uygulama sürümünü aynı anda çeken ana sistem
+async function init(){
+try{
+    // 1. Kalan Kod Sayısı ve Mevcut Durum Kontrolü
+    const r=await fetch(API,{headers:HEADERS});
+    if(r.ok){
+        const d=await r.json();const raw=atob(d.content);const data=JSON.parse(raw);
+        let cnt=0;for(const v of Object.values(data.codes))if(v===null)cnt++;
+        document.getElementById('codeCount').textContent=cnt;
+        const fp=getFingerprint();localStorage.setItem('stl_fp',fp);
+        if(!document.getElementById('getCodeBtn').disabled){
+            let myCode=null;
+            for(const[code,val]of Object.entries(data.codes)){if(val===fp){myCode=code;break;}}
+            if(myCode){document.getElementById('codeDisplay').textContent=myCode;
+            document.getElementById('codeBox').classList.add('show');
+            document.getElementById('getCodeBtn').disabled=true;
+            document.getElementById('btnText').textContent='Already issued';
+            localStorage.setItem('stl_code',myCode);}
+        }
+    }
+}catch(e){console.error(e)}
+
+try {
+    // 2. OTOMATİK GÜNCELLEME ALTYAPISI (Açık kaynak sürüm takibi)
+    const relResponse = await fetch('https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest');
+    if(relResponse.ok) {
+        const relData = await relResponse.json();
+        const latestTag = relData.tag_name;
+        document.getElementById('webVersion').textContent = latestTag.replace('v', '');
         
-        const data = await response.json();
-        const currentTag = data.tag_name; // Örn: v1.9.0
-        
-        // Üst paneldeki sürüm numarasını otomatik yaz
-        document.getElementById('webVersion').textContent = currentTag.replace('v', '');
-        
-        // .exe uzantılı dosyayı bul
-        const appAsset = data.assets.find(a => a.name.endsWith('.exe'));
+        const exeAsset = relData.assets.find(a => a.name.endsWith('.exe'));
         const dBtn = document.getElementById('dynamicDownloadBtn');
         const dText = document.getElementById('dynamicBtnText');
-        
-        if (appAsset) {
-            // Direkt güncel exe indirme linkini atar
-            dBtn.href = appAsset.browser_download_url;
-            dBtnText.textContent = `Download App (${currentTag})`;
+        if(exeAsset) {
+            dBtn.href = exeAsset.browser_download_url;
+            dText.textContent = `Download App (${latestTag})`;
         } else {
-            // Exe yoksa genel release sayfasına yollar
-            dBtn.href = data.html_url;
-            dBtnText.textContent = `View Releases (${currentTag})`;
+            dBtn.href = relData.html_url;
+            dText.textContent = `View Releases (${latestTag})`;
         }
-    } catch (err) {
-        console.error("Sürüm kontrol hatası:", err);
     }
+} catch(err) {console.error(err)}
 }
-// Sayfa yüklenince güncel sürümü yakala
-document.addEventListener('DOMContentLoaded', fetchLatestAppVersion);
 
-// --- LİSANS SİSTEMİ (Mevcut yapıyı bozmamak için boş fonksiyon olarak bırakıldı) ---
-function getFingerprint(){ return 'fp:' + Math.random().toString(36).slice(2,10); }
-function getCode() {
-    alert("Lisans kodu sistemi altyapı güncellemesindedir. Lütfen Discord üzerinden talep edin.");
+// Sayfa açıldığında her şeyi başlat
+document.addEventListener('DOMContentLoaded', init);
+
+// Kod Alma (Save Atma) Fonksiyonu
+async function getCode(){
+const btn=document.getElementById('getCodeBtn'),txt=document.getElementById('btnText'),
+spin=document.getElementById('spinner'),box=document.getElementById('codeBox'),
+err=document.getElementById('errorBox'),cd=document.getElementById('codeDisplay');
+btn.disabled=true;txt.textContent='Issuing...';spin.classList.add('show');
+box.classList.remove('show');err.classList.remove('show');
+try{
+const r=await fetch(API,{headers:HEADERS});
+if(!r.ok){err.textContent='Server error ('+r.status+')';err.classList.add('show');txt.textContent='Try Again';spin.classList.remove('show');btn.disabled=false;return;}
+const d=await r.json();const raw=atob(d.content);const data=JSON.parse(raw);
+const fp=getFingerprint();localStorage.setItem('stl_fp',fp);
+let found=null;
+for(const[code,val]of Object.entries(data.codes)){if(val===fp){found=code;break;}}
+if(!found){for(const[code,val]of Object.entries(data.codes)){if(val===null){found=code;data.codes[code]=fp;break;}}}
+if(!found){err.textContent='No codes available';err.classList.add('show');txt.textContent='Try Again';spin.classList.remove('show');btn.disabled=false;return;}
+const newB64=btoa(JSON.stringify(data,null,2));
+const pr=await fetch(PUT_API,{method:'PUT',headers:HEADERS,body:JSON.stringify({message:'Issue '+found,content:newB64,sha:d.sha,branch:'secret-data'})});
+if(!pr.ok){err.textContent='Failed to issue code';err.classList.add('show');txt.textContent='Try Again';spin.classList.remove('show');btn.disabled=false;return;}
+cd.textContent=found;box.classList.add('show');txt.textContent='Already issued';
+localStorage.setItem('stl_code',found);
+const cnt=document.getElementById('codeCount');const cur=parseInt(cnt.textContent);if(!isNaN(cur)&&cur>0)cnt.textContent=cur-1;
+}catch(e){err.textContent='Connection error';err.classList.add('show');txt.textContent='Try Again';}
+spin.classList.remove('show');btn.disabled=false;
 }
+
+// Kod Kopyalama Fonksiyonu
 function copyCode(){
-    const cd=document.getElementById('codeDisplay');
-    navigator.clipboard.writeText(cd.textContent).then(()=>{
-    const btn=document.getElementById('copyBtn');btn.innerHTML='<i class="fas fa-check"></i>';
-    setTimeout(()=>btn.innerHTML='<i class="fas fa-copy"></i>',1500);});
+const cd=document.getElementById('codeDisplay');
+navigator.clipboard.writeText(cd.textContent).then(()=>{
+const btn=document.getElementById('copyBtn');btn.innerHTML='<i class="fas fa-check"></i>';
+setTimeout(()=>btn.innerHTML='<i class="fas fa-copy"></i>',1500);});
 }
 </script>
 </body>
