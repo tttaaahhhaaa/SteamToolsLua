@@ -1,33 +1,28 @@
-# SteamToolsLua v1.0.1
+# SteamToolsLua v1.9.0
 
-Dark purple-themed desktop tool for Steam game injection management. Injects ZIP games, tracks titles via library, multilingual (TR/EN/ES/FR/DE/JP). Standalone EXE — no Python required.
+Native C + WebView2 desktop tool for Steam game management, Online Fix downloads, AI translation, and CloudRedirect. Standalone 193 KB EXE — no Python, no Node.js, no runtime dependencies.
 
 ## Features
 
-- **SteamDB Browser** — Browse 25000+ Steam games with 12-card pages, 5000-game refresh rotation, cache-first startup
-- **Unlock All** — Batch manifest download for all ZIPs in `used/` folder; extracts AppID from `.lua` filename; marks completed ZIPs as `(UNLOCKED)`
-- **Online Fix** — Auto-opens correct game page on online-fix.me with smart word-matching
-- **Inject All** — Select and inject multiple ZIPs at once
-- **Library** — View injected games with date/name sorting
-- **AI Providers** — Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama
-- **Multilingual** — 6 languages with instant switching
-- **Search History** — Last 50 queries with purple outline
-- **Download Recall** — Saved game names from download button
-- **Red Dot** — Visual indicator for already-injected games
-- **Real Progress** — Determinate progress bar with streaming download for SteamDB fetch and manifest downloads
+- **Online Fix Search** — Search online-fix.me directly, browse results, get download links
+- **Steam Library Scanner** — Scan steamapps/common, depotcache, used/ folder for installed games
+- **AI Translation** — Translate game names/descriptions via Google Translate or configured AI provider
+- **CloudRedirect** — Launch CloudRedirectTR to manage Steam Cloud save redirection
+- **Steam API** — Look up app details, multiplayer info, prices from Steam Store
+- **Registry Settings** — Save paths and preferences in Windows Registry
+- **Auto Update** — Check for updates from GitHub releases
+- **Cyberpunk Theme** — Dark purple UI with virtual scroll, pagination, filter tabs
+- **Dual-Mode** — WebView2 primary, HTTP server fallback for browsers without WebView2
 
 ## Quick Start
 
-Download `SteamToolsLua.exe` from [Releases](https://github.com/tttaaahhhaaa/SteamToolsLua/releases) and run it. No installation or Python needed.
+Download `SteamToolsLua_v1.9.0.exe` from [Releases](https://github.com/tttaaahhhaaa/SteamToolsLua/releases). Place it anywhere alongside `WebView2Loader.dll` and the `web/` folder, then run. Requires WebView2 Runtime (included in Windows 11, or download from Microsoft).
 
-## Changelog
+## Build
 
-### v1.0.1 — SteamDB Browser & Unlock All
-
-#### New Features
-- **SteamDB Browser**: Browse 25000+ Steam games directly in the app with 12 cards per page, 5000-game refresh rotation, cache-first startup, and real determinate progress bar
-- **Unlock All (🔓)**: Batch manifest download — scans all ZIPs in `used/` folder, extracts AppID from each `.lua` filename, runs manifests.ps1 sequentially for each game, marks completed ZIPs as `(UNLOCKED)` (skipped on subsequent runs)
-- **Online Fix**: Smart word-matching algorithm that scores links by visible text (×2) + URL slug (×1), threshold ≥3 — no more always-opening Forza
+```sh
+gcc -std=c99 -Os main.c utils.c handlers.c -lwinhttp -lws2_32 -lole32 -loleaut32 -luuid -lshell32 -lcomctl32 -mwindows -o SteamToolsLua_v1.9.0.exe
+```
 
 #### UI Improvements
 - Non-modal progress windows (no freeze on focus loss / minimize)
