@@ -948,7 +948,7 @@ def install_ui_fixes(g):
             _messagebox.showinfo('Online-Fix Inject', 'Inject edilecek OF klasörü bulunamadı.')
             return
         # Build Steam game path map: name -> install_dir
-        _steam_games = {}
+        _steam_names = []
         try:
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\WOW6432Node\Valve\Steam')
             steam_path = Path(winreg.QueryValueEx(key, 'InstallPath')[0])
@@ -970,11 +970,14 @@ def install_ui_fixes(g):
                     nm = re.search(r'"name"\s*"([^"]+)"', txt)
                     ad = re.search(r'"installdir"\s*"([^"]+)"', txt)
                     if nm and ad:
-                        _steam_games[nm.group(1).lower().strip()] = lib / 'common' / ad.group(1)
+                        _steam_names.append((nm.group(1), str(lib / 'common' / ad.group(1))))
                 except: pass
+        _steam_names.sort(key=lambda x: x[0].lower())
         # Show selection overlay
         _parent = getattr(self, 'results_canvas', None) or getattr(self, 'cards_frame', None) or self.root
         _sel_vars = {}
+        _path_vars = {}
+        _exe_vars = {}
         _ov = tk.Frame(self.root, bg='#08080e', highlightthickness=1, highlightbackground='#1a1a30')
         _ov.place(x=0, y=0, relwidth=1, relheight=1, anchor='nw')
         _ov.lift()
@@ -1003,29 +1006,73 @@ def install_ui_fixes(g):
         _scr.pack(side=tk.RIGHT, fill=tk.Y)
         def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
         _canv.bind('<MouseWheel>', _mw)
+        # Build a sorted list of Steam game names for combobox
+        _steam_name_list = [s[0] for s in _steam_names]
+        _steam_path_map = dict(_steam_names)
         _match_info = {}
         for i, gf in enumerate(game_folders):
             var = tk.BooleanVar(value=True)
             _sel_vars[gf] = var
             name_lower = gf.name.lower().strip()
-            # Find matching Steam game
+            # Fuzzy match: strip common suffixes, find best match
+            _base = name_lower.replace('_fix_repair_steam_generic', '').replace('_fix_repair_steam', '').replace('_fix_repair', '').replace('_fix', '').replace('_repair', '').replace('-', ' ').replace('_', ' ').strip()
             matched_path = None
-            for sname, sdir in _steam_games.items():
-                if name_lower == sname or name_lower in sname or sname in name_lower:
+            matched_name = ''
+            best_score = 0
+            for sname, sdir in _steam_names:
+                sn = sname.lower()
+                score = 0
+                if _base == sn: score = 100
+                elif _base in sn: score = 60
+                elif sn in _base: score = 50
+                # Also check word overlap
+                base_words = set(_base.split())
+                sn_words = set(sn.split())
+                overlap = len(base_words & sn_words)
+                if overlap > best_score:
+                    best_score = overlap
                     matched_path = sdir
-                    break
+                    matched_name = sname
+            if best_score >= 2:
+                matched_path = dict(_steam_names).get(matched_name, None)
+            if not matched_path:
+                matched_path = None
             _match_info[gf] = matched_path
             bg = '#0c0c20' if i % 2 == 0 else '#0a0a16'
             row = tk.Frame(_inner, bg=bg)
-            row.pack(fill=tk.X, padx=6, pady=1)
+            row.pack(fill=tk.X, padx=6, pady=2)
             tk.Checkbutton(row, variable=var, bg=bg, activebackground='#14142a', selectcolor='#7c6fff',
                            fg='#d0d0e8', font=('Segoe UI', 10)).pack(side=tk.LEFT)
-            # Game name
-            tk.Label(row, text=gf.name, bg=bg, fg='#d0d0e8', font=('Segoe UI', 10), anchor='w', width=40).pack(side=tk.LEFT, fill=tk.X, expand=True)
-            # Match status
-            _status_text = f'-> {matched_path}' if matched_path else '(Steam\'de bulunamadı)'
-            _status_color = '#50c878' if matched_path else '#e06060'
-            tk.Label(row, text=_status_text, bg=bg, fg=_status_color, font=('Segoe UI', 9), anchor='e').pack(side=tk.RIGHT, padx=4)
+            # Left: game name
+            tk.Label(row, text=gf.name, bg=bg, fg='#d0d0e8', font=('Segoe UI', 9), anchor='w', width=30).pack(side=tk.LEFT, fill=tk.X, expand=True)
+            # Right: combobox to select target game directory
+            _pv = tk.StringVar(value=matched_name or matched_path or '')
+            _path_vars[gf] = _pv
+            _games_for_cb = [s[0] for s in _steam_names]
+            _cb = ttk.Combobox(row, textvariable=_pv, values=_games_for_cb, width=40,
+                               font=('Segoe UI', 9), state='readonly')
+            _cb.pack(side=tk.LEFT, padx=(4, 2))
+            def _cb_select(_gf=gf, _pv=_pv):
+                _sel = _pv.get()
+                _pmap = dict(_steam_names)
+                if _sel in _pmap:
+                    _pv.set(_pmap[_sel])
+            _cb.bind('<<ComboboxSelected>>', lambda e: _cb_select())
+            # EXE konumu checkbox
+            _exe_var = tk.BooleanVar(value=False)
+            _exe_vars[gf] = _exe_var
+            tk.Checkbutton(row, variable=_exe_var, text='EXE',
+                           bg=bg, activebackground='#14142a', selectcolor='#7c6fff',
+                           fg='#f0c060', font=('Segoe UI', 8)).pack(side=tk.RIGHT, padx=(0, 2))
+            # Browse button
+            def _browse(gf=gf, pv=_pv):
+                sel = tkinter.filedialog.askdirectory(title=f'{gf.name} için oyun klasörünü seç')
+                if sel: pv.set(sel)
+            AB = g.get('AnimatedButton')
+            if AB:
+                AB(row, '...', _browse, 28, 24,
+                   '#244363', '#315f8e', '#66c0f4', '#ffffff',
+                   ('Segoe UI', 9)).pack(side=tk.RIGHT, padx=2)
         _btnf = tk.Frame(_ov, bg='#08080e')
         _btnf.pack(fill=tk.X, padx=16, pady=(0, 14))
         _ok = [False]
@@ -1033,10 +1080,11 @@ def install_ui_fixes(g):
             _ok[0] = True; _ov.destroy()
         def _cancel():
             _ov.destroy()
-        AB = g.get('AnimatedButton', AnimatedButton)
-        AB(_btnf, 'Inject Seçilileri', _confirm, 150, 34,
-           '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
-           ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(8, 0))
+        AB = g.get('AnimatedButton')
+        if AB:
+            AB(_btnf, 'Inject Seçilileri', _confirm, 150, 34,
+               '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
+               ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(8, 0))
         AB(_btnf, 'İptal', _cancel, 110, 34,
            '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
            ('Segoe UI', 9)).pack(side=tk.RIGHT)
@@ -1047,43 +1095,56 @@ def install_ui_fixes(g):
             return
         self.log(f"OF Inject: {len(chosen)} oyun seçildi")
         self._set_indicator('OF inject başlıyor...', 'working')
-        # Create Injected OF's folder
         _injected_dir = _of_root / "Injected OF's"
         _injected_dir.mkdir(parents=True, exist_ok=True)
         done = 0
         for gf in chosen:
-            matched = _match_info.get(gf)
-            if not matched:
-                self.log(f"[{gf.name}] Steam\'de bulunamadı, atlanıyor")
+            target_val = _path_vars[gf].get().strip()
+            target_str = _steam_path_map.get(target_val) or target_val
+            if not target_str or not Path(target_str).is_dir():
+                self.log(f"[{gf.name}] hedef klasör geçersiz, atlanıyor")
                 continue
+            target = Path(target_str)
+            # EXE mode: inject into game exe's directory instead of root
+            if _exe_vars.get(gf, False):
+                exe_files = sorted(target.rglob('*.exe'))
+                if exe_files:
+                    target = exe_files[0].parent
+                    self.log(f"[{gf.name}] EXE konumu: {target}")
+                else:
+                    self.log(f"[{gf.name}] EXE bulunamadı, oyun kökü kullanılıyor")
             try:
-                self.log(f"[{gf.name}] -> {matched}")
-                # Determine files to copy
+                self.log(f"[{gf.name}] -> {target}")
+                # Copy files: strip Chameleon/ prefix, copy rest as-is
                 src_files = list(gf.rglob('*'))
                 files_copied = 0
                 for src in src_files:
                     if not src.is_file():
                         continue
                     rel = str(src.relative_to(gf))
-                    # Strip Chameleon/ prefix if present
                     parts = rel.replace('\\', '/').split('/')
-                    if parts and parts[0].lower() in ('chameleon', 'chameleon '):
+                    # Strip first directory if it's "Chameleon" (or similar known wrapper)
+                    if parts and parts[0].lower() in ('chameleon', 'chameleon_fix', 'crack', 'fix', 'online-fix'):
                         rel = '/'.join(parts[1:])
-                    dst = matched / rel
+                    if not rel:
+                        continue
+                    dst = target / rel
                     dst.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(str(src), str(dst))
                     files_copied += 1
                 self.log(f"  -> {files_copied} dosya inject edildi")
                 # Move folder to Injected OF's
                 dest = _injected_dir / gf.name
-                _shutil.move(str(gf), str(dest))
+                shutil.move(str(gf), str(dest))
                 self.log(f"  -> {gf.name} -> Injected OF's/ taşındı")
                 done += 1
             except Exception as e:
                 self.log(f"[{gf.name}] HATA: {e}")
         self.log(f"{done}/{len(chosen)} inject tamam.")
         self._set_indicator(f'{done} OF inject edildi', 'online' if done > 0 else 'offline')
-        if done > 0: _play_sound('done')
+        if done > 0:
+            _ps = g.get('_play_sound')
+            if _ps: _ps('done')
     SteamApp.batch_inject_onlinefixes = batch_inject_onlinefixes
 
 
@@ -1093,7 +1154,8 @@ def install_ui_fixes(g):
         try:
             _header_btn = getattr(_root_app, 'header_btn_ayar', None)
             _parent = _header_btn.master if _header_btn is not None else _root_app
-            AB = g.get('AnimatedButton', AnimatedButton)
+            AB = g.get('AnimatedButton')
+            if not AB: AB = tk.Button
             AB(_parent, _tr(_root_app, 'button.inject_all'), _root_app.batch_inject_all, 100, 30,
                '#244363', '#315f8e', '#66c0f4', '#f7fafc',
                ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=6)
@@ -1982,12 +2044,15 @@ def install_ui_fixes(g):
                 log(f'[OnlineFix] 7z: {" ".join(str(c) for c in cmd)}')
                 si = subprocess.STARTUPINFO()
                 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                r = subprocess.run(cmd, capture_output=True, text=True, timeout=120, startupinfo=si, creationflags=0x08000000)
+                r = subprocess.run(cmd, capture_output=True, text=True, timeout=120,
+                                   startupinfo=si, creationflags=0x08000000,
+                                   cwd=str(_bundle) if _bundle.is_dir() else None)
                 if r.returncode == 0:
                     log(f'[OnlineFix] 7z ile çıkartıldı (pw: {pw})')
                     return True
                 log(f'[OnlineFix] 7z rc={r.returncode} (pw: {pw})')
-                if r.stderr: log(f'[OnlineFix] 7z: {r.stderr[:200]}')
+                if r.stdout: log(f'[OnlineFix] 7z out: {r.stdout[:300]}')
+                if r.stderr: log(f'[OnlineFix] 7z err: {r.stderr[:300]}')
             except subprocess.TimeoutExpired:
                 log('[OnlineFix] 7z timeout')
             except Exception as ex:
@@ -2071,11 +2136,20 @@ def install_ui_fixes(g):
                         log(f'[OnlineFix] Çıkartıldı, flatten ediliyor...')
                         try: dl_path.unlink(); log('[OnlineFix] arşiv silindi')
                         except: pass
-                        # Flatten: move all files from extract_tmp into out_dir
+                        # Flatten: detect single wrapper dir and strip it
+                        _top_dirs = [d for d in extract_tmp.iterdir() if d.is_dir()]
+                        _strip_root = extract_tmp
+                        if len(_top_dirs) == 1:
+                            _first = _top_dirs[0]
+                            _first_files = list(_first.rglob('*'))
+                            _direct_files = list(extract_tmp.iterdir())
+                            if _first_files and not any(f.is_file() for f in _direct_files):
+                                log(f'[OnlineFix] wrapper dir tespit: {_first.name}')
+                                _strip_root = _first
                         moved = 0
-                        for src in extract_tmp.rglob('*'):
+                        for src in _strip_root.rglob('*'):
                             if src.is_file():
-                                try: rel = str(src.relative_to(extract_tmp))
+                                try: rel = str(src.relative_to(_strip_root))
                                 except: rel = src.name
                                 dst = out_dir / rel
                                 dst.parent.mkdir(parents=True, exist_ok=True)
