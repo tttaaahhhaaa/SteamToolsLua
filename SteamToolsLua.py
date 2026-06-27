@@ -933,6 +933,159 @@ def install_ui_fixes(g):
             self.log("Steam yeniden başlatıldı.")
     SteamApp.batch_inject_all = batch_inject_all
 
+    # ---- Inject OF's into game directories ----
+    def batch_inject_onlinefixes(self):
+        """Inject extracted Online-Fix files into matching Steam game directories."""
+        base_dir = Path(__file__).resolve().parent
+        saved = self.settings.get('save_path', '') or ''
+        _of_root = Path(saved, 'Online Fixes') if saved and Path(saved).exists() else Path(_os.environ['TEMP'], 'SteamToolsLua', 'OnlineFix')
+        if not _of_root.exists() or not any(_of_root.iterdir()):
+            _messagebox.showinfo('Online-Fix Inject', 'Online Fixes klasörü boş veya yok.')
+            return
+        # Gather game folders (skip "Injected OF's")
+        game_folders = sorted([d for d in _of_root.iterdir() if d.is_dir() and d.name != "Injected OF's"])
+        if not game_folders:
+            _messagebox.showinfo('Online-Fix Inject', 'Inject edilecek OF klasörü bulunamadı.')
+            return
+        # Build Steam game path map: name -> install_dir
+        _steam_games = {}
+        try:
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\WOW6432Node\Valve\Steam')
+            steam_path = Path(winreg.QueryValueEx(key, 'InstallPath')[0])
+            winreg.CloseKey(key)
+        except:
+            steam_path = Path('C:\\Program Files (x86)\\Steam')
+        vdf_path = steam_path / 'steamapps' / 'libraryfolders.vdf'
+        lib_paths = [steam_path / 'steamapps']
+        if vdf_path.exists():
+            try:
+                for m in re.finditer(r'"path"\s*"([^"]+)"', vdf_path.read_text('utf-8', errors='ignore')):
+                    lp = Path(m.group(1)) / 'steamapps'
+                    if lp.exists(): lib_paths.append(lp)
+            except: pass
+        for lib in lib_paths:
+            for acf in lib.glob('appmanifest_*.acf'):
+                try:
+                    txt = acf.read_text('utf-8', errors='ignore')
+                    nm = re.search(r'"name"\s*"([^"]+)"', txt)
+                    ad = re.search(r'"installdir"\s*"([^"]+)"', txt)
+                    if nm and ad:
+                        _steam_games[nm.group(1).lower().strip()] = lib / 'common' / ad.group(1)
+                except: pass
+        # Show selection overlay
+        _parent = getattr(self, 'results_canvas', None) or getattr(self, 'cards_frame', None) or self.root
+        _sel_vars = {}
+        _ov = tk.Frame(self.root, bg='#08080e', highlightthickness=1, highlightbackground='#1a1a30')
+        _ov.place(x=0, y=0, relwidth=1, relheight=1, anchor='nw')
+        _ov.lift()
+        _top = tk.Frame(_ov, bg='#08080e')
+        _top.pack(fill=tk.X, padx=16, pady=(14, 6))
+        tk.Label(_top, text='Online-Fix Inject', font=('Bahnschrift SemiBold', 18),
+                 fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
+        _sel_all = tk.BooleanVar(value=True)
+        def _toggle_all():
+            v = _sel_all.get()
+            for var in _sel_vars.values(): var.set(v)
+        tk.Checkbutton(_top, text='Tümünü Seç', variable=_sel_all,
+                       command=_toggle_all, bg='#08080e', activebackground='#12122a',
+                       selectcolor='#7c6fff', fg='#c0c0e0', font=('Segoe UI', 10)).pack(side=tk.RIGHT, padx=4)
+        _sep = tk.Frame(_ov, bg='#1a1a30', height=1)
+        _sep.pack(fill=tk.X, padx=16)
+        _cf = tk.Frame(_ov, bg='#0a0a16')
+        _cf.pack(fill=tk.BOTH, expand=True, padx=16, pady=(8, 10))
+        _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0)
+        _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
+        _inner = tk.Frame(_canv, bg='#0a0a16')
+        _inner.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
+        _canv.create_window((0, 0), window=_inner, anchor='nw')
+        _canv.configure(yscrollcommand=_scr.set)
+        _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        _scr.pack(side=tk.RIGHT, fill=tk.Y)
+        def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
+        _canv.bind('<MouseWheel>', _mw)
+        _match_info = {}
+        for i, gf in enumerate(game_folders):
+            var = tk.BooleanVar(value=True)
+            _sel_vars[gf] = var
+            name_lower = gf.name.lower().strip()
+            # Find matching Steam game
+            matched_path = None
+            for sname, sdir in _steam_games.items():
+                if name_lower == sname or name_lower in sname or sname in name_lower:
+                    matched_path = sdir
+                    break
+            _match_info[gf] = matched_path
+            bg = '#0c0c20' if i % 2 == 0 else '#0a0a16'
+            row = tk.Frame(_inner, bg=bg)
+            row.pack(fill=tk.X, padx=6, pady=1)
+            tk.Checkbutton(row, variable=var, bg=bg, activebackground='#14142a', selectcolor='#7c6fff',
+                           fg='#d0d0e8', font=('Segoe UI', 10)).pack(side=tk.LEFT)
+            # Game name
+            tk.Label(row, text=gf.name, bg=bg, fg='#d0d0e8', font=('Segoe UI', 10), anchor='w', width=40).pack(side=tk.LEFT, fill=tk.X, expand=True)
+            # Match status
+            _status_text = f'-> {matched_path}' if matched_path else '(Steam\'de bulunamadı)'
+            _status_color = '#50c878' if matched_path else '#e06060'
+            tk.Label(row, text=_status_text, bg=bg, fg=_status_color, font=('Segoe UI', 9), anchor='e').pack(side=tk.RIGHT, padx=4)
+        _btnf = tk.Frame(_ov, bg='#08080e')
+        _btnf.pack(fill=tk.X, padx=16, pady=(0, 14))
+        _ok = [False]
+        def _confirm():
+            _ok[0] = True; _ov.destroy()
+        def _cancel():
+            _ov.destroy()
+        AB = g.get('AnimatedButton', AnimatedButton)
+        AB(_btnf, 'Inject Seçilileri', _confirm, 150, 34,
+           '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
+           ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(8, 0))
+        AB(_btnf, 'İptal', _cancel, 110, 34,
+           '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
+           ('Segoe UI', 9)).pack(side=tk.RIGHT)
+        self.root.wait_window(_ov)
+        if not _ok[0]: return
+        chosen = [gf for gf, var in _sel_vars.items() if var.get()]
+        if not chosen:
+            return
+        self.log(f"OF Inject: {len(chosen)} oyun seçildi")
+        self._set_indicator('OF inject başlıyor...', 'working')
+        # Create Injected OF's folder
+        _injected_dir = _of_root / "Injected OF's"
+        _injected_dir.mkdir(parents=True, exist_ok=True)
+        done = 0
+        for gf in chosen:
+            matched = _match_info.get(gf)
+            if not matched:
+                self.log(f"[{gf.name}] Steam\'de bulunamadı, atlanıyor")
+                continue
+            try:
+                self.log(f"[{gf.name}] -> {matched}")
+                # Determine files to copy
+                src_files = list(gf.rglob('*'))
+                files_copied = 0
+                for src in src_files:
+                    if not src.is_file():
+                        continue
+                    rel = str(src.relative_to(gf))
+                    # Strip Chameleon/ prefix if present
+                    parts = rel.replace('\\', '/').split('/')
+                    if parts and parts[0].lower() in ('chameleon', 'chameleon '):
+                        rel = '/'.join(parts[1:])
+                    dst = matched / rel
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(str(src), str(dst))
+                    files_copied += 1
+                self.log(f"  -> {files_copied} dosya inject edildi")
+                # Move folder to Injected OF's
+                dest = _injected_dir / gf.name
+                _shutil.move(str(gf), str(dest))
+                self.log(f"  -> {gf.name} -> Injected OF's/ taşındı")
+                done += 1
+            except Exception as e:
+                self.log(f"[{gf.name}] HATA: {e}")
+        self.log(f"{done}/{len(chosen)} inject tamam.")
+        self._set_indicator(f'{done} OF inject edildi', 'online' if done > 0 else 'offline')
+        if done > 0: _play_sound('done')
+    SteamApp.batch_inject_onlinefixes = batch_inject_onlinefixes
+
 
     # Add Inject All button to header
     _root_app = g.get('app')
@@ -3605,6 +3758,10 @@ A: .luaファイルがstplug-inフォルダにあることを
             _thr.Thread(target=_launch, daemon=True).start()
         AB(tools_row, 'CloudRedirect', _run_cr,
             130, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
+        # Inject OF's into game directories
+        AB(tools_row, 'Inject OF\'s', lambda: self.batch_inject_onlinefixes(),
+            120, 30, '#2d4a3e', '#3d6b56', '#66c0f4', '#ffffff',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
         # Also add save_path field
         _sv_frame = tk.Frame(window, bg='#0d1724')
