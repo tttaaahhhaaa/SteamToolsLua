@@ -1795,14 +1795,16 @@ def install_ui_fixes(g):
             files.append({'path': name, 'length': info.get(b'length', 0)})
         return files
 
-    # ---- Helper: extract archive using 7-Zip (open source) ----
+    # ---- Helper: extract archive using 7-Zip (open source, bundled) ----
     def _extract_archive(dl_path, extract_tmp, passwords, log):
-        """Extract RAR/ZIP/7z using 7-Zip (open source)."""
+        """Extract RAR/ZIP/7z using bundled 7-Zip (portable)."""
         if not dl_path.exists() or dl_path.stat().st_size == 0:
             log(f'[OnlineFix] Dosya yok/boş, extract iptal')
             return False
-        # Find 7z
+        # Find 7z: bundled first, then system paths
+        _bundle = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parent))
         _7z_paths = [
+            str(_bundle / '7z.exe'),
             r'C:\Program Files\7-Zip\7z.exe',
             r'C:\Program Files (x86)\7-Zip\7z.exe',
             r'C:\Program Files\NanaZip\7z.exe',
