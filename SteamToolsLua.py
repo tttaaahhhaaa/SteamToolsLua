@@ -35,7 +35,7 @@ def resource_path(name):
 
 # ---- Version & Update ----
 VERSION = "2.0.0"
-VERSION_NAME = "Installed Games file location + rarfile password fix"
+VERSION_NAME = "7-Zip extraction (open source) + fixes"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"
@@ -1795,43 +1795,17 @@ def install_ui_fixes(g):
             files.append({'path': name, 'length': info.get(b'length', 0)})
         return files
 
-    # ---- Helper: extract archive with multiple backends ----
+    # ---- Helper: extract archive using 7-Zip (open source) ----
     def _extract_archive(dl_path, extract_tmp, passwords, log):
-        """Try multiple extractors: rarfile (primary), zipfile, 7z, unrar, patool."""
+        """Extract RAR/ZIP/7z using 7-Zip (open source)."""
         if not dl_path.exists() or dl_path.stat().st_size == 0:
             log(f'[OnlineFix] Dosya yok/boş, extract iptal')
             return False
-        ext = os.path.splitext(str(dl_path))[1].lower()
-        # Try rarfile first (pure-Python, handles most RAR archives)
-        for pw in passwords:
-            try:
-                import rarfile as _rf
-                _rf.UNRAR_TOOL = None
-                _rf.NEED_COMMENTS = 0
-                _kw = {'pwd': pw} if pw else {}
-                with _rf.RarFile(str(dl_path), **_kw) as _rz:
-                    _rz.extractall(str(extract_tmp))
-                log(f'[OnlineFix] rarfile ile çıkartıldı (pw: {pw or "none"})')
-                if extract_tmp.exists() and any(extract_tmp.iterdir()):
-                    return True
-                log('[OnlineFix] rarfile: dosyalar boş, sonraki deneniyor')
-            except Exception as _rfe:
-                log(f'[OnlineFix] rarfile hata (pw: {pw or "none"}): {_rfe}')
-        # Try zipfile
-        if ext == '.zip':
-            try:
-                import zipfile as _zf
-                with _zf.ZipFile(str(dl_path), 'r') as _z:
-                    _z.extractall(str(extract_tmp))
-                log('[OnlineFix] zipfile ile çıkartıldı')
-                return True
-            except Exception as _ez:
-                log(f'[OnlineFix] zipfile hata: {_ez}')
-        # Find real 7z (skip broken WindowsApps wrapper)
+        # Find 7z
         _7z_paths = [
             r'C:\Program Files\7-Zip\7z.exe',
-            r'C:\Program Files\NanaZip\7z.exe',
             r'C:\Program Files (x86)\7-Zip\7z.exe',
+            r'C:\Program Files\NanaZip\7z.exe',
             r'C:\Program Files (x86)\NanaZip\7z.exe',
         ]
         _shutil_7z = shutil.which('7z')
@@ -1841,65 +1815,28 @@ def install_ui_fixes(g):
         for _p in _7z_paths:
             if os.path.isfile(_p):
                 _7z_exe = _p; break
-        # Try 7z via temp path (avoids dot/space issues in -o flag)
-        if _7z_exe:
-            _tmp_root = Path(_os.environ.get('TEMP', 'C:\\Temp'), 'SteamToolsLuaExtract')
-            _tmp_root.mkdir(parents=True, exist_ok=True)
-            _in = _tmp_root / 'input.rar'
-            _out = _tmp_root / 'out'
+        if not _7z_exe:
+            log('[OnlineFix] 7-Zip bulunamadı')
+            return False
+        # Try each password with 7z
+        extract_tmp.mkdir(parents=True, exist_ok=True)
+        for pw in passwords:
             try:
-                import shutil as _sh
-                _sh.copy2(str(dl_path), str(_in))
-                _out.mkdir(parents=True, exist_ok=True)
-            except Exception:
-                _in = dl_path
-                _out = extract_tmp
-            for pw in passwords:
-                try:
-                    cmd = [_7z_exe, 'x', str(_in), f'-o{str(_out)}', '-y']
-                    if pw: cmd.append(f'-p{pw}')
-                    log(f'[OnlineFix] 7z cmd: {" ".join(str(c) for c in cmd)}')
-                    si = subprocess.STARTUPINFO()
-                    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, startupinfo=si, creationflags=0x08000000)
-                    if result.returncode == 0:
-                        log(f'[OnlineFix] 7z pw ({pw or "none"}): rc=0')
-                        # Flatten temp to extract_tmp
-                        if _out != extract_tmp:
-                            _flatten_extracted(_out, extract_tmp, log)
-                        # Cleanup temp
-                        try: _sh.rmtree(str(_tmp_root))
-                        except: pass
-                        return True
-                    log(f'[OnlineFix] 7z pw ({pw or "none"}): rc={result.returncode}')
-                    if result.stderr: log(f'[OnlineFix] 7z stderr: {result.stderr[:300]}')
-                    if result.stdout: log(f'[OnlineFix] 7z stdout: {result.stdout[:300]}')
-                except subprocess.TimeoutExpired:
-                    log('[OnlineFix] 7z timeout')
-                except Exception as _ex7:
-                    log(f'[OnlineFix] 7z hata: {_ex7}')
-            try: _sh.rmtree(str(_tmp_root))
-            except: pass
-        # Try unrar
-        if shutil.which('unrar'):
-            for pw in passwords:
-                try:
-                    cmd = ['unrar', 'x', '-y', str(dl_path), str(extract_tmp)]
-                    if pw: cmd.extend(['-p' + pw])
-                    log(f'[OnlineFix] unrar cmd: {" ".join(str(c) for c in cmd)}')
-                    r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-                    if r.returncode == 0:
-                        log('[OnlineFix] unrar rc=0')
-                        return True
-                except: pass
-        # Try patool
-        try:
-            import patoolib
-            patoolib.extract_archive(str(dl_path), outdir=str(extract_tmp), interactive=False)
-            log('[OnlineFix] patool ile çıkartıldı')
-            return True
-        except Exception:
-            pass
+                cmd = [_7z_exe, 'x', str(dl_path), f'-o{str(extract_tmp)}', '-y']
+                if pw: cmd.append(f'-p{pw}')
+                log(f'[OnlineFix] 7z: {" ".join(str(c) for c in cmd)}')
+                si = subprocess.STARTUPINFO()
+                si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                r = subprocess.run(cmd, capture_output=True, text=True, timeout=120, startupinfo=si, creationflags=0x08000000)
+                if r.returncode == 0:
+                    log(f'[OnlineFix] 7z ile çıkartıldı (pw: {pw})')
+                    return True
+                log(f'[OnlineFix] 7z rc={r.returncode} (pw: {pw})')
+                if r.stderr: log(f'[OnlineFix] 7z: {r.stderr[:200]}')
+            except subprocess.TimeoutExpired:
+                log('[OnlineFix] 7z timeout')
+            except Exception as ex:
+                log(f'[OnlineFix] 7z hata: {ex}')
         return False
 
     def _flatten_extracted(src, dst, log):
@@ -1968,13 +1905,39 @@ def install_ui_fixes(g):
                         indicator('OnlineFix: dosya hatası', 'offline')
                         return False
                     log(f'[OnlineFix] Dosya boyutu: {dl_path.stat().st_size} bytes')
-                    # Extract using web-based extractor
-                    import webbrowser
-                    webbrowser.open('https://extract.me/tr/')
-                    log('[OnlineFix] extract.me açıldı, şifre: online-fix.me')
-                    indicator('OnlineFix: extract.me açıldı', 'working')
-                    os.startfile(str(out_dir))
-                    return True
+                    # Extract directly into out_dir (flatten subfolders)
+                    extract_tmp = out_dir / '__extract__'
+                    extract_ok = False
+                    # Try passwords: online-fix.me (site standard), empty, game name, knkm
+                    _game_slug = re.sub(r'[^a-z0-9]', '', (game_name or out_dir.name).lower())[:20]
+                    _pw_list = ['online-fix.me'] + [''] + ([_game_slug] if _game_slug else []) + ['knkm']
+                    extract_ok = _extract_archive(dl_path, extract_tmp, _pw_list, log)
+                    if extract_ok:
+                        log(f'[OnlineFix] Çıkartıldı, flatten ediliyor...')
+                        try: dl_path.unlink(); log('[OnlineFix] arşiv silindi')
+                        except: pass
+                        # Flatten: move all files from extract_tmp into out_dir
+                        moved = 0
+                        for src in extract_tmp.rglob('*'):
+                            if src.is_file():
+                                try: rel = str(src.relative_to(extract_tmp))
+                                except: rel = src.name
+                                dst = out_dir / rel
+                                dst.parent.mkdir(parents=True, exist_ok=True)
+                                shutil.copy2(str(src), str(dst))
+                                moved += 1
+                        # Clean up extract_tmp
+                        try: shutil.rmtree(str(extract_tmp))
+                        except: pass
+                        log(f'[OnlineFix] {moved} dosya flatten edildi -> {out_dir}')
+                        indicator('OnlineFix hazır', 'online')
+                        os.startfile(str(out_dir))
+                        return True
+                    else:
+                        log('[OnlineFix] çıkartılamadı')
+                        indicator('OnlineFix: çıkartılamadı', 'offline')
+                        os.startfile(str(out_dir))
+                        return False
         # Try torrent
         tor_base = None
         for u in dl_urls:
