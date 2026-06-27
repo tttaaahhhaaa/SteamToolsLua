@@ -39,7 +39,7 @@ const eel = new Proxy({}, {
   }
 });
 
-/* ── SteamToolsLua v1.9.0 Frontend ──────────────────────────────────── */
+/* ── SteamToolsLua v2.0.0 Frontend ──────────────────────────────────── */
 let allGames = [], filteredGames = [], selectedGame = null;
 const PAGE_SIZE = 25;
 let currentPage = 1, currentTab = 'all', searchQuery = '';
@@ -129,7 +129,7 @@ async function scanGames() {
     }
     allGames = merged;
     document.getElementById('gameCount').textContent = allGames.length;
-    document.getElementById('versionBadge').textContent = '1.9.0';
+    document.getElementById('versionBadge').textContent = '2.0.0';
     applyFilter();
     toast(`Found ${allGames.length} games`, 'success');
   } catch (e) { toast('Scan failed: ' + e, 'error'); }
