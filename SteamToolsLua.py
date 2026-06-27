@@ -5139,7 +5139,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                 command=lambda: (_finish_setup(), _win.destroy())).pack(side=tk.BOTTOM, pady=10)
 
 if __name__ == '__main__':
-    if not getattr(sys, 'frozen', False) and sys.version_info < (3, 14):
+    if sys.version_info < (3, 14):
         import ctypes
         ctypes.windll.user32.MessageBoxW(0, 'Bu uygulama Python 3.14 gerektirir.\nSu anki surum: ' + sys.version, 'Hata', 0)
         sys.exit(1)
