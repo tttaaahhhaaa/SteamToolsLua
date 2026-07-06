@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SteamToolsLua</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#05050a;color:#e8e8f8;min-height:100vh}
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+.bg .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.2;animation:float 20s infinite ease-in-out}
+.bg .orb:nth-child(1){width:600px;height:600px;background:#7c6fff;top:-200px;left:-200px}
+.bg .orb:nth-child(2){width:500px;height:500px;background:#b098ff;bottom:-150px;right:-150px;animation-delay:-7s}
+.bg .orb:nth-child(3){width:400px;height:400px;background:#4a3fbf;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-14s}
+@keyframes float{0%,100%{transform:translate(0,0)scale(1)}25%{transform:translate(60px,-40px)scale(1.08)}50%{transform:translate(-30px,50px)scale(.95)}75%{transform:translate(40px,30px)scale(1.05)}}
+.grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(124,111,255,.04)1px,transparent 1px),linear-gradient(90deg,rgba(124,111,255,.04)1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+.container{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:40px 20px}
+header{text-align:center;margin-bottom:40px}
+h1{font-size:28px;background:linear-gradient(135deg,#7c6fff,#b098ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero{text-align:center;padding:40px 0}
+.hero h2{font-size:36px;margin-bottom:10px}
+.hero p{color:#97afc6;font-size:16px;margin-bottom:24px;line-height:1.6}
+.btn-download{display:inline-block;background:linear-gradient(135deg,#7c6fff,#5a4edf);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;transition:transform .2s}
+.btn-download:hover{transform:translateY(-2px)}
+.card{background:#0d1724;border:1px solid#1f3348;border-radius:12px;padding:24px;margin-bottom:20px}
+.card h3{color:#8fd3ff;margin-bottom:12px;font-size:16px}
+.card p{color:#97afc6;font-size:14px;line-height:1.7}
+.card ul{list-style:none;margin-top:8px}
+.card ul li{padding:6px 0;color:#b8c8dc;font-size:13px}
+.card ul li:before{content:'\2713';color:#48bb78;margin-right:8px}
+footer{text-align:center;padding:30px;color:#686880;font-size:13px}
+footer a{color:#7c6fff;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="bg"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+<div class="grid"></div>
+
+<div class="container">
+  <header>
+    <h1>SteamToolsLua</h1>
+  </header>
+
+  <div class="hero">
+    <h2>All-in-One Injector + CloudRedirect</h2>
+    <p>Online Fix downloader &middot; Lua injection &middot; AI translation &middot; CloudRedirect</p>
+    <a class="btn-download" href="https://github.com/tttaaahhhaaa/SteamToolsLua/releases" target="_blank">&#x1f4e5; Download App</a>
+  </div>
+
+  <div class="card">
+    <h3>What is SteamToolsLua?</h3>
+    <p>SteamToolsLua is a desktop tool that automates downloading, extracting, and managing Online Fix game releases.</p>
+    <ul>
+      <li>Online Fix download &amp; extraction</li>
+      <li>SteamDB game browser</li>
+      <li>Lua injection into Steam client</li>
+      <li>CloudRedirect for internet fix</li>
+      <li>AI-powered translation</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Need Help?</h3>
+    <p>Join our <a href="https://discord.gg/EwVcjdh6u" target="_blank" style="color:#7c6fff">Discord server</a> for support and updates.</p>
+  </div>
+</div>
+
+<footer>
+  <a href="https://github.com/tttaaahhhaaa/SteamToolsLua" target="_blank">GitHub</a> &middot;
+  <a href="admin.html">Admin</a> &middot;
+  <a href="https://discord.gg/EwVcjdh6u" target="_blank">Discord</a>
+</footer>
+</body>
+</html>
