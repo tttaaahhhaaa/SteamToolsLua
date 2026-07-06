@@ -1,0 +1,269 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="cache-control" content="no-cache, must-revalidate">
+<title>SteamToolsLua</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+html{scroll-behavior:smooth}
+body{font-family:Inter,system-ui,sans-serif;background:#05050a;color:#e8e8f8;min-height:100vh;overflow-x:hidden}
+/* bg */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+.bg .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.25;animation:float 20s infinite ease-in-out}
+.bg .orb:nth-child(1){width:600px;height:600px;background:#7c6fff;top:-200px;left:-200px}
+.bg .orb:nth-child(2){width:500px;height:500px;background:#b098ff;bottom:-150px;right:-150px;animation-delay:-7s}
+.bg .orb:nth-child(3){width:400px;height:400px;background:#4a3fbf;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-14s}
+@keyframes float{
+0%,100%{transform:translate(0,0) scale(1)}
+25%{transform:translate(60px,-40px) scale(1.08)}
+50%{transform:translate(-30px,50px) scale(.95)}
+75%{transform:translate(40px,30px) scale(1.05)}
+}
+.grid{position:fixed;inset:0;z-index:0;background-image:
+linear-gradient(rgba(124,111,255,.04) 1px,transparent 1px),
+linear-gradient(90deg,rgba(124,111,255,.04) 1px,transparent 1px);
+background-size:60px 60px;pointer-events:none}
+.particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+.p{position:absolute;width:3px;height:3px;background:#7c6fff;border-radius:50%;opacity:0;animation:twinkle 4s infinite}
+@keyframes twinkle{0%,100%{opacity:0;transform:translateY(0)}50%{opacity:.6;transform:translateY(-30px)}}
+/* container */
+.container{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:40px 20px 80px}
+/* hero card */
+.hero{position:relative;background:rgba(15,15,30,.75);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+border:1px solid rgba(124,111,255,.15);border-radius:24px;padding:60px 48px;text-align:center;
+box-shadow:0 0 80px rgba(124,111,255,.08);animation:fadeUp .8s ease-out;margin-bottom:24px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.logo{width:72px;height:72px;background:linear-gradient(135deg,#7c6fff,#b098ff);border-radius:18px;
+display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;
+box-shadow:0 0 40px rgba(124,111,255,.25);animation:pulse 3s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 40px rgba(124,111,255,.25)}50%{box-shadow:0 0 60px rgba(124,111,255,.45)}}
+h1{font-size:32px;font-weight:800;background:linear-gradient(135deg,#e8e8f8,#b098ff);-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.sub{color:#8880b0;font-size:15px;margin-bottom:28px}
+.stats{display:flex;gap:24px;justify-content:center;margin-bottom:28px}
+.stat{text-align:center}
+.stat-num{font-size:22px;font-weight:700;color:#7c6fff}
+.stat-label{font-size:12px;color:#686880;margin-top:2px}
+.btns{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;
+padding:14px 24px;border-radius:12px;border:none;font-size:15px;font-weight:600;
+cursor:pointer;transition:all .25s;text-decoration:none;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#7c6fff,#6a5ee6);color:#fff;box-shadow:0 0 30px rgba(124,111,255,.2)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 50px rgba(124,111,255,.35)}
+.btn-discord{background:#5865f2;color:#fff}
+.btn-discord:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(88,101,242,.3)}
+.btn-secondary{background:rgba(124,111,255,.1);color:#b098ff;border:1px solid rgba(124,111,255,.2)}
+.btn-secondary:hover{background:rgba(124,111,255,.18);transform:translateY(-2px)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.code-box{display:none;background:rgba(0,0,0,.3);border:1px solid rgba(124,111,255,.2);
+border-radius:12px;padding:16px;margin-top:6px;position:relative;animation:fadeUp .4s ease-out}
+.code-box.show{display:block}
+.code-box .code{font-size:20px;font-weight:700;letter-spacing:3px;color:#7c6fff;margin-bottom:4px;user-select:all}
+.code-box .small{font-size:11px;color:#686880}
+.code-box .copy-btn{position:absolute;top:12px;right:12px;background:rgba(124,111,255,.15);
+border:none;color:#b098ff;width:30px;height:30px;border-radius:8px;cursor:pointer}
+.error-box{display:none;background:rgba(240,80,80,.1);border:1px solid rgba(240,80,80,.25);
+border-radius:12px;padding:12px;margin-top:6px;color:#e06060;font-size:13px}
+.error-box.show{display:block}
+.spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.2);
+border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.spinner.show{display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* info cards */
+.card{background:rgba(15,15,30,.6);backdrop-filter:blur(12px);border:1px solid rgba(124,111,255,.1);
+border-radius:16px;padding:28px;margin-bottom:16px;animation:fadeUp .8s ease-out}
+.card h2{font-size:18px;color:#7c6fff;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card p,.card li{font-size:14px;color:#b0a8d0;line-height:1.7;margin-bottom:8px}
+.card ul{padding-left:20px}
+.card li{margin-bottom:4px}
+.card .tag{display:inline-block;background:rgba(124,111,255,.12);color:#b098ff;padding:2px 10px;border-radius:6px;font-size:12px;margin:2px}
+.guide-step{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+.guide-num{background:#7c6fff;color:#fff;width:26px;height:26px;border-radius:50%;display:flex;
+align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;margin-top:2px}
+.guide-step p{margin:0;font-size:14px;color:#c0b8e0}
+.guide-step .hl{color:#7c6fff;font-weight:600}
+footer{position:relative;z-index:1;text-align:center;padding:20px;font-size:13px;color:#484860}
+footer a{color:#7c6fff;text-decoration:none}
+footer a:hover{text-decoration:underline}
+@media(max-width:480px){
+.hero{padding:32px 20px}
+h1{font-size:24px}
+.logo{width:56px;height:56px;font-size:24px}
+.stats{gap:12px}
+.card{padding:20px}
+}
+</style>
+</head>
+<body>
+<div class="bg"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+<div class="grid"></div>
+<div class="particles" id="particles"></div>
+
+<div class="container">
+
+<div class="hero">
+<div class="logo"><i class="fas fa-cubes" style="color:#fff"></i></div><div style="position:absolute;top:20px;right:24px;z-index:10">
+<button class="btn btn-secondary" onclick="showAdminLogin()" style="padding:8px 16px;font-size:13px"><i class="fas fa-shield-alt"></i> Admin</button>
+</div>
+<h1>SteamToolsLua</h1>
+<p class="sub">Online Fix downloader &middot; Lua injection &middot; AI translation &middot; CloudRedirect</p>
+<div class="stats">
+<div class="stat"><div class="stat-num" id="webVersion">Y├╝kleniyor...</div><div class="stat-label">S├╝r├╝m</div></div>
+
+</div>
+<div class="btns">
+<a class="btn btn-primary" id="dynamicDownloadBtn" href="https://github.com/tttaaahhhaaa/SteamToolsLua/releases" target="_blank"><i class="fas fa-download"></i> <span id="dynamicBtnText">Uygulamay─▒ ─░ndir</span></a>
+<a class="btn btn-discord" href="https://discord.gg/EwVcjdh6u" target="_blank"><i class="fab fa-discord"></i> Discord Server</a>
+
+</div>
+<div class="code-box" id="codeBox"><div class="code" id="codeDisplay"></div><div class="small">Enter this code in the app to activate</div><button class="copy-btn" id="copyBtn" onclick="copyCode()" title="Copy"><i class="fas fa-copy"></i></button></div>
+<div class="error-box" id="errorBox"></div>
+</div>
+
+<div class="card">
+<h2><i class="fas fa-info-circle"></i> What is SteamToolsLua?</h2>
+<p><b>SteamToolsLua</b> is a desktop tool that automates downloading, extracting, and managing <b>Online Fix</b> game releases. It integrates with <b>Steam</b>, <b>LuaTools</b>, and <b>CloudRedirect</b> to provide a seamless experience for playing LAN / online multiplayer games without the official Steam servers.</p>
+<ul>
+<li><span class="tag">Online Fix</span> Download &amp; extract game fixes from online-fix.me</li>
+<li><span class="tag">SteamDB</span> Browse Steam app database, view depots &amp; manifests</li>
+<li><span class="tag">Lua Injection</span> Inject Lua scripts into Steam client to unlock features</li>
+<li><span class="tag">CloudRedirect</span> Fix "No internet connection" errors in games</li>
+<li><span class="tag">AI Translation</span> Translate game UI text using AI</li>
+<li><span class="tag">Auto-Update</span> One-click update to the latest version</li>
+</ul>
+</div>
+
+<div class="card">
+<h2><i class="fas fa-book"></i> How to Use &ndash; Step by Step</h2>
+<div class="guide-step"><div class="guide-num">1</div><p><span class="hl">Download</span> the app using the button above.</p></div>
+<div class="guide-step"><div class="guide-num">2</div><p>Click <span class="hl">Get License Code</span> and copy the code.</p></div>
+<div class="guide-step"><div class="guide-num">3</div><p>Open the app, enter the code on the <span class="hl">first-time activation</span> screen.</p></div>
+<div class="guide-step"><div class="guide-num">4</div><p>Browse <span class="hl">Online Fix</span> games, download &amp; extract them automatically.</p></div>
+<div class="guide-step"><div class="guide-num">5</div><p>Use <span class="hl">CloudRedirect</span> (built-in) to fix internet-required errors in games.</p></div>
+<div class="guide-step"><div class="guide-num">6</div><p>Launch games directly from your <span class="hl">Steam library</span> via the app.</p></div>
+<div class="guide-step"><div class="guide-num">7</div><p>When a <span class="hl">new version</span> is available, re-open the app to update.</p></div>
+</div>
+
+<div class="card">
+<h2><i class="fas fa-sync"></i> Updates</h2>
+<p>The app checks for updates on every launch. If a new version is available, it will prompt you to download and install it automatically. No manual re-downloading needed.</p>
+<p><b>Note:</b> CloudRedirect is bundled inside the app. When you update, the latest CloudRedirect version is included automatically.</p>
+<p><b>v1.9.0:</b> CloudRedirectTR &mdash; Full-featured Turkish CloudRedirect (no update check). All original features preserved, Turkish UI.</p>
+</div>
+
+<div class="card">
+<h2><i class="fas fa-cloud"></i> CloudRedirect &ndash; No Internet Fix</h2>
+<p>Some Online Fix games require CloudRedirect to bypass the "No internet connection" / "Offline mode" error. This tool is <b>embedded directly</b> in SteamToolsLua. Simply use the <span class="hl">CloudRedirect SS</span> button inside the app to configure it per-game. No separate download needed.</p>
+<p><span class="tag">Important</span> The bundled CloudRedirect may not always be the latest version. If you encounter issues, check for an app update first.</p>
+</div>
+
+<div class="card">
+<h2><i class="fas fa-times-circle"></i> Unlock Removed</h2>
+<p>The old <b>"Unlock"</b> function has been removed. All unlock-related functionality is now handled through <span class="hl">CloudRedirect</span>. If you previously used the Unlock feature, simply use the CloudRedirect option instead &mdash; it covers the same use cases and more.</p>
+</div>
+
+</div>
+
+<footer>
+<a href="https://github.com/tttaaahhhaaa/SteamToolsLua" target="_blank"><i class="fab fa-github"></i> GitHub</a> &middot;
+<a href="https://discord.gg/EwVcjdh6u" target="_blank">Discord</a>
+
+<div id="adminModal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.7);align-items:center;justify-content:center">
+<div style="background:#0d1724;border:1px solid #1f3348;border-radius:16px;padding:28px;width:400px;max-width:90%">
+<h2 style="color:#8fd3ff;margin-bottom:16px;font-size:18px"><i class="fas fa-shield-alt"></i> Admin Paneli</h2>
+<div id="adminMsg" style="display:none;padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px"></div>
+<div id="adminLoginForm">
+<input type="password" id="adminPw" placeholder="Sifre" style="width:100%;padding:10px;background:#122235;border:1px solid #1f3348;border-radius:8px;color:#f7fafc;font-size:14px;margin-bottom:12px" onkeydown="if(event.key=='Enter')doAdminLogin()" />
+<button class="btn btn-primary" onclick="doAdminLogin()" style="padding:10px 24px;font-size:14px">Giris</button>
+<button class="btn btn-secondary" onclick="hideAdminLogin()" style="padding:10px 24px;font-size:14px">Iptal</button>
+</div>
+<div id="adminPanel" style="display:none">
+<div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
+<input type="text" id="newBanEntry" placeholder="Bilgisayar adi" style="flex:1;padding:10px;background:#122235;border:1px solid #1f3348;border-radius:8px;color:#f7fafc;font-size:14px" onkeydown="if(event.key=='Enter')addBan()" />
+<button class="btn btn-primary" onclick="addBan()" style="padding:10px 16px;font-size:13px">Banla</button>
+</div>
+<div id="banList" style="max-height:250px;overflow-y:auto"><div style="color:#686880;padding:12px;text-align:center">Yukleniyor...</div></div>
+<button class="btn btn-secondary" onclick="hideAdminLogin()" style="margin-top:12px;padding:8px 20px;font-size:13px">Kapat</button>
+</div>
+</div>
+</div>
+</footer>
+
+<script>
+(function(){const c=document.getElementById('particles');for(let i=0;i<40;i++){const p=document.createElement('div');p.className='p';p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';p.style.animationDelay=Math.random()*5+'s';p.style.animationDuration=(3+Math.random()*3)+'s';c.appendChild(p);}})();
+
+(async function(){try{
+const r=await fetch('https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest');
+if(r.ok){const d=await r.json();const tag=d.tag_name.replace('v','');
+document.getElementById('webVersion').textContent=tag;
+const exe=d.assets.find(a=>a.name.endsWith('.exe'));
+const btn=document.getElementById('dynamicDownloadBtn'),txt=document.getElementById('dynamicBtnText');
+if(exe){btn.href=exe.browser_download_url;txt.textContent='Download App ('+tag+')';}
+else{btn.href=d.html_url;txt.textContent='View Releases ('+tag+')';}}
+}catch(e){console.error(e)}})();
+
+const ADMIN_PW='Ekrem0579';
+let banToken=localStorage.getItem('gh_token')||'',banSha=null,banData=[];
+
+function showAdminLogin(){document.getElementById('adminModal').style.display='flex';document.getElementById('adminPw').value='';document.getElementById('adminPw').focus();document.getElementById('adminLoginForm').style.display='block';document.getElementById('adminPanel').style.display='none';document.getElementById('adminMsg').style.display='none'}
+function hideAdminLogin(){document.getElementById('adminModal').style.display='none'}
+function showAdminMsg(t,c){const el=document.getElementById('adminMsg');el.textContent=t;el.style.display='block';el.style.background=c==='error'?'rgba(240,80,80,.1)':'rgba(72,187,120,.1)';el.style.color=c==='error'?'#e06060':'#48bb78';el.style.border='1px solid '+(c==='error'?'rgba(240,80,80,.25)':'rgba(72,187,120,.25)')}
+
+function doAdminLogin(){
+if(document.getElementById('adminPw').value===ADMIN_PW){
+document.getElementById('adminLoginForm').style.display='none';
+document.getElementById('adminPanel').style.display='block';
+showAdminMsg('','');
+if(!banToken){const t=prompt('GitHub token girin (Settings > Developer settings > Personal access tokens > Tokens classic, scope: repo)');if(t&&t.trim()){localStorage.setItem('gh_token',t.trim());banToken=t.trim();loadBanList();}else{hideAdminLogin()}}else{loadBanList()}
+}else{document.getElementById('adminPw').style.borderColor='#e06060';setTimeout(()=>document.getElementById('adminPw').style.borderColor='#1f3348',1500);showAdminMsg('Yanlis sifre!','error')}
+}
+
+async function ghFetch(url,opts={}){const h={'User-Agent':'STL'};if(banToken)h['Authorization']='Bearer '+banToken;if(opts.body)h['Content-Type']='application/json';return fetch(url,{...opts,headers:h})}
+
+async function loadBanList(){
+const c=document.getElementById('banList');c.innerHTML='<div style="color:#686880;text-align:center">Yukleniyor...</div>';
+if(!banToken){c.innerHTML='<div style="color:#e06060;text-align:center">Token gerekli</div>';return}
+try{
+const r=await ghFetch('https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/blacklist.txt?ref=master');
+if(r.status===404){banData=[];banSha=null;c.innerHTML='<div style="color:#686880;text-align:center">Liste bos</div>';return}
+if(!r.ok){c.innerHTML='<div style="color:#e06060;text-align:center">Hata '+r.status+'</div>';return}
+const d=await r.json();banSha=d.sha;
+banData=atob(d.content).split('\n').map(s=>s.trim()).filter(s=>s.length>0);
+renderBanList()
+}catch(e){c.innerHTML='<div style="color:#e06060;text-align:center">'+e.message+'</div>'}
+}
+
+function renderBanList(){
+const c=document.getElementById('banList');
+if(!banData.length){c.innerHTML='<div style="color:#686880;text-align:center">Liste bos</div>';return}
+c.innerHTML=banData.map((n,i)=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#122235;border-radius:6px;margin-bottom:4px"><span style="font-family:monospace;font-size:13px;color:#dce7f4">'+escHtml(n)+'</span><button onclick="removeBan('+i+')" style="background:#4a2020;color:#f56565;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px">Sil</button></div>').join('')
+}
+
+function escHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+async function saveBanList(){
+let c=banData.join('\n');if(c)c+='\n';
+const body={message:'blacklist update',content:btoa(c),branch:'master'};
+if(banSha)body.sha=banSha;
+const r=await ghFetch('https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/blacklist.txt',{method:'PUT',body:JSON.stringify(body)});
+if(!r.ok){const e=await r.text();showAdminMsg('Kayit hatasi: '+e,'error');return false}
+const d=await r.json();banSha=d.content.sha;showAdminMsg('Kaydedildi!','success');return true
+}
+
+async function addBan(){
+const inp=document.getElementById('newBanEntry');const val=inp.value.trim().toUpperCase();
+if(!val){showAdminMsg('Isim girin','error');return}
+if(banData.includes(val)){showAdminMsg('Zaten var: '+val,'error');return}
+if(!banToken){showAdminMsg('Token gerekli','error');return}
+banData.push(val);inp.value='';
+if(await saveBanList())renderBanList()
+}
+
+async function removeBan(i){banData.splice(i,1);if(await saveBanList())renderBanList()}
+</script>
+</body>
+</html>
