@@ -1,0 +1,22 @@
+# Build output
+*.spec
+build/
+build_temp/
+dist/
+__pycache__/
+SteamToolsLua.exe
+SteamToolsLua v1.0.3.exe
+*.pyc
+create_release.py
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+.github_token

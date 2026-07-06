@@ -1,14 +1,9 @@
 # Build output
-*.spec
-build/
-build_temp/
-dist/
-__pycache__/
 SteamToolsLua.exe
-SteamToolsLua v1.0.3.exe
-SteamToolsLua_v*.exe
+*.spec
+build_temp/
+__pycache__/
 *.pyc
-create_release.py
 
 # Windows
 Thumbs.db
@@ -19,16 +14,3 @@ Desktop.ini
 .idea/
 *.swp
 *.swo
-
-.github_token
-gh_token.txt
-licenses.json
-codes.txt
-*.lnk
-EXE EXTRACTED FOR THE BASE/
-SteamToolsLua-*/
-EXTRACT DENEMESİ/
-EXTRACT_DENEMESI_OUT/
-_release.py
-7z.exe
-7z.dll
