@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SteamToolsLua - Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#05050a;color:#e8e8f8;min-height:100vh}
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+.bg .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.2;animation:float 20s infinite ease-in-out}
+.bg .orb:nth-child(1){width:600px;height:600px;background:#7c6fff;top:-200px;left:-200px}
+.bg .orb:nth-child(2){width:500px;height:500px;background:#b098ff;bottom:-150px;right:-150px;animation-delay:-7s}
+.bg .orb:nth-child(3){width:400px;height:400px;background:#4a3fbf;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-14s}
+@keyframes float{0%,100%{transform:translate(0,0)scale(1)}25%{transform:translate(60px,-40px)scale(1.08)}50%{transform:translate(-30px,50px)scale(.95)}75%{transform:translate(40px,30px)scale(1.05)}}
+.grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(124,111,255,.04)1px,transparent 1px),linear-gradient(90deg,rgba(124,111,255,.04)1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+.container{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:40px 20px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px}
+h1{font-size:28px;background:linear-gradient(135deg,#7c6fff,#b098ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.card{background:#0d1724;border:1px solid#1f3348;border-radius:12px;padding:24px;margin-bottom:20px}
+.card h3{color:#8fd3ff;margin-bottom:12px;font-size:16px}
+.modal{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.7);align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-box{background:#0d1724;border:1px solid#1f3348;border-radius:12px;padding:30px;width:400px;max-width:90%}
+.modal-box h3{color:#8fd3ff;margin-bottom:16px}
+.modal-box input{width:100%;padding:10px;background:#122235;border:1px solid#1f3348;border-radius:6px;color:#f7fafc;font-size:14px;margin-bottom:12px}
+.modal-box input:focus{outline:none;border-color:#66c0f4}
+.modal-box button{padding:10px 24px;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-weight:600;margin-right:8px}
+.btn-primary{background:#2a2a5a;color:#7c6fff}
+.btn-primary:hover{background:#3a3a7a}
+.btn-danger{background:#4a2020;color:#f56565}
+.btn-danger:hover{background:#6a3030}
+.btn-success{background:#1a3a2a;color:#48bb78}
+.btn-success:hover{background:#2a5a3a}
+.btn-sm{padding:6px 12px;font-size:12px}
+.admin-panel{display:none}
+.admin-panel.show{display:block}
+.entry{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#122235;border-radius:4px;margin-bottom:6px}
+.entry span{font-family:monospace;font-size:14px}
+.row{display:flex;gap:8px;align-items:center}
+.row input{flex:1;margin-bottom:0}
+.msg{padding:10px;border-radius:6px;margin-bottom:12px;font-size:13px;display:none}
+.msg.success{display:block;background:#1a3a2a;color:#48bb78}
+.msg.error{display:block;background:#4a2020;color:#f56565}
+.empty{color:#686880;font-style:italic;padding:12px 0;text-align:center}
+footer{text-align:center;padding:30px;color:#686880;font-size:13px}
+footer a{color:#7c6fff;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="bg"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+<div class="grid"></div>
+
+<div class="container">
+  <header>
+    <h1>SteamToolsLua - Admin</h1>
+    <a href="index.html" style="color:#8fd3ff;text-decoration:none;font-size:14px">&larr; Ana Sayfa</a>
+  </header>
+
+  <div id="adminPanel" class="admin-panel show">
+    <div class="card">
+      <h3>&#x1f464; Blacklist Yonetimi</h3>
+      <div id="msg" class="msg"></div>
+      <div id="tokenSection">
+        <p style="color:#97afc6;font-size:13px;margin-bottom:8px">GitHub Token girin (Settings > Developer settings > Personal access tokens > Tokens classic, scope: repo)</p>
+        <div class="row" style="margin-bottom:12px">
+          <input type="password" id="tokenInput" placeholder="GitHub Token" onkeydown="if(event.key==='Enter')saveToken()" />
+          <button class="btn-primary btn-sm" onclick="saveToken()">Kaydet</button>
+        </div>
+      </div>
+      <div class="row" style="margin-bottom:12px">
+        <input type="text" id="newEntry" placeholder="Bilgisayar adi (COMPUTERNAME)" onkeydown="if(event.key==='Enter')addEntry()" />
+        <button class="btn-success" onclick="addEntry()">Ekle</button>
+      </div>
+      <div id="entries"><div class="empty">Yukleniyor...</div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a href="https://github.com/tttaaahhhaaa/SteamToolsLua" target="_blank">GitHub</a> &middot;
+  <a href="index.html">Ana Sayfa</a>
+</footer>
+
+<script>
+const OWNER='tttaaahhhaaa',REPO='SteamToolsLua',PATH='blacklist.txt',BRANCH='master';
+let currentData=[],currentSha=null,token=localStorage.getItem('gh_token')||'';
+
+function showMsg(text,type){const el=document.getElementById('msg');el.textContent=text;el.className='msg '+type}
+
+function saveToken(){
+  const t=document.getElementById('tokenInput').value.trim();
+  if(!t){showMsg('Token girin.','error');return}
+  localStorage.setItem('gh_token',t);
+  token=t;
+  document.getElementById('tokenSection').style.display='none';
+  showMsg('Token kaydedildi.','success');
+  loadEntries();
+}
+
+async function ghFetch(url,opts={}){
+  const h={'User-Agent':'SteamToolsLua-Panel'};
+  if(token)h['Authorization']='Bearer '+token;
+  if(opts.body)h['Content-Type']='application/json';
+  return fetch(url,{...opts,headers:h})
+}
+
+async function loadEntries(){
+  const c=document.getElementById('entries');
+  c.innerHTML='<div class="empty">Yukleniyor...</div>';
+  if(!token){
+    document.getElementById('tokenSection').style.display='block';
+    c.innerHTML='<div class="empty">Token gerekli.</div>';
+    return;
+  }
+  document.getElementById('tokenSection').style.display='none';
+  try{
+    const r=await ghFetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}?ref=${BRANCH}`);
+    if(r.status===404){currentData=[];currentSha=null;c.innerHTML='<div class="empty">blacklist.txt henuz olusturulmamis.</div>';return}
+    if(!r.ok){c.innerHTML='<div class="empty">Hata: '+r.status+'</div>';return}
+    const d=await r.json();
+    currentSha=d.sha;
+    currentData=atob(d.content).split('\n').map(s=>s.trim()).filter(s=>s.length>0);
+    render()
+  }catch(e){c.innerHTML='<div class="empty">Hata: '+e.message+'</div>'}
+}
+
+function render(){
+  const c=document.getElementById('entries');
+  if(!currentData.length){c.innerHTML='<div class="empty">Liste bos.</div>';return}
+  c.innerHTML=currentData.map((n,i)=>'<div class="entry"><span>'+esc(n)+'</span><button class="btn-danger btn-sm" onclick="removeEntry('+i+')">Sil</button></div>').join('')
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+async function saveEntries(){
+  let content=currentData.join('\n');if(content)content+='\n';
+  const body={message:'blacklist guncelleme',content:btoa(content),branch:BRANCH};
+  if(currentSha)body.sha=currentSha;
+  const r=await ghFetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`,{method:'PUT',body:JSON.stringify(body)});
+  if(!r.ok){const e=await r.text();showMsg('Kaydetme hatasi: '+e,'error');return false}
+  const d=await r.json();currentSha=d.content.sha;showMsg('Kaydedildi!','success');return true
+}
+
+async function addEntry(){
+  const inp=document.getElementById('newEntry');
+  const val=inp.value.trim().toUpperCase();
+  if(!val){showMsg('Bilgisayar adi girin.','error');return}
+  if(currentData.includes(val)){showMsg('Zaten mevcut: '+val,'error');return}
+  if(!token){showMsg('Token gerekli.','error');return}
+  currentData.push(val);inp.value='';
+  if(await saveEntries())render()
+}
+
+async function removeEntry(i){
+  currentData.splice(i,1);
+  if(await saveEntries())render()
+}
+
+if(token)loadEntries();
+</script>
+</body>
+</html>
