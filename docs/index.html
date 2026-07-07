@@ -71,7 +71,10 @@ footer a{color:#7c6fff;text-decoration:none}
   <div class="hero">
     <h2>All-in-One Injector + CloudRedirect</h2>
     <p>Online Fix downloader \u00b7 Lua injection \u00b7 AI translation \u00b7 CloudRedirect</p>
-    <a class="btn-download" href="https://github.com/tttaaahhhaaa/SteamToolsLua/releases" target="_blank">\U0001f4e5 Download App</a>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+      <a class="btn-download" id="dlBtn" href="https://github.com/tttaaahhhaaa/SteamToolsLua/releases" target="_blank">📥 Download App</a>
+      <span id="verInfo" style="color:#686880;font-size:12px">Checking updates...</span>
+    </div>
   </div>
 
   <div class="card">
@@ -196,6 +199,22 @@ async function removeEntry(i){
   currentData.splice(i,1);
   if(await saveEntries())render()
 }
+
+// Auto-update check
+(async function(){
+  try{
+    const r=await fetch('https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest');
+    if(!r.ok)return;
+    const d=await r.json();
+    const ver=d.tag_name.replace('v','');
+    const exe=d.assets.find(a=>a.name.endsWith('.exe'));
+    document.getElementById('verInfo').textContent='v'+ver;
+    document.getElementById('verInfo').style.color='#48bb78';
+    if(exe)document.getElementById('dlBtn').href=exe.browser_download_url;
+  }catch(e){
+    document.getElementById('verInfo').textContent='Update check failed';
+  }
+})();
 </script>
 </body>
 </html>
