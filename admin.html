@@ -41,6 +41,11 @@ h1{font-size:26px;background:linear-gradient(135deg,#7c6fff,#b098ff);-webkit-bac
 .msg.info{background:#1a2a40;color:#8fd3ff}
 .empty{color:#686880;font-style:italic;padding:10px 0;text-align:center;font-size:13px}
 .count{color:#686880;font-size:12px;margin-left:8px}
+.modal{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.7);align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-box{background:#0d1724;border:1px solid#1f3348;border-radius:12px;padding:24px;width:420px;max-width:90%}
+.modal-box h3{color:#8fd3ff;margin-bottom:14px;font-size:15px}
+.modal-box .row input{background:#122235}.modal-box .row input[readonly]{color:#686880}
 footer{text-align:center;padding:30px;color:#686880;font-size:13px}
 footer a{color:#7c6fff;text-decoration:none}
 @media(max-width:600px){.container{padding:20px 12px}.card{padding:14px}h1{font-size:22px}}
@@ -70,13 +75,27 @@ footer a{color:#7c6fff;text-decoration:none}
     <div class="card">
       <h3>&#128683; Kara Liste <span id="blCount" class="count"></span></h3>
       <div class="row">
-        <input type="text" id="blInput" placeholder="HWID (MAC adresi, hex)" onkeydown="if(event.key==='Enter')addBlacklist()" />
-        <button class="btn btn-success" onclick="addBlacklist()">Banla</button>
-      </div>
-      <div class="row">
-        <input type="text" id="blMsgInput" placeholder="Ban mesaji (opsiyonel)" />
+        <input type="text" id="blInput" placeholder="HWID (MAC adresi, hex)" onkeydown="if(event.key==='Enter')showBanModal()" />
+        <button class="btn btn-success" onclick="showBanModal()">Banla</button>
       </div>
       <div id="blEntries"><div class="empty">Yukleniyor...</div></div>
+    </div>
+  </div>
+
+  <!-- BAN MODAL -->
+  <div id="banModal" class="modal">
+    <div class="modal-box">
+      <h3>&#128683; Banla</h3>
+      <div class="row">
+        <input type="text" id="modalHwid" placeholder="HWID" readonly style="background:#0a0a14" />
+      </div>
+      <div class="row">
+        <input type="text" id="modalReason" placeholder="Ban sebebi ne?" onkeydown="if(event.key==='Enter')confirmBan()" />
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button class="btn btn-primary" onclick="confirmBan()">Onayla</button>
+        <button class="btn btn-danger" onclick="closeBanModal()">Iptal</button>
+      </div>
     </div>
   </div>
 
@@ -171,6 +190,33 @@ async function updateFile(name,data){
   }catch(e){showMsg('Hata: '+e.message,'error');return false}
 }
 
+// ---- BAN MODAL ----
+function showBanModal(hwid){
+  const inp=document.getElementById('blInput');
+  const val=hwid||inp.value.trim().toLowerCase();
+  if(!val){showMsg('HWID girin.','error');return}
+  document.getElementById('modalHwid').value=val;
+  document.getElementById('modalReason').value='';
+  document.getElementById('banModal').classList.add('show');
+  setTimeout(()=>document.getElementById('modalReason').focus(),100);
+}
+function closeBanModal(){document.getElementById('banModal').classList.remove('show')}
+async function confirmBan(){
+  const hwid=document.getElementById('modalHwid').value.trim().toLowerCase();
+  const reason=document.getElementById('modalReason').value.trim();
+  if(!hwid){showMsg('HWID gerekli.','error');return}
+  closeBanModal()
+  const g=await loadGist(); if(!g) return;
+  let bl=getFile(g,'blacklist.json');
+  let msgs=getFile(g,'ban_messages.json')||{};
+  if(!Array.isArray(bl)) bl=[];
+  if(bl.includes(hwid)){showMsg('Zaten listede: '+hwid,'error');return}
+  bl.push(hwid);
+  if(reason) msgs[hwid]=reason;
+  await updateFile('ban_messages.json',msgs);
+  if(await updateFile('blacklist.json',bl)){document.getElementById('blInput').value='';loadBlacklist()}
+}
+
 // ---- BLACKLIST ----
 async function loadBlacklist(){
   const el=document.getElementById('blEntries');
@@ -187,24 +233,6 @@ async function loadBlacklist(){
     const msgHtml=msg?'<br><small style="color:#f56565">Sebep: '+esc(msg)+'</small>':'';
     return '<div class="entry"><span>'+esc(h)+msgHtml+'</span><button class="btn btn-danger btn-sm" onclick="removeBlacklist('+i+')">Kaldir</button></div>'
   }).join('');
-}
-
-async function addBlacklist(){
-  const inp=document.getElementById('blInput');
-  const msgInp=document.getElementById('blMsgInput');
-  const val=inp.value.trim().toLowerCase();
-  const msg=msgInp.value.trim();
-  if(!val){showMsg('HWID girin.','error');return}
-  const g=await loadGist();
-  if(!g) return;
-  let bl=getFile(g,'blacklist.json');
-  let msgs=getFile(g,'ban_messages.json')||{};
-  if(!Array.isArray(bl)) bl=[];
-  if(bl.includes(val)){showMsg('Zaten listede: '+val,'error');return}
-  bl.push(val);
-  if(msg) msgs[val]=msg;
-  await updateFile('ban_messages.json',msgs);
-  if(await updateFile('blacklist.json',bl)){inp.value='';msgInp.value='';loadBlacklist()}
 }
 
 async function removeBlacklist(i){
@@ -233,7 +261,7 @@ async function loadDevices(){
     const hwid=esc(d.hwid||d.hwId||d.device_id||'-');
     const name=esc(d.name||d.device_name||d.computer||'-');
     const date=esc(d.date||d.first_seen||d.last_seen||'-');
-    return '<div class="entry"><span>'+hwid+'<br><small style="color:#686880">'+name+' &middot; '+date+'</small></span></div>'
+    return '<div class="entry"><span>'+hwid+'<br><small style="color:#686880">'+name+' &middot; '+date+'</small></span><button class="btn btn-danger btn-sm" onclick="showBanModal(\''+hwid+'\')">Banla</button></div>'
   }).join('');
 }
 
