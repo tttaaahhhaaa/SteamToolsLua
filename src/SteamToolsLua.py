@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "2.4.1"
+VERSION = "2.5.0"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
@@ -934,16 +934,7 @@ def install_ui_fixes(g):
                 if hasattr(self, 'status_var'):
                     self.status_var.set(text)
                 if hasattr(self, 'status_lbl') and self.status_lbl.winfo_exists():
-                    _ai_prov = ''
-                    try:
-                        _cfg = getattr(self, 'settings', {})
-                        if _cfg:
-                            _provider = _cfg.get('api_provider', '') or _cfg.get('groq_api_key', 'Groq' if _cfg.get('groq_api_key') else '')
-                            _ai_prov = f' | AI: {_provider.split("_api_key")[0].replace("_"," ").title() if "_api_key" in _provider else _provider}'[:30]
-                    except: pass
-                    _age = _time.strftime('%H:%M')
-                    detail = f'{_age} {text}{_ai_prov}'
-                    self.status_lbl.config(text=detail[:80])
+                    self.status_lbl.config(text='')
         except Exception:
             pass
 
@@ -5088,6 +5079,7 @@ A: .luaファイルがstplug-inフォルダにあることを
     _ai_row.pack_forget()
     _status_lbl = tk.Label(_sb_overlay, text='', fg='#686880', bg='#0a0a16', font=('Segoe UI', 8), anchor='w')
     _status_lbl.pack(fill=tk.X, padx=4, pady=(0, 1))
+    _status_lbl.config(text='')
     _sb_overlay.place_forget()
 
     def _pos_overlay():
@@ -5156,12 +5148,9 @@ A: .luaファイルがstplug-inフォルダにあることを
     # Hook into app.log to update status line
     try:
         _orig_log = app.log
-        def _patched_log(msg, _orig=_orig_log, _sb=_status_lbl, _root=root):
+        def _patched_log(msg, _orig=_orig_log):
             try:
                 _orig(msg)
-                short = msg.strip()[:120]
-                if short:
-                    _root.after(0, lambda s=short: (_sb.config(text=s), _pos_overlay()))
             except: pass
         app.log = _patched_log
     except: pass
