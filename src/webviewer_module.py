@@ -394,16 +394,22 @@ class OnlineFixFlow:
         self._extract_and_inject(_dl_path)
     
     def _extract_and_inject(self, rar_path):
-        """Extract rar with UnRAR (primary) or 7z (fallback), then inject into Steam if found."""
+        """Extract rar with bundled UnRAR, then inject into Steam if found."""
         _extract_dir = self._out_dir / rar_path.stem
         _extract_ok = False
-        def _find_unrar():
-            for _p in ['C:\\Program Files\\WinRAR\\UnRAR.exe', 'C:\\Program Files (x86)\\WinRAR\\UnRAR.exe']:
-                if Path(_p).exists(): return _p
-            return 'unrar'
-        _UNRAR = _find_unrar()
+        import sys
+        def _get_bundled_unrar():
+            if getattr(sys, 'frozen', False):
+                _mp = getattr(sys, '_MEIPASS', None)
+                if _mp:
+                    _c = Path(_mp) / 'UnRAR.exe'
+                    if _c.exists(): return str(_c)
+            _c = Path(__file__).parent / 'UnRAR.exe'
+            if _c.exists(): return str(_c)
+            return None
+        _UNRAR = _get_bundled_unrar() or 'unrar'
         _passwords = ('', 'knkm', 'online-fix.me', 'cs.rin.ru', 'Online-fix')
-        # Try UnRAR first
+        # Try UnRAR with all passwords
         for _pw in _passwords:
             try:
                 _cmd = [_UNRAR, 'x', '-y', str(rar_path), f'{_extract_dir}\\']
@@ -413,17 +419,6 @@ class OnlineFixFlow:
                     _extract_ok = True
                     break
             except: pass
-        # Fallback to 7z if UnRAR failed
-        if not _extract_ok:
-            for _pw in ('knkm', 'online-fix.me'):
-                try:
-                    _cmd = ['7z', 'x', str(rar_path), f'-o{str(_extract_dir)}', '-y']
-                    if _pw: _cmd.append(f'-p{_pw}')
-                    _proc = subprocess.run(_cmd, capture_output=True, timeout=60, creationflags=0x08000000)
-                    if _proc.returncode == 0:
-                        _extract_ok = True
-                        break
-                except: pass
         if _extract_ok:
             self.log(f'[OnlineFix] Çıkartıldı: {_extract_dir}')
             try: rar_path.unlink(); self.log('[OnlineFix] .rar silindi')

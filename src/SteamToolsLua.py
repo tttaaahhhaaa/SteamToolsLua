@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "2.4.0"
+VERSION = "2.4.1"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
@@ -467,7 +467,7 @@ def install_ui_fixes(g):
     # Additional Translations
     _more_text = {
         'tr': {'settings.installed_games': 'Y\u00fckl\u00fc Oyunlar', 'settings.steam_not_found': 'Steam bulunamad\u0131.',
-               'button.inject_of': 'Inject OF', 'inject_of.select_title': 'Inject OF - Oyun Se\u00e7',
+                'button.inject_of': 'Inject OF', 'button.add_folder': 'Klas\u00f6r Ekle', 'inject_of.select_title': 'Inject OF - Oyun Se\u00e7',
                'inject_of.exe_label': '\u00c7al\u0131\u015ft\u0131r\u0131labilir Dosya (.exe):',
                'inject_of.dir_label': 'Hedef Klas\u00f6r:',
                'inject_of.browse_exe': 'G\u00f6zat...',
@@ -484,7 +484,7 @@ def install_ui_fixes(g):
                'cr.download_complete': 'CloudRedirect haz\u0131r',
                'settings.file_location': 'Dosya Konumu'},
         'en': {'settings.installed_games': 'Installed Games', 'settings.steam_not_found': 'Steam not found.',
-               'button.inject_of': 'Inject OF', 'inject_of.select_title': 'Inject OF - Select Game',
+               'button.inject_of': 'Inject OF', 'button.add_folder': 'Add Folder', 'inject_of.select_title': 'Inject OF - Select Game',
                'inject_of.exe_label': 'Executable (.exe):',
                'inject_of.dir_label': 'Destination Folder:',
                'inject_of.browse_exe': 'Browse...',
@@ -754,6 +754,11 @@ def install_ui_fixes(g):
             lambda: app.open_onlinefix(result), iw, 36,
             '#2d4a3e', '#3d6b56', '#66c0f4', '#f7fafc', ('Segoe UI Semibold', 9))
         self.btn_onlinefix.grid(row=5, column=0, sticky='ew', padx=14, pady=(0, 8))
+        self.btn_inject_of = AnimatedButton(self, app.tr('button.inject_of'),
+            lambda: (_save_dl_name(result.get('name', '') or ''),
+                     app._inject_of_browser()), iw, 36,
+            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc', ('Segoe UI Semibold', 9))
+        self.btn_inject_of.grid(row=6, column=0, sticky='ew', padx=14, pady=(0, 8))
 
         for widget in (self.image_label, self.title_label, self.meta_label, self.footer_label):
             widget.bind('<Enter>', self._on_enter)
@@ -1168,6 +1173,129 @@ def install_ui_fixes(g):
             self.log("Steam yeniden başlatıldı.")
     SteamApp.batch_inject_all = batch_inject_all
 
+    # ---- Inject OF Browser (per-game extracted OF inject) ----
+    def _inject_of_browser(self):
+        _tk_fd2 = __import__('tkinter.filedialog')
+        base_dir = Path(__file__).resolve().parent
+        saved = self.settings.get('save_path', '') or self.settings.get('new_games_folder', '')
+        games_dir = Path(saved) if saved and Path(saved).exists() else base_dir / "1 New Games"
+        # Scan for extracted OF folders (contain .exe)
+        _exe_folders = []
+        for _root, _dirs, _files in os.walk(str(games_dir)):
+            _has_exe = any(f.lower().endswith('.exe') for f in _files)
+            if _has_exe:
+                _folder_name = Path(_root).name
+                _exe_path = next((Path(_root) / f for f in _files if f.lower().endswith('.exe')), None)
+                if _exe_path:
+                    _exe_folders.append({'folder': Path(_root), 'exe': _exe_path, 'name': _folder_name})
+        _parent = getattr(self, 'results_canvas', None) or getattr(self, 'cards_frame', None) or self.root
+        _ov = tk.Frame(self.root, bg='#08080e', highlightthickness=1, highlightbackground='#1a1a30')
+        _ov.place(x=0, y=0, relwidth=1, relheight=1, anchor='nw')
+        _ov.lift()
+        _top = tk.Frame(_ov, bg='#08080e')
+        _top.pack(fill=tk.X, padx=16, pady=(14, 6))
+        tk.Label(_top, text=_tr(self, 'inject_of.select_title'),
+                 font=('Bahnschrift SemiBold', 18), fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
+        _sel_vars = {}
+        _path_vars = {}
+        _cf = tk.Frame(_ov, bg='#0a0a16')
+        _cf.pack(fill=tk.BOTH, expand=True, padx=16, pady=(8, 10))
+        _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0)
+        _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
+        _inner = tk.Frame(_canv, bg='#0a0a16')
+        _inner.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
+        _canv.create_window((0, 0), window=_inner, anchor='nw')
+        _canv.configure(yscrollcommand=_scr.set)
+        _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        _scr.pack(side=tk.RIGHT, fill=tk.Y)
+        def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
+        _canv.bind('<MouseWheel>', _mw)
+        if not _exe_folders:
+            _lng = self.settings.get('language', 'tr')
+            _no_folder_msg = 'Extracted OF klasoru bulunamadi.' if _lng == 'tr' else 'No extracted OF folders found.'
+            tk.Label(_inner, text=_no_folder_msg,
+                     bg='#0a0a16', fg='#686880', font=('Segoe UI', 12)).pack(pady=40)
+        else:
+            for i, _ef in enumerate(_exe_folders):
+                var = tk.BooleanVar(value=True)
+                _sel_vars[_ef['folder']] = var
+                bg = '#0c0c20' if i % 2 == 0 else '#0a0a16'
+                row = tk.Frame(_inner, bg=bg)
+                row.pack(fill=tk.X, padx=6, pady=1)
+                tk.Checkbutton(row, variable=var, bg=bg, activebackground='#14142a',
+                               selectcolor='#7c6fff', fg='#d0d0e8', font=('Segoe UI', 10)).pack(side=tk.LEFT)
+                tk.Label(row, text=_ef['name'], bg=bg, fg='#d0d0e8',
+                         font=('Segoe UI', 10), anchor='w', width=30).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+                tk.Label(row, text=_ef['exe'].name, bg=bg, fg='#686880',
+                         font=('Segoe UI', 8), anchor='e', width=40).pack(side=tk.RIGHT, padx=4)
+                _path_vars[_ef['folder']] = str(_ef['exe'])
+        _btnf = tk.Frame(_ov, bg='#08080e')
+        _btnf.pack(fill=tk.X, padx=16, pady=(0, 14))
+        _tk_fd_imp = __import__('tkinter.filedialog')
+        def _add_folder():
+            _sel = _tk_fd_imp.askdirectory(title=_tr(self, 'inject.select_title'))
+            if not _sel: return
+            _sp = Path(_sel)
+            _exes = list(_sp.glob('*.exe'))
+            if not _exes:
+                _messagebox.showinfo(_tr(self, 'inject.info_title'), 'No .exe found in selected folder.')
+                return
+            _exe_folders.append({'folder': _sp, 'exe': _exes[0], 'name': _sp.name})
+            _ov.destroy()
+            self._inject_of_browser()
+        _ok = [False]
+        def _confirm():
+            _ok[0] = True; _ov.destroy()
+        def _cancel():
+            _ov.destroy()
+        AB = g.get('AnimatedButton', AnimatedButton)
+        AB(_btnf, _tr(self, 'button.add_folder'), _add_folder, 120, 34,
+           '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 8))
+        AB(_btnf, _tr(self, 'inject.select_inject'), _confirm, 140, 34,
+           '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
+           ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(8, 0))
+        AB(_btnf, _tr(self, 'button.close'), _cancel, 110, 34,
+           '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
+           ('Segoe UI', 9)).pack(side=tk.RIGHT)
+        self.root.wait_window(_ov)
+        if not _ok[0]: return
+        chosen = [fp for fp, var in _sel_vars.items() if var.get()]
+        if not chosen:
+            _messagebox.showinfo(_tr(self, 'inject.info_title'), 'No folders selected.')
+            return
+        stplug_dir = Path("C:\\Program Files (x86)\\Steam\\config\\stplug-in")
+        stplug_dir.mkdir(parents=True, exist_ok=True)
+        done = 0
+        for _folder in chosen:
+            try:
+                _exe_file = None
+                for f in _folder.iterdir():
+                    if f.suffix.lower() == '.exe':
+                        _exe_file = f; break
+                if not _exe_file:
+                    self.log(f'[Inject OF] No .exe in {_folder.name}')
+                    continue
+                _lua_file = Path(str(_exe_file).rsplit('.',1)[0] + '.lua')
+                # Ask user where to copy the .exe (default: common Steam folder)
+                _default_dst = Path("C:\\Program Files (x86)\\Steam\\steamapps\\common") / _exe_file.name
+                _dst_path = _tk_fd_imp.asksaveasfilename(
+                    title=f'Save {_exe_file.name} as...',
+                    initialdir=str(Path("C:\\Program Files (x86)\\Steam\\steamapps\\common")),
+                    initialfile=_exe_file.name)
+                if not _dst_path: continue
+                _shutil.copy2(str(_exe_file), _dst_path)
+                self.log(f'[Inject OF] {_exe_file.name} -> {_dst_path}')
+                if _lua_file.exists():
+                    _shutil.copy2(str(_lua_file), str(stplug_dir / _lua_file.name))
+                    self.log(f'[Inject OF] Lua: {_lua_file.name} -> stplug-in/')
+                done += 1
+            except Exception as _ex:
+                self.log(f'[Inject OF] HATA: {_ex}')
+        self._set_indicator(_tr(self, 'indicator.done'), 'online' if done > 0 else 'offline')
+        if done > 0:
+            _messagebox.showinfo(_tr(self, 'inject.done_title'), f'{done} inject edildi.')
+    SteamApp._inject_of_browser = _inject_of_browser
 
     # Add Inject All button to header
     _root_app = g.get('app')
@@ -2030,17 +2158,23 @@ def install_ui_fixes(g):
             files.append({'path': name, 'length': info.get(b'length', 0)})
         return files
 
-    # ---- Helper: download structured (Fix Repair or torrent) ----
-    def _find_unrar():
-        for _p in ['C:\\Program Files\\WinRAR\\UnRAR.exe', 'C:\\Program Files (x86)\\WinRAR\\UnRAR.exe']:
-            if Path(_p).exists(): return _p
-        return 'unrar'
-    _UNRAR = _find_unrar()
+    # ---- Helper: find bundled UnRAR.exe (no WinRAR/WinRAR dep) ----
+    def _get_bundled_unrar():
+        if getattr(sys, 'frozen', False):
+            _mp = getattr(sys, '_MEIPASS', None)
+            if _mp:
+                _c = Path(_mp) / 'UnRAR.exe'
+                if _c.exists(): return str(_c)
+        _c = Path(__file__).parent / 'UnRAR.exe'
+        if _c.exists(): return str(_c)
+        return None
+    _BUNDLED_UNRAR = _get_bundled_unrar()
 
     def _extract_rar_with_unrar(rar_path, out_dir, passwords, log, indicator):
+        _unrar = _BUNDLED_UNRAR or 'unrar'
         for pw in passwords:
             try:
-                cmd = [_UNRAR, 'x', '-y', str(rar_path), f'{out_dir}\\']
+                cmd = [_unrar, 'x', '-y', str(rar_path), f'{out_dir}\\']
                 if pw: cmd.insert(2, f'-p{pw}')
                 proc = subprocess.run(cmd, capture_output=True, timeout=120, creationflags=0x08000000)
                 if proc.returncode == 0 or proc.returncode == 1:
@@ -2094,21 +2228,7 @@ def install_ui_fixes(g):
                         os.startfile(str(out_dir))
                         return True
                     else:
-                        # Fallback: try 7z extract directly to out_dir
-                        try:
-                            for pw in ('knkm', 'online-fix.me'):
-                                cmd = ['7z', 'x', str(dl_path), f'-o{str(out_dir)}', '-y']
-                                if pw: cmd.append(f'-p{pw}')
-                                proc = subprocess.run(cmd, capture_output=True, timeout=60, creationflags=0x08000000)
-                                if proc.returncode == 0:
-                                    try: dl_path.unlink()
-                                    except: pass
-                                    log('[OnlineFix] 7z ile çıkartıldı (fallback)')
-                                    indicator('OnlineFix hazır', 'online')
-                                    os.startfile(str(out_dir))
-                                    return True
-                        except: pass
-                        log('[OnlineFix] Çıkartılamadı (UnRAR + 7z)')
+                        log('[OnlineFix] Çıkartılamadı (UnRAR)')
                         indicator('OnlineFix: çıkartılamadı', 'offline')
                         os.startfile(str(out_dir))
                         return False
@@ -2720,32 +2840,59 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
         _is_tr = _lang == 'tr'
         _t = lambda tr, en: tr if _is_tr else en
         def _change_nickname():
-            import tkinter.simpledialog as _sd2
             _hw2 = _get_hwid().lower()
             _cur = _MY_NICKNAME.get('nickname', '')
-            _new = _sd2.askstring(_t('Nickname Degistir', 'Change Nickname'),
-                                  f'HWID: {_hw2[:16]}...\n' + _t('Yeni nickname:', 'New nickname:') + f' ({_cur})',
-                                  parent=_w)
-            if not _new or not _new.strip(): return
-            _new = _new.strip()
-            def _save_nick():
-                try:
-                    _tk5 = ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
-                    _r6 = __import__('requests').get(f'https://api.github.com/gists/{_ADMIN_GIST}',
-                        headers={'Authorization': f'token {_tk5}', 'User-Agent': 'SteamToolsLua'}, timeout=8)
-                    _nd6 = {}
-                    if _r6.status_code == 200:
-                        _nf6 = _r6.json().get('files', {}).get('nicknames.json', {}).get('content', '')
-                        if _nf6:
-                            try: _nd6 = json.loads(_nf6)
-                            except: pass
-                    _nd6[_hw2] = {'nickname': _new}
-                    __import__('requests').patch(f'https://api.github.com/gists/{_ADMIN_GIST}',
-                        json={"files": {"nicknames.json": {"content": json.dumps(_nd6, indent=2, ensure_ascii=False)}}},
-                        headers={'Authorization': f'token {_tk5}', 'User-Agent': 'SteamToolsLua'}, timeout=10)
-                    _MY_NICKNAME['nickname'] = _new
-                except: pass
-            threading.Thread(target=_save_nick, daemon=True).start()
+            _dlg2 = tk.Toplevel(_w)
+            _dlg2.title(_t('Nickname Degistir', 'Change Nickname'))
+            _dlg2.geometry('380x200')
+            _dlg2.configure(bg='#0d1724')
+            _dlg2.resizable(False, False)
+            _dlg2.transient(_w)
+            _dlg2.grab_set()
+            _dlg2.protocol('WM_DELETE_WINDOW', _dlg2.destroy)
+            _dlg2.bind('<Escape>', lambda e: _dlg2.destroy())
+            tk.Label(_dlg2, text=_t('Yeni nickname:', 'New nickname:'),
+                     fg='#f7fafc', bg='#0d1724', font=('Segoe UI', 14, 'bold')).pack(pady=(20, 4))
+            tk.Label(_dlg2, text=f'HWID: {_hw2[:16]}...  ({_cur})',
+                     fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(pady=(0, 8))
+            _entry2 = tk.Entry(_dlg2, font=('Segoe UI', 12), bg='#122235', fg='#f7fafc',
+                               insertbackground='#7c6fff', relief=tk.FLAT, bd=8, justify='center')
+            _entry2.pack(padx=20, fill=tk.X, pady=(0, 10))
+            _entry2.focus_set()
+            _err_lbl2 = tk.Label(_dlg2, text='', fg='#f56565', bg='#0d1724', font=('Segoe UI', 9))
+            _err_lbl2.pack()
+            _new_val = ['']
+            def _submit2():
+                _v = _entry2.get().strip()
+                if not _v:
+                    _err_lbl2.config(text=_t('Nickname bos gecilemez!', 'Nickname cannot be empty!'))
+                    return
+                _err_lbl2.config(text='')
+                _new_val[0] = _v
+                _dlg2.destroy()
+                def _save_nick(_nv):
+                    try:
+                        _tk5 = ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
+                        _r6 = __import__('requests').get(f'https://api.github.com/gists/{_ADMIN_GIST}',
+                            headers={'Authorization': f'token {_tk5}', 'User-Agent': 'SteamToolsLua'}, timeout=8)
+                        _nd6 = {}
+                        if _r6.status_code == 200:
+                            _nf6 = _r6.json().get('files', {}).get('nicknames.json', {}).get('content', '')
+                            if _nf6:
+                                try: _nd6 = json.loads(_nf6)
+                                except: pass
+                        _nd6[_hw2] = {'nickname': _nv}
+                        __import__('requests').patch(f'https://api.github.com/gists/{_ADMIN_GIST}',
+                            json={"files": {"nicknames.json": {"content": json.dumps(_nd6, indent=2, ensure_ascii=False)}}},
+                            headers={'Authorization': f'token {_tk5}', 'User-Agent': 'SteamToolsLua'}, timeout=10)
+                        _MY_NICKNAME['nickname'] = _nv
+                    except: pass
+                threading.Thread(target=_save_nick, args=(_new_val[0],), daemon=True).start()
+            _entry2.bind('<Return>', lambda e: _submit2())
+            AB3 = g.get('AnimatedButton', AnimatedButton)
+            AB3(_dlg2, _t('Kaydet', 'Save'), _submit2, 120, 34,
+                '#244363', '#315f8e', '#66c0f4', '#ffffff',
+                ('Segoe UI Semibold', 10)).pack(pady=6)
         def _reset_licenses():
             if not tk.messagebox.askyesno(_t('Reset Licenses', 'Reset Licenses'),
                 _t('Tum ZIPleri used klasorunden cikarip Steam cache silinecek. Devam?',
@@ -3847,8 +3994,8 @@ A: .luaファイルがstplug-inフォルダにあることを
         AB(tools_row, 'CloudRedirect', _run_cloudredirect,
             120, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
-        # Inject OF
-        AB(tools_row, _tr(self, 'button.inject_of'), self._inject_of_flow,
+        # Inject OF (browser UI like Inject All)
+        AB(tools_row, _tr(self, 'button.inject_of'), self._inject_of_browser,
             120, 30, '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
 
@@ -4665,9 +4812,7 @@ A: .luaファイルがstplug-inフォルダにあることを
         except:
             os._exit(1)
 
-    if _ROOT:
-        try: _ROOT.after(8000, _startup_nickname)
-        except: pass
+    # Nickname check is now triggered by _first_run_flow after setup
 
     # ===== PURPLE THEME ENGINE =====
     def _th_hex(r, g, b):
@@ -5534,17 +5679,26 @@ A: .luaファイルがstplug-inフォルダにあることを
                     _messagebox.showerror('Update', 'Guncelleme basarisiz.')
             _thr.Thread(target=_dl_task, daemon=True).start()
         _thr.Thread(target=_task, daemon=True).start()
-    root.after(500, lambda: _show_setup_wizard(app))
     root.after(1500, _check_auto_update)
 
-    def _show_setup_wizard(app):
+    # ---- Single first-run flow: setup wizard → nickname ----
+    def _first_run_flow(app):
         _flag = _data_dir / ".setup_done"
         if _flag.exists():
+            if _ROOT:
+                try: _ROOT.after(8000, _startup_nickname)
+                except: pass
             return
         app.open_settings_window()
         def _finish_setup():
             try: _flag.write_text("1", encoding='utf-8')
             except: pass
+            _win2 = getattr(app, 'settings_window', None)
+            if _win2 and _win2.winfo_exists():
+                _win2.destroy()
+            if _ROOT:
+                try: _ROOT.after(500, _startup_nickname)
+                except: pass
         _win = getattr(app, 'settings_window', None)
         if _win and _win.winfo_exists():
             _old_close = _win.protocol('WM_DELETE_WINDOW', None)
@@ -5554,6 +5708,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                 bg='#244363', fg='#ffffff', relief=tk.FLAT, padx=12, pady=6,
                 font=('Segoe UI', 10, 'bold'), cursor='hand2',
                 command=lambda: (_finish_setup(), _win.destroy())).pack(side=tk.BOTTOM, pady=10)
+    root.after(500, lambda: _first_run_flow(app))
 
 
 
