@@ -73,6 +73,9 @@ footer a{color:#7c6fff;text-decoration:none}
         <input type="text" id="blInput" placeholder="HWID (MAC adresi, hex)" onkeydown="if(event.key==='Enter')addBlacklist()" />
         <button class="btn btn-success" onclick="addBlacklist()">Banla</button>
       </div>
+      <div class="row">
+        <input type="text" id="blMsgInput" placeholder="Ban mesaji (opsiyonel)" />
+      </div>
       <div id="blEntries"><div class="empty">Yukleniyor...</div></div>
     </div>
   </div>
@@ -175,30 +178,44 @@ async function loadBlacklist(){
   const g=await loadGist();
   if(!g){el.innerHTML='<div class="empty">Gist yuklenemedi.</div>';return}
   const bl=getFile(g,'blacklist.json');
+  const msgs=getFile(g,'ban_messages.json')||{};
   if(!bl||!Array.isArray(bl)){el.innerHTML='<div class="empty">blacklist.json bos veya gecersiz.</div>';return}
   document.getElementById('blCount').textContent='('+bl.length+')';
   if(!bl.length){el.innerHTML='<div class="empty">Kara liste bos.</div>';return}
-  el.innerHTML=bl.map((h,i)=>'<div class="entry"><span>'+esc(h)+'</span><button class="btn btn-danger btn-sm" onclick="removeBlacklist('+i+')">Kaldir</button></div>').join('');
+  el.innerHTML=bl.map((h,i)=>{
+    const msg=msgs[h]||'';
+    const msgHtml=msg?'<br><small style="color:#f56565">Sebep: '+esc(msg)+'</small>':'';
+    return '<div class="entry"><span>'+esc(h)+msgHtml+'</span><button class="btn btn-danger btn-sm" onclick="removeBlacklist('+i+')">Kaldir</button></div>'
+  }).join('');
 }
 
 async function addBlacklist(){
   const inp=document.getElementById('blInput');
+  const msgInp=document.getElementById('blMsgInput');
   const val=inp.value.trim().toLowerCase();
+  const msg=msgInp.value.trim();
   if(!val){showMsg('HWID girin.','error');return}
   const g=await loadGist();
   if(!g) return;
   let bl=getFile(g,'blacklist.json');
+  let msgs=getFile(g,'ban_messages.json')||{};
   if(!Array.isArray(bl)) bl=[];
   if(bl.includes(val)){showMsg('Zaten listede: '+val,'error');return}
   bl.push(val);
-  if(await updateFile('blacklist.json',bl)){inp.value='';loadBlacklist()}
+  if(msg) msgs[val]=msg;
+  await updateFile('ban_messages.json',msgs);
+  if(await updateFile('blacklist.json',bl)){inp.value='';msgInp.value='';loadBlacklist()}
 }
 
 async function removeBlacklist(i){
   const g=await loadGist(); if(!g) return;
   let bl=getFile(g,'blacklist.json');
+  let msgs=getFile(g,'ban_messages.json')||{};
   if(!Array.isArray(bl)) return;
+  const hwid=bl[i];
   bl.splice(i,1);
+  delete msgs[hwid];
+  await updateFile('ban_messages.json',msgs);
   if(await updateFile('blacklist.json',bl)) loadBlacklist();
 }
 
