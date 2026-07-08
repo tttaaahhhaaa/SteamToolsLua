@@ -54,6 +54,10 @@ def main():
         except:
             pass
     _th.Thread.run = _safe_thread_run
+    # DPI awareness — before any tkinter window
+    try:
+        ctypes.windll.user32.SetProcessDPIAware()
+    except: pass
     # --- STARTUP: check for .update_info.txt from a completed update ---
     _update_info_path = None
     try:
@@ -155,7 +159,7 @@ def main():
     _orig_destroy = root.destroy
     def _on_main_close():
         # Kill CloudRedirect if running
-        _cr_procs = g.get('_cr_procs', [])
+        _cr_procs = app_globals.get('_cr_procs', [])
         for _p in _cr_procs:
             if _p and _p.poll() is None:
                 try: _p.kill()
@@ -476,7 +480,7 @@ def install_ui_fixes(g):
     # Additional Translations
     _more_text = {
         'tr': {'settings.installed_games': 'Y\u00fckl\u00fc Oyunlar', 'settings.steam_not_found': 'Steam bulunamad\u0131.',
-                'button.inject_of': 'Inject OF', 'button.add_folder': 'Klas\u00f6r Ekle', 'inject_of.select_title': 'Inject OF - Oyun Se\u00e7',
+                'button.inject_of': 'Inject OF', 'button.add_folder': 'Klas\u00f6r Ekle', 'button.nlgl_launcher': 'NLGL Launcher', 'inject_of.select_title': 'Inject OF - Oyun Se\u00e7',
                'inject_of.exe_label': '\u00c7al\u0131\u015ft\u0131r\u0131labilir Dosya (.exe):',
                'inject_of.dir_label': 'Hedef Klas\u00f6r:',
                'inject_of.browse_exe': 'G\u00f6zat...',
@@ -493,7 +497,7 @@ def install_ui_fixes(g):
                'cr.download_complete': 'CloudRedirect haz\u0131r',
                'settings.file_location': 'Dosya Konumu'},
         'en': {'settings.installed_games': 'Installed Games', 'settings.steam_not_found': 'Steam not found.',
-               'button.inject_of': 'Inject OF', 'button.add_folder': 'Add Folder', 'inject_of.select_title': 'Inject OF - Select Game',
+               'button.inject_of': 'Inject OF', 'button.add_folder': 'Add Folder', 'button.nlgl_launcher': 'NLGL Launcher', 'inject_of.select_title': 'Inject OF - Select Game',
                'inject_of.exe_label': 'Executable (.exe):',
                'inject_of.dir_label': 'Destination Folder:',
                'inject_of.browse_exe': 'Browse...',
@@ -510,7 +514,7 @@ def install_ui_fixes(g):
                'cr.download_complete': 'CloudRedirect ready',
                'settings.file_location': 'File Location'},
         'es': {'settings.installed_games': 'Juegos Instalados', 'settings.steam_not_found': 'Steam no encontrado.',
-               'button.inject_of': 'Inyectar OF', 'inject_of.select_title': 'Inyectar OF - Seleccionar Juego',
+               'button.inject_of': 'Inyectar OF', 'button.add_folder': 'Añadir Carpeta', 'button.nlgl_launcher': 'NLGL Launcher', 'inject_of.select_title': 'Inyectar OF - Seleccionar Juego',
                'inject_of.exe_label': 'Ejecutable (.exe):',
                'inject_of.dir_label': 'Carpeta de destino:',
                'inject_of.browse_exe': 'Examinar...',
@@ -527,7 +531,7 @@ def install_ui_fixes(g):
                'cr.download_complete': 'CloudRedirect listo',
                'settings.file_location': 'Ubicaci\u00f3n'},
         'fr': {'settings.installed_games': 'Jeux Install\u00e9s', 'settings.steam_not_found': 'Steam introuvable.',
-               'button.inject_of': 'Injecter OF', 'inject_of.select_title': 'Injecter OF - S\u00e9lectionner le jeu',
+               'button.inject_of': 'Injecter OF', 'button.add_folder': 'Ajouter Dossier', 'button.nlgl_launcher': 'NLGL Launcher', 'inject_of.select_title': 'Injecter OF - S\u00e9lectionner le jeu',
                'inject_of.exe_label': 'Ex\u00e9cutable (.exe):',
                'inject_of.dir_label': 'Dossier de destination:',
                'inject_of.browse_exe': 'Parcourir...',
@@ -544,7 +548,7 @@ def install_ui_fixes(g):
                'cr.download_complete': 'CloudRedirect pr\u00eat',
                'settings.file_location': 'Emplacement'},
         'de': {'settings.installed_games': 'Installierte Spiele', 'settings.steam_not_found': 'Steam nicht gefunden.',
-               'button.inject_of': 'OF Injizieren', 'inject_of.select_title': 'OF Injizieren - Spiel ausw\u00e4hlen',
+               'button.inject_of': 'OF Injizieren', 'button.add_folder': 'Ordner Hinzufügen', 'button.nlgl_launcher': 'NLGL Launcher', 'inject_of.select_title': 'OF Injizieren - Spiel ausw\u00e4hlen',
                'inject_of.exe_label': 'Ausf\u00fchrbare Datei (.exe):',
                'inject_of.dir_label': 'Zielordner:',
                'inject_of.browse_exe': 'Durchsuchen...',
@@ -561,7 +565,7 @@ def install_ui_fixes(g):
                'cr.download_complete': 'CloudRedirect bereit',
                'settings.file_location': 'Dateipfad'},
         'ja': {'settings.installed_games': '\u30a4\u30f3\u30b9\u30c8\u30fc\u30eb\u6e08\u307f\u30b2\u30fc\u30e0', 'settings.steam_not_found': 'Steam\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002',
-               'button.inject_of': 'OF\u3092\u6ce8\u5165', 'inject_of.select_title': 'OF\u6ce8\u5165 - \u30b2\u30fc\u30e0\u3092\u9078\u629e',
+               'button.inject_of': 'OF\u3092\u6ce8\u5165', 'button.add_folder': '\u30d5\u30a9\u30eb\u30c0\u8ffd\u52a0', 'button.nlgl_launcher': 'NLGL Launcher', 'inject_of.select_title': 'OF\u6ce8\u5165 - \u30b2\u30fc\u30e0\u3092\u9078\u629e',
                'inject_of.exe_label': '\u5b9f\u884c\u30d5\u30a1\u30a4\u30eb (.exe):',
                'inject_of.dir_label': '\u51fa\u529b\u30d5\u30a9\u30eb\u30c0:',
                'inject_of.browse_exe': '\u53c2\u7167...',
@@ -763,12 +767,6 @@ def install_ui_fixes(g):
             lambda: app.open_onlinefix(result), iw, 36,
             '#2d4a3e', '#3d6b56', '#66c0f4', '#f7fafc', ('Segoe UI Semibold', 9))
         self.btn_onlinefix.grid(row=5, column=0, sticky='ew', padx=14, pady=(0, 8))
-        self.btn_inject_of = AnimatedButton(self, app.tr('button.inject_of'),
-            lambda: (_save_dl_name(result.get('name', '') or ''),
-                     app._inject_of_browser()), iw, 36,
-            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc', ('Segoe UI Semibold', 9))
-        self.btn_inject_of.grid(row=6, column=0, sticky='ew', padx=14, pady=(0, 8))
-
         for widget in (self.image_label, self.title_label, self.meta_label, self.footer_label):
             widget.bind('<Enter>', self._on_enter)
             widget.bind('<Leave>', self._on_leave)
@@ -938,10 +936,14 @@ def install_ui_fixes(g):
                 self.set_status(text, state)
             else:
                 colors = {'idle':'#708090','working':'#f6ad55','online':'#48bb78','offline':'#f56565'}
+                labels = {'idle':'Beklemede/Idle','working':'Calisiyor/Working','online':'Aktif/Online','offline':'Hata/Error'}
                 if hasattr(self, 'status_dot') and hasattr(self, 'status_oval'):
                     self.status_dot.itemconfig(self.status_oval, fill=colors.get(state, colors['idle']))
+                    try:
+                        self.status_dot.itemconfig(self.status_oval, tooltip=f'{labels.get(state, state)}: {text[:50]}')
+                    except: pass
                 if hasattr(self, 'status_var'):
-                    self.status_var.set(text)
+                    self.status_var.set(f'{labels.get(state, state)}: {text[:60]}')
                 if hasattr(self, 'status_lbl') and self.status_lbl.winfo_exists():
                     self.status_lbl.config(text='')
         except Exception:
@@ -2973,21 +2975,61 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
         window = tk.Toplevel(self.root)
         self.settings_window = window
         window.title(self.tr('settings.window_title'))
-        window.geometry('1040x900')
+        _sw = min(1040, window.winfo_screenwidth() - 60)
+        _sh = min(900, window.winfo_screenheight() - 80)
+        window.geometry(f'{_sw}x{_sh}')
+        window.minsize(600, 400)
+        window.resizable(True, True)
         window.configure(bg='#0d1724')
         window.transient(self.root)
 
         # Title
         tk.Label(window, text=self.tr('settings.title'),
                  font=('Bahnschrift SemiBold', 20), fg='#f7fafc', bg='#0d1724',
-                 anchor='w').pack(anchor='w', padx=16, pady=(16, 4))
+                  anchor='w').pack(anchor='w', padx=16, pady=(10, 2))
 
         tk.Label(window, text=self.tr('settings.chain_info'),
                  font=('Segoe UI', 10), fg='#97afc6', bg='#0d1724',
-                 anchor='w', wraplength=700, justify='left').pack(fill=tk.X, padx=16, pady=(0, 14))
+                 anchor='w', wraplength=700, justify='left').pack(fill=tk.X, padx=16, pady=(0, 8))
+
+        # ---- Tab bar (window level) ----
+        _tab_bar = tk.Frame(window, bg='#0d1724')
+        _tab_bar.pack(fill=tk.X, padx=16, pady=(0, 2))
+
+        _settings_page = tk.Frame(window, bg='#0d1724')
+        _license_page = tk.Frame(window, bg='#0d1724')
+        _settings_page.pack(fill=tk.BOTH, expand=True)
+
+        _current_tab = ['settings']
+
+        _tab_lbl_s = tk.Label(_tab_bar, text='  Ayarlar  ', bg='#1a2a40', fg='#f7fafc',
+                               font=('Segoe UI Semibold', 10), cursor='hand2')
+        _tab_lbl_l = tk.Label(_tab_bar, text='  Lisans Yoneticisi  ', bg='#0d1724', fg='#686880',
+                               font=('Segoe UI Semibold', 10), cursor='hand2')
+
+        def _show_tab(name):
+            if name == _current_tab[0]: return
+            _settings_page.pack_forget(); _license_page.pack_forget()
+            if name == 'settings':
+                _tab_lbl_s.configure(bg='#1a2a40', fg='#f7fafc')
+                _tab_lbl_l.configure(bg='#0d1724', fg='#686880')
+                _settings_page.pack(fill=tk.BOTH, expand=True)
+            else:
+                _tab_lbl_s.configure(bg='#0d1724', fg='#686880')
+                _tab_lbl_l.configure(bg='#1a2a40', fg='#f7fafc')
+                _license_page.pack(fill=tk.BOTH, expand=True)
+            _current_tab[0] = name
+
+        _tab_lbl_s.pack(side=tk.LEFT, padx=(0, 2))
+        _tab_lbl_s.bind('<Button-1>', lambda e: _show_tab('settings'))
+        _tab_lbl_l.pack(side=tk.LEFT)
+        _tab_lbl_l.bind('<Button-1>', lambda e: _show_tab('license'))
+
+        # Settings content (no scroll, direct frame)
+        _p = _settings_page
 
         # Route + language row
-        route_frame = tk.Frame(window, bg='#0d1724')
+        route_frame = tk.Frame(_p, bg='#0d1724')
         route_frame.pack(fill=tk.X, padx=16)
         tk.Label(route_frame, text=self.tr('settings.route'),
                  font=('Segoe UI', 10), fg='#dce7f4', bg='#0d1724').pack(side=tk.LEFT)
@@ -3011,8 +3053,8 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
                       width=28, state='readonly', style='Dark.TCombobox').pack(side=tk.LEFT, padx=4)
 
         # Developer / Console checkboxes
-        dev_frame = tk.Frame(window, bg='#0d1724')
-        dev_frame.pack(fill=tk.X, padx=16, pady=8)
+        dev_frame = tk.Frame(_p, bg='#0d1724')
+        dev_frame.pack(fill=tk.X, padx=16, pady=4)
         developer_var = tk.BooleanVar(value=bool(self.settings.get('developer_mode', False)))
         console_var = tk.BooleanVar(value=bool(self.settings.get('console_visible', False)))
         tk.Checkbutton(dev_frame, text=self.tr('settings.developer'),
@@ -3025,7 +3067,7 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
                        fg='#dce7f4', font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=16)
 
         # Dev controls
-        dev_row = tk.Frame(window, bg='#0d1724')
+        dev_row = tk.Frame(_p, bg='#0d1724')
         dev_row.pack(fill=tk.X, padx=16, pady=4)
         tk.Label(dev_row, text='Card Width:', fg='#dce7f4', bg='#0d1724',
                  font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=(0, 4))
@@ -3045,8 +3087,8 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
         _ln = self.settings.get('lastname', '')
         _nn = self.settings.get('nickname', '')
         if _fn or _ln or _nn:
-            uf = tk.Frame(window, bg='#0d1724')
-            uf.pack(fill=tk.X, padx=16, pady=(6, 2))
+            uf = tk.Frame(_p, bg='#0d1724')
+            uf.pack(fill=tk.X, padx=16, pady=(2, 1))
             tk.Label(uf, text='Kullanici Bilgisi:', fg='#8fd3ff', bg='#0d1724',
                      font=('Segoe UI Semibold', 10)).pack(anchor='w')
             _info_text = f"Ad: {_fn}  |  Soyad: {_ln}  |  Nick: {_nn}"
@@ -3054,12 +3096,12 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
                      font=('Segoe UI', 10)).pack(anchor='w', padx=8, pady=2)
 
         # ---- Tools section ----
-        tools_frame = tk.Frame(window, bg='#0d1724')
-        tools_frame.pack(fill=tk.X, padx=16, pady=(8, 2))
+        tools_frame = tk.Frame(_p, bg='#0d1724')
+        tools_frame.pack(fill=tk.X, padx=16, pady=(4, 1))
         tk.Label(tools_frame, text="Tools", fg='#8fd3ff', bg='#0d1724',
                  font=('Segoe UI Semibold', 11)).pack(anchor='w')
-        tools_row = tk.Frame(window, bg='#0d1724')
-        tools_row.pack(fill=tk.X, padx=16, pady=(0, 8))
+        tools_row = tk.Frame(_p, bg='#0d1724')
+        tools_row.pack(fill=tk.X, padx=16, pady=(0, 4))
         AB = g.get('AnimatedButton', AnimatedButton)
 
         # ? Guide button
@@ -4043,14 +4085,27 @@ A: .luaファイルがstplug-inフォルダにあることを
         AB(tools_row, _tr(self, 'button.inject_of'), self._inject_of_browser,
             120, 30, '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
+        # NLGL Launcher (like CloudRedirect)
+        _nlgl_dir = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua"
+        _nlgl_exe = _nlgl_dir / "nlgl_launcher.exe"
+        def _run_nlgl():
+            if _nlgl_exe.exists():
+                import subprocess as _sp2
+                _track_cr(_sp2.Popen([str(_nlgl_exe)]))
+                return
+            _messagebox.showinfo('NLGL Launcher',
+                'nlgl_launcher.exe bulunamadi.\nDosyayi suraya kopyalayin:\n' + str(_nlgl_exe))
+        AB(tools_row, _tr(self, 'button.nlgl_launcher'), _run_nlgl,
+            120, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
 
         # Also add save_path field
-        _sv_frame = tk.Frame(window, bg='#0d1724')
-        _sv_frame.pack(fill=tk.X, padx=16, pady=(4, 2))
+        _sv_frame = tk.Frame(_p, bg='#0d1724')
+        _sv_frame.pack(fill=tk.X, padx=16, pady=(2, 1))
         tk.Label(_sv_frame, text='Save Path', fg='#8fd3ff', bg='#0d1724',
                  font=('Segoe UI Semibold', 11)).pack(anchor='w')
-        _sv_row = tk.Frame(window, bg='#0d1724')
-        _sv_row.pack(fill=tk.X, padx=16, pady=(0, 6))
+        _sv_row = tk.Frame(_p, bg='#0d1724')
+        _sv_row.pack(fill=tk.X, padx=16, pady=(0, 2))
         _saved = self.settings.get('save_path', '') or self.settings.get('new_games_folder', '')
         _sv_var = tk.StringVar(value=_saved)
         SV_AB = g.get('AnimatedButton', AnimatedButton)
@@ -4067,12 +4122,12 @@ A: .luaファイルがstplug-inフォルダにあることを
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
 
         # ---- Folder quick access ----
-        _folder_frame = tk.Frame(window, bg='#0d1724')
-        _folder_frame.pack(fill=tk.X, padx=16, pady=(4, 2))
+        _folder_frame = tk.Frame(_p, bg='#0d1724')
+        _folder_frame.pack(fill=tk.X, padx=16, pady=(2, 1))
         tk.Label(_folder_frame, text='Klas\u00f6rler', fg='#8fd3ff', bg='#0d1724',
                  font=('Segoe UI Semibold', 11)).pack(anchor='w')
-        _folder_row = tk.Frame(window, bg='#0d1724')
-        _folder_row.pack(fill=tk.X, padx=16, pady=(0, 6))
+        _folder_row = tk.Frame(_p, bg='#0d1724')
+        _folder_row.pack(fill=tk.X, padx=16, pady=(0, 2))
         def _open_subfolder(name):
             _base = Path(_sv_var.get().strip()) if _sv_var.get().strip() else Path.home() / 'Desktop'
             _target = _base / name
@@ -4106,10 +4161,10 @@ A: .luaファイルがstplug-inフォルダにあることを
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(6, 0))
 
         # ---- Library (zip-based, appid from lua filename) ----
-        lib_frame = tk.Frame(window, bg='#0d1724')
-        lib_frame.pack(fill=tk.X, padx=16, pady=(6, 2))
-        lib_row = tk.Frame(window, bg='#0d1724')
-        lib_row.pack(fill=tk.X, padx=16, pady=(0, 6))
+        lib_frame = tk.Frame(_p, bg='#0d1724')
+        lib_frame.pack(fill=tk.X, padx=16, pady=(2, 1))
+        lib_row = tk.Frame(_p, bg='#0d1724')
+        lib_row.pack(fill=tk.X, padx=16, pady=(0, 2))
         tk.Label(lib_row, text=_tr(self, 'library.title'), fg='#8fd3ff', bg='#0d1724',
                  font=('Segoe UI Semibold', 11)).pack(side=tk.LEFT)
         import threading as _lib_thr
@@ -4295,14 +4350,156 @@ A: .luaファイルがstplug-inフォルダにあることを
         AB(lib_row, _tr(self, 'library.open'), _open_library, 130, 30,
            '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
+        # Remove License tab builder
+        def _build_license_tab():
+            for w in _license_page.winfo_children():
+                w.destroy()
+            _depot = Path("C:\\Program Files (x86)\\Steam\\config\\depotcache")
+            _stplug = Path("C:\\Program Files (x86)\\Steam\\config\\stplug-in")
+            _steam_path = Path("C:\\Program Files (x86)\\Steam")
+            _bd = Path(__file__).resolve().parent
+            _saved = self.settings.get('save_path', '') or self.settings.get('new_games_folder', '')
+            _gd = Path(_saved) if _saved and Path(_saved).exists() else _bd / "1 New Games"
+            _used = _gd / "used"
+            # Show loading indicator
+            _loading_lbl = tk.Label(_license_page, text='Zip taranıyor...',
+                                     fg='#8fd3ff', bg='#0d1724', font=('Segoe UI', 10))
+            _loading_lbl.pack(pady=20)
+            _license_page.update()
+            import threading as _lthr, queue as _lq
+            _result_q = _lq.Queue()
+            def _scan_used():
+                _items = []
+                try:
+                    if _used.exists():
+                        import zipfile as _zf
+                        for _zip_f in sorted(_used.glob('*.zip'), key=lambda f: f.stat().st_mtime, reverse=True):
+                            try:
+                                _gname = _zip_f.stem
+                                _aid = ''
+                                _has_lua_in_zip = False
+                                _has_manifest_in_zip = False
+                                with _zf.ZipFile(str(_zip_f), 'r') as _z:
+                                    for _zn in _z.namelist():
+                                        if _zn.lower().endswith('.lua'):
+                                            _lua_only = _zn.rsplit('/', 1)[-1].rsplit('\\', 1)[-1]
+                                            _base = _lua_only.rsplit('.', 1)[0]
+                                            if _base.isdigit():
+                                                _aid = _base
+                                            _has_lua_in_zip = True
+                                        if _zn.lower().endswith('.manifest'):
+                                            _has_manifest_in_zip = True
+                                # Check Steam config
+                                _lua_installed = _stplug.exists() and any(_stplug.glob(f"{_aid}.lua"))
+                                _manifest_installed = _depot.exists() and any(_depot.glob(f"{_aid}_*.manifest"))
+                                _items.append({
+                                    'aid': _aid, 'name': _gname,
+                                    'has_lua': _lua_installed,
+                                    'has_manifest': _manifest_installed,
+                                    'in_zip_lua': _has_lua_in_zip,
+                                    'in_zip_manifest': _has_manifest_in_zip,
+                                })
+                            except: pass
+                except: pass
+                _result_q.put(_items)
+            _lthr.Thread(target=_scan_used, daemon=True).start()
+            def _on_scan_done():
+                try:
+                    _games = _result_q.get_nowait()
+                except:
+                    _license_page.after(100, _on_scan_done); return
+                _loading_lbl.destroy()
+                if not _games:
+                    tk.Label(_license_page, text='used/ klasorunde zip bulunamadi.',
+                             fg='#686880', bg='#0a0a16', font=('Segoe UI', 10)).pack(pady=20)
+                    _btnf = tk.Frame(_license_page, bg='#08080e')
+                    _btnf.pack(fill=tk.X, padx=16, pady=(0, 8))
+                    AB_rl = g.get('AnimatedButton', AnimatedButton)
+                    AB_rl(_btnf, 'Geri', lambda: _show_tab('settings'), 110, 30,
+                          '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
+                          ('Segoe UI', 9)).pack(side=tk.LEFT)
+                    return
+                # Build UI
+                _top = tk.Frame(_license_page, bg='#08080e')
+                _top.pack(fill=tk.X, padx=14, pady=(10, 4))
+                tk.Label(_top, text='Lisans Yoneticisi', font=('Bahnschrift SemiBold', 18),
+                         fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
+                _sel_vars = {}
+                _cf = tk.Frame(_license_page, bg='#0a0a16')
+                _cf.pack(fill=tk.BOTH, expand=True, padx=14, pady=(4, 8))
+                _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0, height=280)
+                _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
+                _inner2 = tk.Frame(_canv, bg='#0a0a16')
+                _inner2.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
+                _canv.create_window((0, 0), window=_inner2, anchor='nw')
+                _canv.configure(yscrollcommand=_scr.set)
+                _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+                _scr.pack(side=tk.RIGHT, fill=tk.Y)
+                def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
+                _canv.bind('<MouseWheel>', _mw)
+                for i, _g in enumerate(_games):
+                    var = tk.BooleanVar(value=False)
+                    _sel_vars[_g['aid']] = var
+                    bg = '#0c0c20' if i % 2 == 0 else '#0a0a16'
+                    row = tk.Frame(_inner2, bg=bg)
+                    row.pack(fill=tk.X, padx=4, pady=1)
+                    tk.Checkbutton(row, variable=var, bg=bg, activebackground='#14142a',
+                                   selectcolor='#7c6fff').pack(side=tk.LEFT)
+                    tk.Label(row, text=_g['name'], bg=bg, fg='#d0d0e8',
+                             font=('Segoe UI', 10), anchor='w').pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+                    _status_parts = []
+                    if _g['has_lua']: _status_parts.append('Lua')
+                    if _g['has_manifest']: _status_parts.append('Manifest')
+                    _status = ', '.join(_status_parts) if _status_parts else 'Yok'
+                    _status_fg = '#48bb78' if _status_parts else '#686880'
+                    tk.Label(row, text=_g['aid'], bg=bg, fg='#686880',
+                             font=('Segoe UI', 8), anchor='e', width=8).pack(side=tk.RIGHT, padx=(2, 0))
+                    tk.Label(row, text=_status, bg=bg, fg=_status_fg,
+                             font=('Segoe UI', 8), anchor='e', width=10).pack(side=tk.RIGHT, padx=(2, 4))
+                _btnf = tk.Frame(_license_page, bg='#08080e')
+                _btnf.pack(fill=tk.X, padx=14, pady=(0, 10))
+                def _confirm():
+                    _chosen = [aid for aid, var in _sel_vars.items() if var.get()]
+                    if not _chosen:
+                        _messagebox.showinfo('Remove License', 'Oyun secilmedi.')
+                        return
+                    removed = {'lua': 0, 'manifest': 0}
+                    for _aid in _chosen:
+                        if _stplug.exists():
+                            for _f in _stplug.glob(f"{_aid}.lua"):
+                                try: _f.unlink(); removed['lua'] += 1
+                                except: pass
+                        if _depot.exists():
+                            for _f in _depot.glob(f"{_aid}_*.manifest"):
+                                try: _f.unlink(); removed['manifest'] += 1
+                                except: pass
+                    _messagebox.showinfo('Remove License',
+                        f'{removed["lua"]} .lua, {removed["manifest"]} .manifest silindi.')
+                    self._set_indicator(f'License removed: {len(_chosen)} oyun', 'online')
+                    _build_license_tab()
+                AB_rl = g.get('AnimatedButton', AnimatedButton)
+                AB_rl(_btnf, 'Remove Selected', _confirm, 140, 30,
+                      '#4a2020', '#6a3030', '#f56565', '#f7fafc',
+                      ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(6, 0))
+                AB_rl(_btnf, 'Geri', lambda: _show_tab('settings'), 90, 30,
+                      '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
+                      ('Segoe UI', 9)).pack(side=tk.RIGHT)
+            _license_page.after(100, _on_scan_done)
+
+        def _open_license_tab():
+            _build_license_tab()
+            _show_tab('license')
+        AB(lib_row, 'Remove License', _open_license_tab, 120, 30,
+           '#4a2020', '#6a3030', '#f56565', '#f7fafc',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
         tk.Label(lib_row, text=_tr(self, 'library.desc'),
                  fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=8)
 
         # ---- Installed Steam Games (threaded list) ----
-        _inst_frame = tk.Frame(window, bg='#0d1724')
-        _inst_frame.pack(fill=tk.X, padx=16, pady=(6, 2))
-        _inst_row = tk.Frame(window, bg='#0d1724')
-        _inst_row.pack(fill=tk.X, padx=16, pady=(0, 6))
+        _inst_frame = tk.Frame(_p, bg='#0d1724')
+        _inst_frame.pack(fill=tk.X, padx=16, pady=(2, 1))
+        _inst_row = tk.Frame(_p, bg='#0d1724')
+        _inst_row.pack(fill=tk.X, padx=16, pady=(0, 2))
         tk.Label(_inst_row, text=_tr(self, 'settings.installed_games'),
                  fg='#8fd3ff', bg='#0d1724', font=('Segoe UI Semibold', 11)).pack(side=tk.LEFT)
         import threading as _inst_thr
@@ -4436,6 +4633,150 @@ A: .luaファイルがstplug-inフォルダにあることを
         tk.Label(_inst_row, text='(Steam\'de yuklu oyunlar)',
                  fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=8)
 
+        # ---- Bypass Injection Section ----
+        _bypass_frame = tk.Frame(_p, bg='#0d1724')
+        _bypass_frame.pack(fill=tk.X, padx=16, pady=(2, 1))
+        _bypass_row = tk.Frame(_p, bg='#0d1724')
+        _bypass_row.pack(fill=tk.X, padx=16, pady=(0, 2))
+        tk.Label(_bypass_row, text='Bypass', fg='#8fd3ff', bg='#0d1724',
+                 font=('Segoe UI Semibold', 11)).pack(side=tk.LEFT)
+        _BYPASS_GAMES = [
+            {"id":"271590","name":"Grand Theft Auto V","folder":"GTA V NORMAL","exe":"PlayGTAV.exe"},
+            {"id":"3240220","name":"GTA V Enhanced (%100 garanti degil)","folder":"GTA V ENHANCED","exe":"PlayGTAV.exe"},
+            {"id":"12210","name":"Grand Theft Auto IV","folder":"GTA IV","exe":"PlayGTAIV.exe"},
+            {"id":"1174180","name":"Red Dead Redemption 2","folder":"RDR2","exe":"Launcher.exe"},
+            {"id":"2668510","name":"Red Dead Redemption","folder":"RDR1","exe":"PlayRDR.exe"},
+        ]
+        def _open_bypass_browser():
+            _bypass_base = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / "bypass"
+            if not _bypass_base.exists():
+                _messagebox.showinfo('Bypass',
+                    'Bypass klasoru bulunamadi.\nDosyalari suraya kopyalayin:\n' + str(_bypass_base))
+                return
+            _available = []
+            for _g in _BYPASS_GAMES:
+                _fp = _bypass_base / _g["folder"]
+                if _fp.exists() and any(_fp.iterdir()):
+                    _available.append(_g)
+            if not _available:
+                _messagebox.showinfo('Bypass', 'Bypass dosyasi bulunan oyun yok.\nDosyalari ' + str(_bypass_base) + ' klasorune kopyalayin.')
+                return
+            _bw = tk.Toplevel(window)
+            _bw.title('Bypass Injection'); _bw.geometry('750x500')
+            _bw.configure(bg='#08080e'); _bw.transient(window)
+            _top = tk.Frame(_bw, bg='#08080e')
+            _top.pack(fill=tk.X, padx=14, pady=(12, 4))
+            tk.Label(_top, text=f'Bypass ({len(_available)} oyun)', font=('Bahnschrift SemiBold', 18),
+                     fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
+            _cf = tk.Frame(_bw, bg='#0a0a16'); _cf.pack(fill=tk.BOTH, expand=True, padx=14, pady=6)
+            _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0)
+            _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
+            _inner = tk.Frame(_canv, bg='#0a0a16')
+            _inner.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
+            _canv.create_window((0,0), window=_inner, anchor='nw')
+            _canv.configure(yscrollcommand=_scr.set)
+            _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True); _scr.pack(side=tk.RIGHT, fill=tk.Y)
+            def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
+            _canv.bind('<MouseWheel>', _mw)
+            _steam_path = Path("C:\\Program Files (x86)\\Steam")
+            _libraries = [_steam_path / "steamapps"]
+            _vdf = _steam_path / "steamapps" / "libraryfolders.vdf"
+            if _vdf.exists():
+                try:
+                    for _line in _vdf.read_text('utf-8', errors='replace').split('\n'):
+                        _m = re.search(r'"path"\s+"([^"]+)"', _line)
+                        if _m: _libraries.append(Path(_m.group(1)) / "steamapps")
+                except: pass
+            AB_bp = g.get('AnimatedButton', AnimatedButton)
+            for i, _g in enumerate(_available):
+                _aid = _g["id"]; _fexe = _g["exe"]
+                _game_dir = None
+                # find by manifest
+                for _lib in _libraries:
+                    _acf = _lib / f"appmanifest_{_aid}.acf"
+                    if _acf.exists():
+                        try:
+                            _txt = _acf.read_text('utf-8', errors='replace')
+                            _mm = re.search(r'"installdir"\s+"([^"]+)"', _txt)
+                            if _mm:
+                                _cd = _lib.parent / "steamapps" / "common" / _mm.group(1)
+                                if _cd.exists(): _game_dir = _cd
+                        except: pass
+                _bg = '#0c0c20' if i%2==0 else '#0a0a16'
+                _row = tk.Frame(_inner, bg=_bg); _row.pack(fill=tk.X, padx=6, pady=2)
+                tk.Label(_row, text=_g["name"], bg=_bg, fg='#d0d0e8',
+                         font=('Segoe UI', 10), anchor='w').pack(side=tk.LEFT, padx=6, fill=tk.X, expand=True)
+                _status_lbl = tk.Label(_row, text='\u2713 Bulundu' if _game_dir else '\u2717 Bulunamadi',
+                                       bg=_bg, fg='#48bb78' if _game_dir else '#f56565',
+                                       font=('Segoe UI', 8))
+                _status_lbl.pack(side=tk.LEFT, padx=4)
+                def _do_bypass(gid=_aid, gname=_g["name"], gfolder=_g["folder"], gexe=_fexe):
+                    _src = _bypass_base / gfolder
+                    if not _src.exists():
+                        _messagebox.showwarning('Bypass', f'{gname}: bypass dosyasi bulunamadi.'); return
+                    # find game dir again
+                    _gd = None
+                    for _lib in _libraries:
+                        _acf = _lib / f"appmanifest_{gid}.acf"
+                        if _acf.exists():
+                            try:
+                                _txt = _acf.read_text('utf-8', errors='replace')
+                                _mm = re.search(r'"installdir"\s+"([^"]+)"', _txt)
+                                if _mm:
+                                    _cd = _lib.parent / "steamapps" / "common" / _mm.group(1)
+                                    if _cd.exists(): _gd = _cd
+                            except: pass
+                    if not _gd:
+                        _messagebox.showwarning('Bypass', f'{gname}: oyun yuklu degil veya Steam bulunamadi.'); return
+                    import shutil as _sh, zipfile as _zf
+                    _count = 0; _errors = []
+                    for _item in _src.rglob('*'):
+                        if _item.is_file() and _item.name != 'bypass_applied.txt':
+                            _rel = _item.relative_to(_src)
+                            _dest = _gd / _rel
+                            try:
+                                _dest.parent.mkdir(parents=True, exist_ok=True)
+                                _sh.copy2(str(_item), str(_dest)); _count += 1
+                            except Exception as _ex: _errors.append(str(_rel))
+                    # write marker
+                    try: (_gd / 'bypass_applied.txt').write_text('true')
+                    except: pass
+                    _msg = f'{gname}: {_count} dosya kopyalandi.'
+                    if _errors: _msg += f'\nHata: {len(_errors)} dosya'
+                    _messagebox.showinfo('Bypass', _msg)
+                    self._set_indicator(f'Bypass: {gname} enjekte edildi', 'online')
+                AB_bp(_row, 'Enjekte Et', _do_bypass, 100, 28,
+                      '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
+                      ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=4)
+                if not _game_dir:
+                    def _browse_path(gname=_g["name"], gfolder=_g["folder"], gexe=_fexe):
+                        _p = tkinter.filedialog.askdirectory(title=f'{gname} oyun klasorunu secin')
+                        if not _p: return
+                        _src = _bypass_base / gfolder
+                        if not _src.exists():
+                            _messagebox.showwarning('Bypass', 'Bypass dosyasi bulunamadi.'); return
+                        import shutil as _sh
+                        _count = 0
+                        for _item in _src.rglob('*'):
+                            if _item.is_file() and _item.name != 'bypass_applied.txt':
+                                _rel = _item.relative_to(_src)
+                                _dest = Path(_p) / _rel
+                                try:
+                                    _dest.parent.mkdir(parents=True, exist_ok=True)
+                                    _sh.copy2(str(_item), str(_dest)); _count += 1
+                                except: pass
+                        try: (Path(_p) / 'bypass_applied.txt').write_text('true')
+                        except: pass
+                        _messagebox.showinfo('Bypass', f'{gname}: {_count} dosya {_p} klasorune kopyalandi.')
+                        self._set_indicator(f'Bypass: {gname} enjekte edildi', 'online')
+                    AB_bp(_row, 'G\u00f6z At...', _browse_path, 90, 28,
+                          '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
+                          ('Segoe UI', 9)).pack(side=tk.RIGHT, padx=2)
+        AB(_bypass_row, 'Bypass Browser', _open_bypass_browser, 130, 30,
+           '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
+        tk.Label(_bypass_row, text='Oyun bypass dosyalarini enjekte et',
+                 fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=8)
 
 
         # ---- Torrent Downloader Section ----
@@ -4629,7 +4970,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                        110, 36, '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
                        ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT)
         footer.pack(fill=tk.X, padx=16, pady=(0, 10))
-        _add_tools_section(window, self)
+        _add_tools_section(_inner, self)
 
     SteamApp.open_settings_window = open_settings_window_from_pyw
 
@@ -5150,19 +5491,9 @@ A: .luaファイルがstplug-inフォルダにあることを
     root.after(200, _pos_overlay)
 
     def _show_ai_box(txt):
-        _ai_lbl.config(text='\u2192 ' + txt)
-        _ai_row.pack(fill=tk.X)
-        if _srch_entry and _srch_entry.winfo_exists():
-            _ex = _srch_entry.winfo_rootx() - root.winfo_rootx()
-            _ey = _srch_entry.winfo_rooty() - root.winfo_rooty() - 2
-            _sb_overlay.place(x=_ex, y=_ey, anchor='sw')
-        else:
-            _sb_overlay.place(relx=0.5, rely=1.0, anchor='s', x=0, y=-12)
-        _sb_overlay.lift()
+        pass  # disabled - was showing weird text above search
     def _hide_ai_box():
-        _ai_row.pack_forget()
-        if not _status_lbl.cget('text'):
-            _sb_overlay.place_forget()
+        pass
     def _clk_ai_corrected(e=None):
         if _ai_corrected_text and _srch_entry:
             _srch_entry.delete(0, tk.END)
