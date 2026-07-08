@@ -14,37 +14,36 @@ body{font-family:'Segoe UI',sans-serif;background:#05050a;color:#e8e8f8;min-heig
 .bg .orb:nth-child(3){width:400px;height:400px;background:#4a3fbf;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-14s}
 @keyframes float{0%,100%{transform:translate(0,0)scale(1)}25%{transform:translate(60px,-40px)scale(1.08)}50%{transform:translate(-30px,50px)scale(.95)}75%{transform:translate(40px,30px)scale(1.05)}}
 .grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(124,111,255,.04)1px,transparent 1px),linear-gradient(90deg,rgba(124,111,255,.04)1px,transparent 1px);background-size:60px 60px;pointer-events:none}
-.container{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:40px 20px}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px}
-h1{font-size:28px;background:linear-gradient(135deg,#7c6fff,#b098ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.card{background:#0d1724;border:1px solid#1f3348;border-radius:12px;padding:24px;margin-bottom:20px}
-.card h3{color:#8fd3ff;margin-bottom:12px;font-size:16px}
-.modal{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.7);align-items:center;justify-content:center}
-.modal.show{display:flex}
-.modal-box{background:#0d1724;border:1px solid#1f3348;border-radius:12px;padding:30px;width:400px;max-width:90%}
-.modal-box h3{color:#8fd3ff;margin-bottom:16px}
-.modal-box input{width:100%;padding:10px;background:#122235;border:1px solid#1f3348;border-radius:6px;color:#f7fafc;font-size:14px;margin-bottom:12px}
-.modal-box input:focus{outline:none;border-color:#66c0f4}
-.modal-box button{padding:10px 24px;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-weight:600;margin-right:8px}
-.btn-primary{background:#2a2a5a;color:#7c6fff}
-.btn-primary:hover{background:#3a3a7a}
-.btn-danger{background:#4a2020;color:#f56565}
-.btn-danger:hover{background:#6a3030}
-.btn-success{background:#1a3a2a;color:#48bb78}
-.btn-success:hover{background:#2a5a3a}
-.btn-sm{padding:6px 12px;font-size:12px}
-.admin-panel{display:none}
-.admin-panel.show{display:block}
-.entry{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#122235;border-radius:4px;margin-bottom:6px}
-.entry span{font-family:monospace;font-size:14px}
-.row{display:flex;gap:8px;align-items:center}
-.row input{flex:1;margin-bottom:0}
-.msg{padding:10px;border-radius:6px;margin-bottom:12px;font-size:13px;display:none}
-.msg.success{display:block;background:#1a3a2a;color:#48bb78}
-.msg.error{display:block;background:#4a2020;color:#f56565}
-.empty{color:#686880;font-style:italic;padding:12px 0;text-align:center}
+.container{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:40px 20px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+h1{font-size:26px;background:linear-gradient(135deg,#7c6fff,#b098ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.card{background:#0d1724;border:1px solid#1f3348;border-radius:12px;padding:20px;margin-bottom:16px}
+.card h3{color:#8fd3ff;margin-bottom:10px;font-size:15px;display:flex;align-items:center;gap:6px}
+.tab-bar{display:flex;gap:4px;margin-bottom:16px}
+.tab{background:#0d1724;border:1px solid#1f3348;border-radius:8px 8px 0 0;padding:10px 20px;cursor:pointer;color:#686880;font-size:14px}
+.tab.active{background:#1a2a40;border-color:#7c6fff;color:#f7fafc}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.btn{padding:8px 18px;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600}
+.btn-primary{background:#2a2a5a;color:#7c6fff}.btn-primary:hover{background:#3a3a7a}
+.btn-danger{background:#4a2020;color:#f56565}.btn-danger:hover{background:#6a3030}
+.btn-success{background:#1a3a2a;color:#48bb78}.btn-success:hover{background:#2a5a3a}
+.btn-sm{padding:5px 10px;font-size:11px}
+.row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.row input{flex:1;padding:9px 12px;background:#122235;border:1px solid#1f3348;border-radius:6px;color:#f7fafc;font-size:13px;margin-bottom:0}
+.row input:focus{outline:none;border-color:#66c0f4}
+.entry{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#122235;border-radius:4px;margin-bottom:4px;font-size:13px}
+.entry span{font-family:monospace;font-size:13px;word-break:break-all}
+.msg{padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:13px;display:none}
+.msg.show{display:block}
+.msg.success{background:#1a3a2a;color:#48bb78}
+.msg.error{background:#4a2020;color:#f56565}
+.msg.info{background:#1a2a40;color:#8fd3ff}
+.empty{color:#686880;font-style:italic;padding:10px 0;text-align:center;font-size:13px}
+.count{color:#686880;font-size:12px;margin-left:8px}
 footer{text-align:center;padding:30px;color:#686880;font-size:13px}
 footer a{color:#7c6fff;text-decoration:none}
+@media(max-width:600px){.container{padding:20px 12px}.card{padding:14px}h1{font-size:22px}}
 </style>
 </head>
 <body>
@@ -57,22 +56,56 @@ footer a{color:#7c6fff;text-decoration:none}
     <a href="index.html" style="color:#8fd3ff;text-decoration:none;font-size:14px">&larr; Ana Sayfa</a>
   </header>
 
-  <div id="adminPanel" class="admin-panel show">
+  <div class="tab-bar">
+    <div class="tab active" data-tab="blacklist" onclick="switchTab('blacklist')">Kara Liste</div>
+    <div class="tab" data-tab="devices" onclick="switchTab('devices')">Cihazlar</div>
+    <div class="tab" data-tab="users" onclick="switchTab('users')">Kullanicilar</div>
+    <div class="tab" data-tab="settings" onclick="switchTab('settings')">Ayarlar</div>
+  </div>
+
+  <div id="msg" class="msg"></div>
+
+  <!-- BLACKLIST TAB -->
+  <div id="panel-blacklist" class="tab-panel active">
     <div class="card">
-      <h3>&#x1f464; Blacklist Yonetimi</h3>
-      <div id="msg" class="msg"></div>
-      <div id="tokenSection">
-        <p style="color:#97afc6;font-size:13px;margin-bottom:8px">GitHub Token girin (Settings > Developer settings > Personal access tokens > Tokens classic, scope: repo)</p>
-        <div class="row" style="margin-bottom:12px">
-          <input type="password" id="tokenInput" placeholder="GitHub Token" onkeydown="if(event.key==='Enter')saveToken()" />
-          <button class="btn-primary btn-sm" onclick="saveToken()">Kaydet</button>
-        </div>
+      <h3>&#128683; Kara Liste <span id="blCount" class="count"></span></h3>
+      <div class="row">
+        <input type="text" id="blInput" placeholder="HWID (MAC adresi, hex)" onkeydown="if(event.key==='Enter')addBlacklist()" />
+        <button class="btn btn-success" onclick="addBlacklist()">Banla</button>
       </div>
-      <div class="row" style="margin-bottom:12px">
-        <input type="text" id="newEntry" placeholder="Bilgisayar adi (COMPUTERNAME)" onkeydown="if(event.key==='Enter')addEntry()" />
-        <button class="btn-success" onclick="addEntry()">Ekle</button>
+      <div id="blEntries"><div class="empty">Yukleniyor...</div></div>
+    </div>
+  </div>
+
+  <!-- DEVICES TAB -->
+  <div id="panel-devices" class="tab-panel">
+    <div class="card">
+      <h3>&#128187; Kayitli Cihazlar <span id="devCount" class="count"></span></h3>
+      <div id="devEntries"><div class="empty">Yukleniyor...</div></div>
+    </div>
+  </div>
+
+  <!-- USERS TAB -->
+  <div id="panel-users" class="tab-panel">
+    <div class="card">
+      <h3>&#128100; Kayitli Kullanicilar <span id="usrCount" class="count"></span></h3>
+      <div id="usrEntries"><div class="empty">Yukleniyor...</div></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div id="panel-settings" class="tab-panel">
+    <div class="card">
+      <h3>&#128295; Gist Baglantisi</h3>
+      <p style="color:#97afc6;font-size:13px;margin-bottom:10px">GitHub Token (gist scope) — sadece tarayicida saklanir, hicbir yere gonderilmez.</p>
+      <div class="row">
+        <input type="password" id="tokenInput" placeholder="GitHub Token" onkeydown="if(event.key==='Enter')saveToken()" />
+        <button class="btn btn-primary" onclick="saveToken()">Kaydet</button>
       </div>
-      <div id="entries"><div class="empty">Yukleniyor...</div></div>
+      <div style="margin-top:10px;font-size:12px;color:#686880">
+        Gist ID: <code style="color:#8fd3ff">6f3df9ed457b97936420526d5f5a431b</code><br>
+        Token yoksa sadece okuma modu.
+      </div>
     </div>
   </div>
 </div>
@@ -83,81 +116,149 @@ footer a{color:#7c6fff;text-decoration:none}
 </footer>
 
 <script>
-const OWNER='tttaaahhhaaa',REPO='SteamToolsLua',PATH='blacklist.txt',BRANCH='master';
-let currentData=[],currentSha=null,token=localStorage.getItem('gh_token')||'';
+const GIST_ID='6f3df9ed457b97936420526d5f5a431b';
+let token=localStorage.getItem('gh_token')||'', gistData=null;
 
-function showMsg(text,type){const el=document.getElementById('msg');el.textContent=text;el.className='msg '+type}
+function showMsg(text,type){const el=document.getElementById('msg');el.textContent=text;el.className='msg '+type+' show';setTimeout(()=>el.classList.remove('show'),3500)}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));
+}
 
 function saveToken(){
   const t=document.getElementById('tokenInput').value.trim();
   if(!t){showMsg('Token girin.','error');return}
-  localStorage.setItem('gh_token',t);
-  token=t;
-  document.getElementById('tokenSection').style.display='none';
+  localStorage.setItem('gh_token',t); token=t;
   showMsg('Token kaydedildi.','success');
-  loadEntries();
+  loadAll();
 }
 
 async function ghFetch(url,opts={}){
-  const h={'User-Agent':'SteamToolsLua-Panel'};
-  if(token)h['Authorization']='Bearer '+token;
-  if(opts.body)h['Content-Type']='application/json';
-  return fetch(url,{...opts,headers:h})
+  const h={'User-Agent':'SteamToolsLua-Admin'};
+  if(token) h['Authorization']='Bearer '+token;
+  if(opts.body) h['Content-Type']='application/json';
+  return fetch(url,{...opts,headers:h});
 }
 
-async function loadEntries(){
-  const c=document.getElementById('entries');
-  c.innerHTML='<div class="empty">Yukleniyor...</div>';
+async function loadGist(){
+  try{
+    const r=await ghFetch(`https://api.github.com/gists/${GIST_ID}`);
+    if(!r.ok){showMsg('Gist yuklenemedi: '+r.status,'error');return null}
+    return await r.json();
+  }catch(e){showMsg('Gist hatasi: '+e.message,'error');return null}
+}
+
+function getFile(gist,name){
+  if(!gist||!gist.files||!gist.files[name]) return null;
+  try{return JSON.parse(gist.files[name].content)}
+  catch(e){return gist.files[name].content}
+}
+
+async function updateFile(name,data){
+  if(!token){showMsg('Yazmak icin token gerekli.','error');return false}
+  try{
+    const content=typeof data==='string'?data:JSON.stringify(data,null,2);
+    const body={files:{}}; body.files[name]={content};
+    const r=await ghFetch(`https://api.github.com/gists/${GIST_ID}`,{method:'PATCH',body:JSON.stringify(body)});
+    if(!r.ok){const e=await r.text();showMsg('Guncelleme hatasi: '+e,'error');return false}
+    showMsg('Kaydedildi!','success');
+    return true;
+  }catch(e){showMsg('Hata: '+e.message,'error');return false}
+}
+
+// ---- BLACKLIST ----
+async function loadBlacklist(){
+  const el=document.getElementById('blEntries');
+  el.innerHTML='<div class="empty">Yukleniyor...</div>';
+  const g=await loadGist();
+  if(!g){el.innerHTML='<div class="empty">Gist yuklenemedi.</div>';return}
+  const bl=getFile(g,'blacklist.json');
+  if(!bl||!Array.isArray(bl)){el.innerHTML='<div class="empty">blacklist.json bos veya gecersiz.</div>';return}
+  document.getElementById('blCount').textContent='('+bl.length+')';
+  if(!bl.length){el.innerHTML='<div class="empty">Kara liste bos.</div>';return}
+  el.innerHTML=bl.map((h,i)=>'<div class="entry"><span>'+esc(h)+'</span><button class="btn btn-danger btn-sm" onclick="removeBlacklist('+i+')">Kaldir</button></div>').join('');
+}
+
+async function addBlacklist(){
+  const inp=document.getElementById('blInput');
+  const val=inp.value.trim().toLowerCase();
+  if(!val){showMsg('HWID girin.','error');return}
+  const g=await loadGist();
+  if(!g) return;
+  let bl=getFile(g,'blacklist.json');
+  if(!Array.isArray(bl)) bl=[];
+  if(bl.includes(val)){showMsg('Zaten listede: '+val,'error');return}
+  bl.push(val);
+  if(await updateFile('blacklist.json',bl)){inp.value='';loadBlacklist()}
+}
+
+async function removeBlacklist(i){
+  const g=await loadGist(); if(!g) return;
+  let bl=getFile(g,'blacklist.json');
+  if(!Array.isArray(bl)) return;
+  bl.splice(i,1);
+  if(await updateFile('blacklist.json',bl)) loadBlacklist();
+}
+
+// ---- DEVICES ----
+async function loadDevices(){
+  const el=document.getElementById('devEntries');
+  el.innerHTML='<div class="empty">Yukleniyor...</div>';
+  const g=await loadGist();
+  if(!g){el.innerHTML='<div class="empty">Gist yuklenemedi.</div>';return}
+  const dev=getFile(g,'devices.json');
+  if(!dev||!Array.isArray(dev)){el.innerHTML='<div class="empty">devices.json bos veya gecersiz.</div>';return}
+  document.getElementById('devCount').textContent='('+dev.length+')';
+  if(!dev.length){el.innerHTML='<div class="empty">Kayitli cihaz yok.</div>';return}
+  el.innerHTML=dev.map(d=>{
+    const hwid=esc(d.hwid||d.hwId||d.device_id||'-');
+    const name=esc(d.name||d.device_name||d.computer||'-');
+    const date=esc(d.date||d.first_seen||d.last_seen||'-');
+    return '<div class="entry"><span>'+hwid+'<br><small style="color:#686880">'+name+' &middot; '+date+'</small></span></div>'
+  }).join('');
+}
+
+// ---- USERS ----
+async function loadUsers(){
+  const el=document.getElementById('usrEntries');
+  el.innerHTML='<div class="empty">Yukleniyor...</div>';
+  const g=await loadGist();
+  if(!g){el.innerHTML='<div class="empty">Gist yuklenemedi.</div>';return}
+  const usr=getFile(g,'users.json');
+  if(!usr||!Array.isArray(usr)){el.innerHTML='<div class="empty">users.json bos veya gecersiz.</div>';return}
+  document.getElementById('usrCount').textContent='('+usr.length+')';
+  if(!usr.length){el.innerHTML='<div class="empty">Kayitli kullanici yok.</div>';return}
+  el.innerHTML=usr.map(u=>{
+    const hwid=esc(u.hwid||u.id||'-');
+    const name=esc(u.nickname||u.name||u.username||'-');
+    const date=esc(u.date||u.created||u.last_seen||'-');
+    return '<div class="entry"><span>'+esc(name)+'<br><small style="color:#686880">HWID: '+hwid+' &middot; '+date+'</small></span></div>'
+  }).join('');
+}
+
+// ---- NICKNAMES ----
+async function loadNicknames(){
+  const g=await loadGist();
+  if(!g) return;
+  const nn=getFile(g,'nicknames.json');
+  if(nn&&typeof nn==='object') return nn;
+  return {};
+}
+
+// ---- Init ----
+async function loadAll(){
   if(!token){
-    document.getElementById('tokenSection').style.display='block';
-    c.innerHTML='<div class="empty">Token gerekli.</div>';
+    document.getElementById('blEntries').innerHTML='<div class="empty">Token gerekli (Ayarlar sekmesi).</div>';
+    document.getElementById('devEntries').innerHTML='<div class="empty">Token gerekli.</div>';
+    document.getElementById('usrEntries').innerHTML='<div class="empty">Token gerekli.</div>';
     return;
   }
-  document.getElementById('tokenSection').style.display='none';
-  try{
-    const r=await ghFetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}?ref=${BRANCH}`);
-    if(r.status===404){currentData=[];currentSha=null;c.innerHTML='<div class="empty">blacklist.txt henuz olusturulmamis.</div>';return}
-    if(!r.ok){c.innerHTML='<div class="empty">Hata: '+r.status+'</div>';return}
-    const d=await r.json();
-    currentSha=d.sha;
-    currentData=atob(d.content).split('\n').map(s=>s.trim()).filter(s=>s.length>0);
-    render()
-  }catch(e){c.innerHTML='<div class="empty">Hata: '+e.message+'</div>'}
+  await Promise.all([loadBlacklist(),loadDevices(),loadUsers()]);
 }
 
-function render(){
-  const c=document.getElementById('entries');
-  if(!currentData.length){c.innerHTML='<div class="empty">Liste bos.</div>';return}
-  c.innerHTML=currentData.map((n,i)=>'<div class="entry"><span>'+esc(n)+'</span><button class="btn-danger btn-sm" onclick="removeEntry('+i+')">Sil</button></div>').join('')
-}
-
-function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
-
-async function saveEntries(){
-  let content=currentData.join('\n');if(content)content+='\n';
-  const body={message:'blacklist guncelleme',content:btoa(content),branch:BRANCH};
-  if(currentSha)body.sha=currentSha;
-  const r=await ghFetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`,{method:'PUT',body:JSON.stringify(body)});
-  if(!r.ok){const e=await r.text();showMsg('Kaydetme hatasi: '+e,'error');return false}
-  const d=await r.json();currentSha=d.content.sha;showMsg('Kaydedildi!','success');return true
-}
-
-async function addEntry(){
-  const inp=document.getElementById('newEntry');
-  const val=inp.value.trim().toUpperCase();
-  if(!val){showMsg('Bilgisayar adi girin.','error');return}
-  if(currentData.includes(val)){showMsg('Zaten mevcut: '+val,'error');return}
-  if(!token){showMsg('Token gerekli.','error');return}
-  currentData.push(val);inp.value='';
-  if(await saveEntries())render()
-}
-
-async function removeEntry(i){
-  currentData.splice(i,1);
-  if(await saveEntries())render()
-}
-
-if(token)loadEntries();
+if(token) loadAll();
 </script>
 </body>
 </html>
