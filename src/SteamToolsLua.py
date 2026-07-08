@@ -152,7 +152,16 @@ def main():
     if root is None or os.getenv('STEAMTOOLS_SMOKE_TEST') == '1':
         return
     # Fix: ensure window closes properly and returns from taskbar
-    root.protocol('WM_DELETE_WINDOW', root.destroy)
+    _orig_destroy = root.destroy
+    def _on_main_close():
+        # Kill CloudRedirect if running
+        _cr_procs = g.get('_cr_procs', [])
+        for _p in _cr_procs:
+            if _p and _p.poll() is None:
+                try: _p.kill()
+                except: pass
+        _orig_destroy()
+    root.protocol('WM_DELETE_WINDOW', _on_main_close)
     try: root.attributes('-toolwindow', False)
     except: pass
     # Fix: bring window to front when restored from taskbar (no topmost)
@@ -1216,10 +1225,24 @@ def install_ui_fixes(g):
                 tk.Checkbutton(row, variable=var, bg=bg, activebackground='#14142a',
                                selectcolor='#7c6fff', fg='#d0d0e8', font=('Segoe UI', 10)).pack(side=tk.LEFT)
                 tk.Label(row, text=_ef['name'], bg=bg, fg='#d0d0e8',
-                         font=('Segoe UI', 10), anchor='w', width=30).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
-                tk.Label(row, text=_ef['exe'].name, bg=bg, fg='#686880',
-                         font=('Segoe UI', 8), anchor='e', width=40).pack(side=tk.RIGHT, padx=4)
-                _path_vars[_ef['folder']] = str(_ef['exe'])
+                         font=('Segoe UI', 10), anchor='w', width=25).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+                _exe_name_lbl = tk.Label(row, text=_ef['exe'].name, bg=bg, fg='#686880',
+                         font=('Segoe UI', 8), anchor='e', width=30)
+                _exe_name_lbl.pack(side=tk.RIGHT, padx=4)
+                _browse_var = [str(_ef['exe'])]
+                _path_vars[_ef['folder']] = _browse_var
+                def _make_browse(_fld, _var, _lbl):
+                    def _browse():
+                        _p = _tk_fd_imp.askopenfilename(title='Select .exe for ' + _fld.name,
+                            filetypes=[('Executable files', '*.exe'), ('All files', '*.*')])
+                        if not _p: return
+                        _var[0] = _p
+                        _lbl.config(text=Path(_p).name)
+                    return _browse
+                AB4 = g.get('AnimatedButton', AnimatedButton)
+                AB4(row, '...', _make_browse(_ef['folder'], _browse_var, _exe_name_lbl), 28, 24,
+                    '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
+                    ('Segoe UI', 8)).pack(side=tk.RIGHT, padx=2)
         _btnf = tk.Frame(_ov, bg='#08080e')
         _btnf.pack(fill=tk.X, padx=16, pady=(0, 14))
         _tk_fd_imp = __import__('tkinter.filedialog')
@@ -1257,29 +1280,54 @@ def install_ui_fixes(g):
             return
         stplug_dir = Path("C:\\Program Files (x86)\\Steam\\config\\stplug-in")
         stplug_dir.mkdir(parents=True, exist_ok=True)
+        _steam_common = Path("C:\\Program Files (x86)\\Steam\\steamapps\\common")
         done = 0
         for _folder in chosen:
             try:
-                _exe_file = None
-                for f in _folder.iterdir():
-                    if f.suffix.lower() == '.exe':
-                        _exe_file = f; break
+                _custom_exe = Path(_path_vars.get(_folder, [''])[0]) if _path_vars.get(_folder) else None
+                _exe_file = _custom_exe if (_custom_exe and _custom_exe.suffix.lower() == '.exe' and _custom_exe.exists()) else None
+                if not _exe_file:
+                    for f in _folder.iterdir():
+                        if f.suffix.lower() == '.exe':
+                            _exe_file = f; break
                 if not _exe_file:
                     self.log(f'[Inject OF] No .exe in {_folder.name}')
                     continue
-                _lua_file = Path(str(_exe_file).rsplit('.',1)[0] + '.lua')
-                # Ask user where to copy the .exe (default: common Steam folder)
-                _default_dst = Path("C:\\Program Files (x86)\\Steam\\steamapps\\common") / _exe_file.name
-                _dst_path = _tk_fd_imp.asksaveasfilename(
-                    title=f'Save {_exe_file.name} as...',
-                    initialdir=str(Path("C:\\Program Files (x86)\\Steam\\steamapps\\common")),
-                    initialfile=_exe_file.name)
-                if not _dst_path: continue
-                _shutil.copy2(str(_exe_file), _dst_path)
-                self.log(f'[Inject OF] {_exe_file.name} -> {_dst_path}')
+                _lua_file = _folder / (_exe_file.stem + '.lua')
+                # Find installed game folder matching this OF
+                _game_name = _folder.name.replace('_', ' ').replace('-', ' ').strip()
+                _game_name = ' '.join(w.capitalize() for w in _game_name.split())
+                _target_dir = None
+                for _gd in _steam_common.iterdir():
+                    if _gd.is_dir() and (_game_name.lower() in _gd.name.lower() or _gd.name.lower() in _game_name.lower()):
+                        _target_dir = _gd; break
+                # Also check via Steam .acf for appid
+                if not _target_dir and hasattr(self, '_find_steam_game_path'):
+                    try:
+                        _found = self._find_steam_game_path(_exe_file.stem)
+                        if _found: _target_dir = Path(_found)
+                    except: pass
+                if not _target_dir:
+                    _target_dir = _steam_common / _folder.name
+                if not _target_dir.exists():
+                    self.log(f'[Inject OF] Oyun yuklu degil, atlaniyor: {_game_name}')
+                    continue
+                # Copy folder contents (not folder itself) to target dir
+                for _src_file in _folder.iterdir():
+                    if _src_file.is_file():
+                        _dst = _target_dir / _src_file.name
+                        try:
+                            _shutil.copy2(str(_src_file), str(_dst))
+                            self.log(f'[Inject OF] {_src_file.name} -> {_target_dir.name}/')
+                        except Exception as _cp_err:
+                            self.log(f'[Inject OF] Kopyalama hatasi {_src_file.name}: {_cp_err}')
+                # Copy .lua companion to stplug-in
                 if _lua_file.exists():
-                    _shutil.copy2(str(_lua_file), str(stplug_dir / _lua_file.name))
-                    self.log(f'[Inject OF] Lua: {_lua_file.name} -> stplug-in/')
+                    try:
+                        _shutil.copy2(str(_lua_file), str(stplug_dir / _lua_file.name))
+                        self.log(f'[Inject OF] Lua: {_lua_file.name} -> stplug-in/')
+                    except Exception as _lua_err:
+                        self.log(f'[Inject OF] Lua hatasi: {_lua_err}')
                 done += 1
             except Exception as _ex:
                 self.log(f'[Inject OF] HATA: {_ex}')
@@ -3942,13 +3990,19 @@ A: .luaファイルがstplug-inフォルダにあることを
         AB(tools_row, _tr(self, 'button.restart_steam'), _run_restart,
            120, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
-        # CloudRedirect (check exist → ask → download → launch)
+        # CloudRedirect (check exist → ask → download → launch, track proc)
+        def _track_cr(_p):
+            _list = g.get('_cr_procs')
+            if _list is None:
+                _list = []; g['_cr_procs'] = _list
+            _list.append(_p)
+
         def _run_cloudredirect():
             _cr_dir = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / "CloudRedirect"
             _cr_exe = _cr_dir / "CloudRedirect.exe"
             if _cr_exe.exists():
                 import subprocess as _sp
-                _sp.Popen([str(_cr_exe)])
+                _track_cr(_sp.Popen([str(_cr_exe)]))
                 return
             if not _messagebox.askyesno('CloudRedirect', 'CloudRedirect.exe bulunamadi.\nIndirilsin mi?'):
                 return
@@ -3978,7 +4032,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                                 _f.write(_chunk)
                     self._set_indicator('CloudRedirect hazir', 'online')
                     import subprocess as _sp
-                    _sp.Popen([str(_cr_exe)])
+                    _track_cr(_sp.Popen([str(_cr_exe)]))
                 except Exception as _ex:
                     self._set_indicator('CloudRedirect hata: ' + str(_ex), 'offline')
             _cr_thr.Thread(target=_task, daemon=True).start()
