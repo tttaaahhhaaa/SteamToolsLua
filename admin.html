@@ -46,6 +46,14 @@ h1{font-size:26px;background:linear-gradient(135deg,#7c6fff,#b098ff);-webkit-bac
 .modal-box{background:#0d1724;border:1px solid#1f3348;border-radius:12px;padding:24px;width:420px;max-width:90%}
 .modal-box h3{color:#8fd3ff;margin-bottom:14px;font-size:15px}
 .modal-box .row input{background:#122235}.modal-box .row input[readonly]{color:#686880}
+.dev-card{background:#0d1724;border:1px solid#1f3348;border-radius:10px;padding:14px;margin-bottom:10px}
+.dev-card .hwid{color:#f7fafc;font-family:monospace;font-size:13px}
+.dev-card .info{color:#686880;font-size:12px;margin:4px 0 8px}
+.dev-card .day-group{margin-bottom:6px}
+.dev-card .day-label{color:#8fd3ff;font-size:12px;font-weight:600;margin-bottom:2px}
+.dev-card .time-list{display:flex;flex-wrap:wrap;gap:4px}
+.dev-card .time-badge{background:#1a2a40;color:#97afc6;font-size:11px;padding:2px 6px;border-radius:3px;font-family:monospace}
+.dev-card .time-badge.many{color:#f56565}
 footer{text-align:center;padding:30px;color:#686880;font-size:13px}
 footer a{color:#7c6fff;text-decoration:none}
 @media(max-width:600px){.container{padding:20px 12px}.card{padding:14px}h1{font-size:22px}}
@@ -63,7 +71,7 @@ footer a{color:#7c6fff;text-decoration:none}
 
   <div class="tab-bar">
     <div class="tab active" data-tab="blacklist" onclick="switchTab('blacklist')">Kara Liste</div>
-    <div class="tab" data-tab="devices" onclick="switchTab('devices')">Cihazlar</div>
+    <div class="tab" data-tab="devices" onclick="switchTab('devices')">Cihaz Gecmisi</div>
     <div class="tab" data-tab="users" onclick="switchTab('users')">Kullanicilar</div>
     <div class="tab" data-tab="settings" onclick="switchTab('settings')">Ayarlar</div>
   </div>
@@ -102,7 +110,7 @@ footer a{color:#7c6fff;text-decoration:none}
   <!-- DEVICES TAB -->
   <div id="panel-devices" class="tab-panel">
     <div class="card">
-      <h3>&#128187; Kayitli Cihazlar <span id="devCount" class="count"></span></h3>
+      <h3>&#128187; Cihaz Kullanim Gecmisi <span id="devCount" class="count"></span></h3>
       <div id="devEntries"><div class="empty">Yukleniyor...</div></div>
     </div>
   </div>
@@ -119,7 +127,7 @@ footer a{color:#7c6fff;text-decoration:none}
   <div id="panel-settings" class="tab-panel">
     <div class="card">
       <h3>&#128295; Gist Baglantisi</h3>
-      <p style="color:#97afc6;font-size:13px;margin-bottom:10px">GitHub Token (gist scope) — sadece tarayicida saklanir, hicbir yere gonderilmez.</p>
+      <p style="color:#97afc6;font-size:13px;margin-bottom:10px">GitHub Token (gist scope) - sadece tarayicida saklanir, hicbir yere gonderilmez.</p>
       <div class="row">
         <input type="password" id="tokenInput" placeholder="GitHub Token" onkeydown="if(event.key==='Enter')saveToken()" />
         <button class="btn btn-primary" onclick="saveToken()">Kaydet</button>
@@ -247,7 +255,7 @@ async function removeBlacklist(i){
   if(await updateFile('blacklist.json',bl)) loadBlacklist();
 }
 
-// ---- DEVICES ----
+// ---- DEVICES (usage history grouped by day) ----
 async function loadDevices(){
   const el=document.getElementById('devEntries');
   el.innerHTML='<div class="empty">Yukleniyor...</div>';
@@ -255,14 +263,72 @@ async function loadDevices(){
   if(!g){el.innerHTML='<div class="empty">Gist yuklenemedi.</div>';return}
   const dev=getFile(g,'devices.json');
   if(!dev||!Array.isArray(dev)){el.innerHTML='<div class="empty">devices.json bos veya gecersiz.</div>';return}
-  document.getElementById('devCount').textContent='('+dev.length+')';
-  if(!dev.length){el.innerHTML='<div class="empty">Kayitli cihaz yok.</div>';return}
-  el.innerHTML=dev.map(d=>{
-    const hwid=esc(d.hwid||d.hwId||d.device_id||'-');
-    const name=esc(d.name||d.device_name||d.computer||'-');
-    const date=esc(d.date||d.first_seen||d.last_seen||'-');
-    return '<div class="entry"><span>'+hwid+'<br><small style="color:#686880">'+name+' &middot; '+date+'</small></span><button class="btn btn-danger btn-sm" onclick="showBanModal(\''+hwid+'\')">Banla</button></div>'
-  }).join('');
+
+  // filter real device entries (must have hwid + pc)
+  const real=dev.filter(e=>e&&typeof e==='object'&&e.hwid&&e.pc);
+  if(!real.length){el.innerHTML='<div class="empty">Henuz cihaz kaydi yok.</div>';return}
+  document.getElementById('devCount').textContent='('+real.length+')';
+
+  // group by hwid
+  const byHwid={};
+  for (const e of real){
+    if(!byHwid[e.hwid]) byHwid[e.hwid]={pc:e.pc,ip:e.ip,times:[]};
+    if(e.time) byHwid[e.hwid].times.push(e.time);
+  }
+
+  // sort each device's times, group by day
+  const now=new Date();
+  const todayStr=now.toISOString().slice(0,10);
+  const dayLabels={0:'Pazar',1:'Pazartesi',2:'Sali',3:'Carsamba',4:'Persembe',5:'Cuma',6:'Cumartesi'};
+
+  function formatTime(isoStr){
+    const d=new Date(isoStr);
+    return d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+  }
+
+  function getDayLabel(isoStr){
+    const d=new Date(isoStr.slice(0,10));
+    const diff=Math.round((now-d)/86400000);
+    if(diff===0) return 'Bugun';
+    if(diff===1) return 'Dun';
+    return d.toLocaleDateString('tr-TR',{day:'numeric',month:'long'})+' '+dayLabels[d.getDay()];
+  }
+
+  let html='';
+  for (const [hwid,info] of Object.entries(byHwid)){
+    info.times.sort();
+    // group times by day (yyyy-mm-dd)
+    const byDay={};
+    for (const t of info.times){
+      const day=t.slice(0,10);
+      if(!byDay[day]) byDay[day]=[];
+      byDay[day].push(t);
+    }
+
+    // sorted days descending (newest first)
+    const days=Object.keys(byDay).sort().reverse();
+
+    html+='<div class="dev-card">';
+    html+='<div class="hwid">'+esc(hwid)+'</div>';
+    html+='<div class="info">'+esc(info.pc)+' &middot; '+esc(info.ip)+' &middot; '+info.times.length+' kez</div>';
+    for (const day of days){
+      const ts=byDay[day];
+      html+='<div class="day-group">';
+      html+='<div class="day-label">'+getDayLabel(day)+' ('+ts.length+')</div>';
+      html+='<div class="time-list">';
+      // show up to 10 time badges, rest as "+N more"
+      const show=ts.slice(-12);
+      const hidden=ts.length-show.length;
+      for (const t of show){
+        html+='<span class="time-badge">'+formatTime(t)+'</span>';
+      }
+      if(hidden>0) html+='<span class="time-badge many">+'+hidden+' daha</span>';
+      html+='</div></div>';
+    }
+    html+='<div style="margin-top:8px"><button class="btn btn-danger btn-sm" onclick="showBanModal(\''+esc(hwid)+'\')">Banla</button></div>';
+    html+='</div>';
+  }
+  el.innerHTML=html;
 }
 
 // ---- USERS ----
