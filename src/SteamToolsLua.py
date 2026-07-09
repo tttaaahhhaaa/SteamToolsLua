@@ -1333,13 +1333,27 @@ def install_ui_fixes(g):
 
             def _download_first_100():
                 try:
+                    _used_cache = getattr(SteamApp, '_used_cache', {})
                     _games = getattr(_root_app, '_steamdb_games', [])
                     if not _games:
                         _games = getattr(_root_app, 'games', [])
                     if not _games:
                         _messagebox.showinfo('Download First 100', 'Once SteamDB sayfasini acin.\nAna menu > SteamDB butonu.')
                         return
-                    _candidates = [g for g in _games if not g.get('_no_download') and not g.get('installed')]
+                    def _is_used(_name):
+                        if not _name or not _used_cache:
+                            return False
+                        _t = _name.lower().strip()
+                        for ch in ('.', '_', '-', '\u2122', '\u00ae', '(', ')', '[', ']', ':', ';'):
+                            _t = _t.replace(ch, ' ')
+                        while '  ' in _t:
+                            _t = _t.replace('  ', ' ')
+                        _t = _t.strip()
+                        for _k in _used_cache:
+                            if _t == _k or _k in _t or _t in _k:
+                                return True
+                        return False
+                    _candidates = [g for g in _games if not _is_used(g.get('name', '')) and not g.get('_no_download') and not g.get('installed')]
                     if not _candidates:
                         _messagebox.showinfo('Download First 100', 'Indirilecek oyun bulunamadi.')
                         return
