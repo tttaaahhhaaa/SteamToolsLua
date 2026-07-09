@@ -1355,13 +1355,28 @@ def install_ui_fixes(g):
                                 return True
                         return False
                     _candidates = [g for g in _games if not _is_used(g.get('name', '')) and not g.get('_no_download') and not g.get('installed')]
+                    import json as _json
+                    _cache_path = getattr(_root_app, '_steamdb_cache_path', None) or Path(getattr(_root_app, '_data_dir', Path(__file__).resolve().parent), 'steamdb_cache.json')
+                    if not _cache_path.exists():
+                        _cache_path = Path(__file__).resolve().parent / 'steamdb_cache.json'
+                    _all_cached = []
+                    if _cache_path.exists():
+                        try: _all_cached = _json.loads(_cache_path.read_text(encoding='utf-8')).get('games', [])
+                        except: pass
+                    _known_ids = {str(g.get('appid','') or g.get('id','')) for g in _games}
+                    _extra_games = [g for g in _all_cached if str(g.get('appid','') or g.get('id','')) not in _known_ids and not _is_used(g.get('name','')) and not g.get('_no_download') and not g.get('installed')]
+                    if _extra_games:
+                        _games = _games + _extra_games
+                        try: _root_app._steamdb_games = _games
+                        except: pass
+                        _candidates = [g for g in _games if not _is_used(g.get('name', '')) and not g.get('_no_download') and not g.get('installed')]
                     if not _candidates:
                         _messagebox.showinfo('Toplu Indirme', 'Indirilecek oyun bulunamadi.')
                         return
                     import tkinter.simpledialog as _sd
                     _count = _sd.askinteger('Toplu Indirme',
                         f'Kac oyun indirmek istiyorsunuz?\n(Mevcut: {len(_candidates)} oyun)',
-                        minvalue=1, maxvalue=len(_candidates), initialvalue=100)
+                        minvalue=1, maxvalue=min(len(_candidates), 99999), initialvalue=min(100, len(_candidates)))
                     if not _count:
                         return
                     _batch = _candidates[:_count]
@@ -1396,11 +1411,15 @@ def install_ui_fixes(g):
                             except:
                                 pass
                         return None
+                    def _set_ind_safe(_txt, _st):
+                        try: _root_app.after(0, lambda: _root_app._set_indicator(_txt, _st))
+                        except: pass
+                    _dl_threads = []
                     def _task():
                         for i, _gd in enumerate(_batch):
                             _aid = _gd.get('appid', '') or _gd.get('id', '')
                             _name = _gd.get('name', '')
-                            _root_app._set_indicator(f'[{i+1}/{len(_batch)}] {_name} ({_aid})', 'working')
+                            _set_ind_safe(f'[{i+1}/{len(_batch)}] {_name} ({_aid})', 'working')
                             try:
                                 _sess = g.get('session')
                                 if _lt_mode.get():
@@ -1426,16 +1445,23 @@ def install_ui_fixes(g):
                                     if hasattr(_sess, 'cookies'):
                                         try: _sess.cookies.clear()
                                         except: pass
-                                    threading.Thread(target=lambda r=_gd: _root_app.indir_sonuclari(r), daemon=True).start()
+                                    _t = threading.Thread(target=lambda r=_gd: _root_app.indir_sonuclari(r), daemon=True)
+                                    _t.start()
+                                    _dl_threads.append(_t)
                                 _delay = _rnd.uniform(6, 12)
                                 _time.sleep(_delay)
                             except:
                                 pass
-                        _root_app._set_indicator(f'{len(_batch)} oyun indirme baslatildi', 'online')
-                        _sd_cevap = _messagebox.askyesno('Toplu Indirme',
-                            f'{len(_batch)} oyunun indirmesi baslatildi.\n\nBilgisayar kapansin mi?\n(Indirme bitince otomatik kapanir)')
-                        if _sd_cevap:
-                            _thr2.Thread(target=lambda: (_time.sleep(10), __import__('os').system('shutdown /s /t 10')), daemon=True).start()
+                        _set_ind_safe(f'{len(_batch)} oyun indirme baslatildi', 'online')
+                        for _t in _dl_threads:
+                            try: _t.join(timeout=300)
+                            except: pass
+                        try:
+                            _sd_cevap = _messagebox.askyesno('Toplu Indirme',
+                                f'{len(_batch)} oyun indirildi.\n\nBilgisayar kapansin mi?')
+                            if _sd_cevap:
+                                _thr2.Thread(target=lambda: (_time.sleep(3), __import__('os').system('shutdown /s /t 5')), daemon=True).start()
+                        except: pass
                     _thr2.Thread(target=_task, daemon=True).start()
                 except Exception as _ex:
                     _messagebox.showerror('Hata', str(_ex))
