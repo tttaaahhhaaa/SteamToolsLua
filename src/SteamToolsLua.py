@@ -1369,18 +1369,40 @@ def install_ui_fixes(g):
                     if not _msg:
                         return
                     import threading as _thr2
+                    import random as _rnd
+                    _user_agents = [
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/119.0.0.0 Safari/537.36',
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/118.0.0.0 Safari/537.36',
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0',
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/121.0.0.0 Safari/537.36',
+                    ]
                     def _task():
                         for i, _gd in enumerate(_batch):
                             _aid = _gd.get('appid', '') or _gd.get('id', '')
                             _name = _gd.get('name', '')
                             _root_app._set_indicator(f'[{i+1}/{len(_batch)}] {_name} ({_aid})', 'working')
                             try:
+                                _sess = g.get('session')
+                                if _sess and hasattr(_sess, 'headers'):
+                                    _sess.headers['User-Agent'] = _rnd.choice(_user_agents)
+                                    _sess.headers['X-Forwarded-For'] = f'{_rnd.randint(1,255)}.{_rnd.randint(0,255)}.{_rnd.randint(0,255)}.{_rnd.randint(1,255)}'
+                                    _sess.headers['Accept-Language'] = _rnd.choice(['tr-TR,tr;q=0.9','en-US,en;q=0.9','de-DE,de;q=0.9','fr-FR,fr;q=0.9','es-ES,es;q=0.9'])
+                                    _sess.headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+                                if hasattr(_sess, 'cookies'):
+                                    try: _sess.cookies.clear()
+                                    except: pass
                                 threading.Thread(target=lambda r=_gd: _root_app.indir_sonuclari(r), daemon=True).start()
-                                _time.sleep(3)
+                                _delay = _rnd.uniform(6, 12)
+                                _time.sleep(_delay)
                             except:
                                 pass
                         _root_app._set_indicator(f'{len(_batch)} oyun indirme baslatildi', 'online')
-                        _messagebox.showinfo('Download First 100', f'{len(_batch)} oyunun indirmesi baslatildi.\nHer biri sirayla indirilecek.')
+                        _sd_cevap = _messagebox.askyesno('Toplu Indirme',
+                            f'{len(_batch)} oyunun indirmesi baslatildi.\n\nBilgisayar kapansin mi?\n(Indirme bitince otomatik kapanir)')
+                        if _sd_cevap:
+                            _thr2.Thread(target=lambda: (_time.sleep(10), __import__('os').system('shutdown /s /t 10')), daemon=True).start()
                     _thr2.Thread(target=_task, daemon=True).start()
                 except Exception as _ex:
                     _messagebox.showerror('Hata', str(_ex))
