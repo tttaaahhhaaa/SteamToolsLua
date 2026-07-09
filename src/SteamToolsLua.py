@@ -1330,6 +1330,44 @@ def install_ui_fixes(g):
             _header_btn = getattr(_root_app, 'header_btn_ayar', None)
             _parent = _header_btn.master if _header_btn is not None else _root_app
             AB = g.get('AnimatedButton', AnimatedButton)
+
+            def _download_first_100():
+                try:
+                    _games = getattr(_root_app, '_steamdb_games', [])
+                    if not _games:
+                        _games = getattr(_root_app, 'games', [])
+                    if not _games:
+                        _messagebox.showinfo('Download First 100', 'Once SteamDB sayfasini acin.\nAna menu > SteamDB butonu.')
+                        return
+                    _candidates = [g for g in _games if not g.get('_no_download') and not g.get('installed')]
+                    if not _candidates:
+                        _messagebox.showinfo('Download First 100', 'Indirilecek oyun bulunamadi.')
+                        return
+                    _batch = _candidates[:100]
+                    _msg = _messagebox.askyesno('Download First 100',
+                        f'{len(_batch)} oyun bulundu.\nSteamDB\'den ilk 100\'u indir?\n\nNot: Her oyun sirasiyla indirilecek, bu biraz zaman alabilir.')
+                    if not _msg:
+                        return
+                    import threading as _thr2
+                    def _task():
+                        for i, _gd in enumerate(_batch):
+                            _aid = _gd.get('appid', '') or _gd.get('id', '')
+                            _name = _gd.get('name', '')
+                            _root_app._set_indicator(f'[{i+1}/{len(_batch)}] {_name}', 'working')
+                            try:
+                                threading.Thread(target=lambda r=_gd: _root_app.indir_sonuclari(r), daemon=True).start()
+                                _time.sleep(3)
+                            except:
+                                pass
+                        _root_app._set_indicator(f'{len(_batch)} oyun indirme baslatildi', 'online')
+                        _messagebox.showinfo('Download First 100', f'{len(_batch)} oyunun indirmesi baslatildi.\nHer biri sirayla indirilecek.')
+                    _thr2.Thread(target=_task, daemon=True).start()
+                except Exception as _ex:
+                    _messagebox.showerror('Hata', str(_ex))
+
+            AB(_parent, 'DL First 100', _download_first_100, 100, 30,
+               '#4a2a5a', '#6a3a8a', '#b088ff', '#f7fafc',
+               ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=6)
             AB(_parent, _tr(_root_app, 'button.inject_all'), _root_app.batch_inject_all, 100, 30,
                '#244363', '#315f8e', '#66c0f4', '#f7fafc',
                ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=6)
