@@ -1331,6 +1331,7 @@ def install_ui_fixes(g):
             _parent = _header_btn.master if _header_btn is not None else _root_app
             AB = g.get('AnimatedButton', AnimatedButton)
 
+            _lt_mode = tk.BooleanVar(value=False)
             def _download_first_100():
                 try:
                     _used_cache = getattr(SteamApp, '_used_cache', {})
@@ -1370,6 +1371,7 @@ def install_ui_fixes(g):
                         return
                     import threading as _thr2
                     import random as _rnd
+                    import requests as _req
                     _user_agents = [
                         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
                         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/119.0.0.0 Safari/537.36',
@@ -1378,6 +1380,22 @@ def install_ui_fixes(g):
                         'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0',
                         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/121.0.0.0 Safari/537.36',
                     ]
+                    _lt_servers = [
+                        'http://167.235.229.108/{aid}',
+                        'https://raw.githubusercontent.com/sushi-dev55-alt/sushitools-games-repo-alt/refs/heads/main/{aid}.zip',
+                        'https://files.luatools.work/GameBypasses/{aid}.zip',
+                    ]
+                    def _lt_download(_aid):
+                        _ua = _rnd.choice(_user_agents)
+                        for _sv in _lt_servers:
+                            _url = _sv.replace('{aid}', str(_aid))
+                            try:
+                                _r2 = _req.get(_url, timeout=30, headers={'User-Agent': _ua})
+                                if _r2.status_code == 200:
+                                    return _r2.content
+                            except:
+                                pass
+                        return None
                     def _task():
                         for i, _gd in enumerate(_batch):
                             _aid = _gd.get('appid', '') or _gd.get('id', '')
@@ -1385,15 +1403,30 @@ def install_ui_fixes(g):
                             _root_app._set_indicator(f'[{i+1}/{len(_batch)}] {_name} ({_aid})', 'working')
                             try:
                                 _sess = g.get('session')
-                                if _sess and hasattr(_sess, 'headers'):
-                                    _sess.headers['User-Agent'] = _rnd.choice(_user_agents)
-                                    _sess.headers['X-Forwarded-For'] = f'{_rnd.randint(1,255)}.{_rnd.randint(0,255)}.{_rnd.randint(0,255)}.{_rnd.randint(1,255)}'
-                                    _sess.headers['Accept-Language'] = _rnd.choice(['tr-TR,tr;q=0.9','en-US,en;q=0.9','de-DE,de;q=0.9','fr-FR,fr;q=0.9','es-ES,es;q=0.9'])
-                                    _sess.headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-                                if hasattr(_sess, 'cookies'):
-                                    try: _sess.cookies.clear()
-                                    except: pass
-                                threading.Thread(target=lambda r=_gd: _root_app.indir_sonuclari(r), daemon=True).start()
+                                if _lt_mode.get():
+                                    _dl_data = _lt_download(_aid)
+                                    if _dl_data:
+                                        _save_path = getattr(_root_app, 'settings', {}).get('save_path', '') or getattr(_root_app, 'settings', {}).get('new_games_folder', '')
+                                        _dl_dir = Path(_save_path) if _save_path else Path(__file__).resolve().parent / '1 New Games'
+                                        _dl_dir.mkdir(parents=True, exist_ok=True)
+                                        _fname = _name
+                                        for _ch in '\\/*?:\"<>|': _fname = _fname.replace(_ch, '')
+                                        _fname = _fname.strip() or _aid
+                                        _zip_path = _dl_dir / f'{_fname} [{_aid}].zip'
+                                        _zip_path.write_bytes(_dl_data)
+                                        _root_app.log(f'[LuaTools] {_name} [{_aid}] indirildi -> {_zip_path.name}')
+                                    else:
+                                        _root_app.log(f'[LuaTools] {_name} [{_aid}] hic sunucuda bulunamadi')
+                                else:
+                                    if _sess and hasattr(_sess, 'headers'):
+                                        _sess.headers['User-Agent'] = _rnd.choice(_user_agents)
+                                        _sess.headers['X-Forwarded-For'] = f'{_rnd.randint(1,255)}.{_rnd.randint(0,255)}.{_rnd.randint(0,255)}.{_rnd.randint(1,255)}'
+                                        _sess.headers['Accept-Language'] = _rnd.choice(['tr-TR,tr;q=0.9','en-US,en;q=0.9','de-DE,de;q=0.9','fr-FR,fr;q=0.9','es-ES,es;q=0.9'])
+                                        _sess.headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+                                    if hasattr(_sess, 'cookies'):
+                                        try: _sess.cookies.clear()
+                                        except: pass
+                                    threading.Thread(target=lambda r=_gd: _root_app.indir_sonuclari(r), daemon=True).start()
                                 _delay = _rnd.uniform(6, 12)
                                 _time.sleep(_delay)
                             except:
@@ -1407,6 +1440,14 @@ def install_ui_fixes(g):
                 except Exception as _ex:
                     _messagebox.showerror('Hata', str(_ex))
 
+            def _toggle_lt():
+                _lt_mode.set(not _lt_mode.get())
+                _lt_btn.configure(bg='#2d4a3e' if _lt_mode.get() else '#4a2a5a',
+                                  activebackground='#3d6b56' if _lt_mode.get() else '#6a3a8a')
+            _lt_btn = AB(_parent, 'LuaTools', _toggle_lt, 85, 30,
+                         '#4a2a5a', '#6a3a8a', '#b088ff', '#f7fafc',
+                         ('Segoe UI Semibold', 8))
+            _lt_btn.pack(side=tk.RIGHT, padx=2)
             AB(_parent, 'Toplu Indir', _download_first_100, 100, 30,
                '#4a2a5a', '#6a3a8a', '#b088ff', '#f7fafc',
                ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=6)
