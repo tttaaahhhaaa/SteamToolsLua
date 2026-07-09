@@ -1331,26 +1331,6 @@ def install_ui_fixes(g):
             _parent = _header_btn.master if _header_btn is not None else _root_app
             AB = g.get('AnimatedButton', AnimatedButton)
 
-            _lt_mode = tk.BooleanVar(value=False)
-            _hide_mode = tk.BooleanVar(value=False)
-            _hide_btn_ref = [None]
-            def _toggle_hide():
-                _hide_mode.set(not _hide_mode.get())
-                _hide_btn_ref[0].configure(bg='#4a1a2a' if _hide_mode.get() else '#1f3348',
-                                           activebackground='#6a2a3a' if _hide_mode.get() else '#2b4b68')
-                try:
-                    for _c in getattr(_root_app, 'cards', []):
-                        _used = getattr(_c, '_used_dot', None)
-                        if _hide_mode.get():
-                            if _used: _c.grid_remove()
-                            else:
-                                try: _c.grid()
-                                except: pass
-                        else:
-                            try: _c.grid()
-                            except: pass
-                    _root_app.after(100, lambda: getattr(_root_app, 'reflow_cards', lambda: None)() or getattr(_root_app, 'polished_reflow_cards', lambda: None)())
-                except: pass
             def _download_first_100():
                 try:
                     _used_cache = getattr(SteamApp, '_used_cache', {})
@@ -1414,64 +1394,28 @@ def install_ui_fixes(g):
                         'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0',
                         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/121.0.0.0 Safari/537.36',
                     ]
-                    _lt_servers = [
-                        'http://167.235.229.108/{aid}',
-                        'https://raw.githubusercontent.com/sushi-dev55-alt/sushitools-games-repo-alt/refs/heads/main/{aid}.zip',
-                        'https://files.luatools.work/GameBypasses/{aid}.zip',
-                    ]
-                    def _lt_download(_aid):
-                        _ua = _rnd.choice(_user_agents)
-                        for _sv in _lt_servers:
-                            _url = _sv.replace('{aid}', str(_aid))
-                            try:
-                                _r2 = _req.get(_url, timeout=30, headers={'User-Agent': _ua})
-                                if _r2.status_code == 200:
-                                    return _r2.content
-                            except:
-                                pass
-                        return None
-                    def _set_ind_safe(_txt, _st):
-                        try: _root_app.after(0, lambda: _root_app._set_indicator(_txt, _st))
-                        except: pass
                     _dl_threads = []
                     def _task():
                         for i, _gd in enumerate(_batch):
                             _aid = _gd.get('appid', '') or _gd.get('id', '')
                             _name = _gd.get('name', '')
-                            _set_ind_safe(f'[{i+1}/{len(_batch)}] {_name} ({_aid})', 'working')
                             try:
                                 _sess = g.get('session')
-                                if _lt_mode.get():
-                                    _dl_data = _lt_download(_aid)
-                                    if _dl_data:
-                                        _save_path = getattr(_root_app, 'settings', {}).get('save_path', '') or getattr(_root_app, 'settings', {}).get('new_games_folder', '')
-                                        _dl_dir = Path(_save_path) if _save_path else Path(__file__).resolve().parent / '1 New Games'
-                                        _dl_dir.mkdir(parents=True, exist_ok=True)
-                                        _fname = _name
-                                        for _ch in '\\/*?:\"<>|': _fname = _fname.replace(_ch, '')
-                                        _fname = _fname.strip() or _aid
-                                        _zip_path = _dl_dir / f'{_fname} [{_aid}].zip'
-                                        _zip_path.write_bytes(_dl_data)
-                                        _root_app.log(f'[LuaTools] {_name} [{_aid}] indirildi -> {_zip_path.name}')
-                                    else:
-                                        _root_app.log(f'[LuaTools] {_name} [{_aid}] hic sunucuda bulunamadi')
-                                else:
-                                    if _sess and hasattr(_sess, 'headers'):
-                                        _sess.headers['User-Agent'] = _rnd.choice(_user_agents)
-                                        _sess.headers['X-Forwarded-For'] = f'{_rnd.randint(1,255)}.{_rnd.randint(0,255)}.{_rnd.randint(0,255)}.{_rnd.randint(1,255)}'
-                                        _sess.headers['Accept-Language'] = _rnd.choice(['tr-TR,tr;q=0.9','en-US,en;q=0.9','de-DE,de;q=0.9','fr-FR,fr;q=0.9','es-ES,es;q=0.9'])
-                                        _sess.headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-                                    if hasattr(_sess, 'cookies'):
-                                        try: _sess.cookies.clear()
-                                        except: pass
-                                    _t = threading.Thread(target=lambda r=_gd: _root_app.indir_sonuclari(r), daemon=True)
-                                    _t.start()
-                                    _dl_threads.append(_t)
+                                if _sess and hasattr(_sess, 'headers'):
+                                    _sess.headers['User-Agent'] = _rnd.choice(_user_agents)
+                                    _sess.headers['X-Forwarded-For'] = f'{_rnd.randint(1,255)}.{_rnd.randint(0,255)}.{_rnd.randint(0,255)}.{_rnd.randint(1,255)}'
+                                    _sess.headers['Accept-Language'] = _rnd.choice(['tr-TR,tr;q=0.9','en-US,en;q=0.9','de-DE,de;q=0.9','fr-FR,fr;q=0.9','es-ES,es;q=0.9'])
+                                    _sess.headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+                                if hasattr(_sess, 'cookies'):
+                                    try: _sess.cookies.clear()
+                                    except: pass
+                                _t = threading.Thread(target=lambda r=_gd: _root_app.indir_sonuclari(r), daemon=True)
+                                _t.start()
+                                _dl_threads.append(_t)
                                 _delay = _rnd.uniform(6, 12)
                                 _time.sleep(_delay)
                             except:
                                 pass
-                        _set_ind_safe(f'{len(_batch)} oyun indirme baslatildi', 'online')
                         for _t in _dl_threads:
                             try: _t.join(timeout=300)
                             except: pass
@@ -1485,34 +1429,13 @@ def install_ui_fixes(g):
                 except Exception as _ex:
                     _messagebox.showerror('Hata', str(_ex))
 
-            def _toggle_lt():
-                _lt_mode.set(not _lt_mode.get())
-                _lt_btn.configure(bg='#2d4a3e' if _lt_mode.get() else '#4a2a5a',
-                                  activebackground='#3d6b56' if _lt_mode.get() else '#6a3a8a')
-            _lt_btn = AB(_parent, _tr(_root_app, 'button.luatools'), _toggle_lt, 85, 30,
-                         '#4a2a5a', '#6a3a8a', '#b088ff', '#f7fafc',
-                         ('Segoe UI Semibold', 8))
-            _lt_btn.pack(side=tk.RIGHT, padx=2)
-            AB(_parent, _tr(_root_app, 'button.toplu_indir'), _download_first_100, 100, 30,
+            AB(_parent, 'Toplu Indir', _download_first_100, 100, 30,
                '#4a2a5a', '#6a3a8a', '#b088ff', '#f7fafc',
                ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=6)
-            AB(_parent, _tr(_root_app, 'button.inject_all'), _root_app.batch_inject_all, 100, 30,
+            AB(_parent, 'Inject All', _root_app.batch_inject_all, 100, 30,
                '#244363', '#315f8e', '#66c0f4', '#f7fafc',
                ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=6)
-            _hide_btn_ref[0] = AB(_parent, _tr(_root_app, 'button.hide_added'), _toggle_hide, 100, 30,
-                                  '#1f3348', '#2b4b68', '#ff6b6b', '#f7fafc',
-                                  ('Segoe UI Semibold', 9))
-            _hide_btn_ref[0].pack(side=tk.RIGHT, padx=6)
-            try:
-                _open_lib = getattr(_root_app, 'open_library_window', lambda: _messagebox.showinfo('', 'Once settings acin'))
-                AB(_parent, _tr(_root_app, 'button.library_open'), _open_lib, 80, 30,
-                   '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
-                   ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=2)
-                _open_inst = getattr(_root_app, 'open_installed_window', lambda: _messagebox.showinfo('', 'Once settings acin'))
-                AB(_parent, _tr(_root_app, 'button.installed_open'), _open_inst,
-                   90, 30, '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
-                   ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=2)
-            except: pass
+
         except Exception:
             pass
 
@@ -4354,29 +4277,11 @@ A: .luaファイルがstplug-inフォルダにあることを
                                             break
                                 _games.append((_aid, _gname, _mtime))
                             except: pass
-                    _lib_imgs = {}  # keep PhotoImage refs alive
-                    def _load_lib_icons(_tv, _items):
-                        _ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36'
-                        for _idx, (_aid, _gname, _mtime) in enumerate(_items):
-                            if _aid:
-                                try:
-                                    _url = f'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{_aid}/capsule_184x69.jpg'
-                                    _r = __import__('requests').get(_url, timeout=10, headers={'User-Agent': _ua})
-                                    if _r.status_code == 200:
-                                        _pil = Image.open(__import__('io').BytesIO(_r.content)).convert('RGBA')
-                                        _pil.thumbnail((92, 36), Image.Resampling.LANCZOS)
-                                        _ph = ImageTk.PhotoImage(_pil)
-                                        _lib_imgs[_aid] = _ph
-                                        def _set_icon(iid, ph):
-                                            try: _tv.item(iid, image=ph)
-                                            except: pass
-                                        tv.after(0, lambda iid=_items[_idx], ph=_ph: _set_icon(tv.get_children()[_items.index(iid)], ph) if iid in _items and _items.index(iid) < len(tv.get_children()) else None)
-                                except: pass
                     def _build_ui():
                         _load_win.destroy()
                         lib_win = tk.Toplevel(window)
                         lib_win.title(_tr(self, 'library.win_title'))
-                        lib_win.geometry('860x500')
+                        lib_win.geometry('780x500')
                         lib_win.configure(bg='#08080e')
                         top = tk.Frame(lib_win, bg='#08080e')
                         top.pack(fill=tk.X, padx=14, pady=(12, 4))
@@ -4385,41 +4290,45 @@ A: .luaファイルがstplug-inフォルダにあることを
                         sort_frame = tk.Frame(lib_win, bg='#08080e')
                         sort_frame.pack(fill=tk.X, padx=14, pady=(2, 6))
                         AB_lib = g.get('AnimatedButton', AnimatedButton)
+                        # Search bar
                         _search_var = tk.StringVar()
                         _search_entry = tk.Entry(sort_frame, textvariable=_search_var, width=22, relief=tk.FLAT,
                                                   bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
                                                   font=('Segoe UI', 9))
                         _search_entry.pack(side=tk.LEFT, padx=(0, 4))
-                        _search_entry.insert(0, _tr(self, 'button.ara'))
+                        _search_entry.insert(0, 'Ara...')
                         def _on_srch_focus_in(e):
-                            if _search_var.get() == _tr(self, 'button.ara'):
+                            if _search_var.get() == 'Ara...':
                                 _search_entry.delete(0, tk.END)
                         def _on_srch_focus_out(e):
                             if not _search_var.get().strip():
-                                _search_entry.insert(0, _tr(self, 'button.ara'))
+                                _search_entry.insert(0, 'Ara...')
                         _search_entry.bind('<FocusIn>', _on_srch_focus_in)
                         _search_entry.bind('<FocusOut>', _on_srch_focus_out)
                         def _filter_games():
                             _q = _search_var.get().strip()
-                            if _q == _tr(self, 'button.ara'): _q = ''
+                            if _q == 'Ara...': _q = ''
                             tv.delete(*tv.get_children())
                             _data = _games
                             if _q:
                                 _ql = _q.lower()
                                 _data = [g for g in _games if _ql in g[1].lower()]
                             for _aid, _gname, _mtime in _data:
-                                _iid = tv.insert('', tk.END, values=(_aid, _gname, _mtime))
-                                if _aid in _lib_imgs:
-                                    tv.item(_iid, image=_lib_imgs[_aid])
+                                tv.insert('', tk.END, values=(_aid, _gname, _mtime))
+                        def _srch_action():
+                            _srch_entry.unbind('<Return>', _srch_action) if False else None
+                            _filter_games()
                         _search_entry.bind('<Return>', lambda e: _filter_games())
-                        AB_lib(sort_frame, _tr(self, 'button.ara'), _filter_games, 40, 26,
-                               '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
-                               ('Segoe UI', 8)).pack(side=tk.LEFT, padx=(0, 8))
+                        _srch_btn = AB_lib(sort_frame, 'Ara', _filter_games, 40, 26,
+                                          '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
+                                          ('Segoe UI', 8))
+                        _srch_btn.pack(side=tk.LEFT, padx=(0, 8))
+                        # Sort buttons
                         _sort_order = tk.StringVar(value='az')
                         def _sort_games():
                             _data = _games
                             _q = _search_var.get().strip()
-                            if _q and _q != _tr(self, 'button.ara'):
+                            if _q and _q != 'Ara...':
                                 _ql = _q.lower()
                                 _data = [g for g in _games if _ql in g[1].lower()]
                             if _sort_order.get() == 'az':
@@ -4428,16 +4337,14 @@ A: .luaファイルがstplug-inフォルダにあることを
                                 _data = sorted(_data, key=lambda x: x[1].lower(), reverse=True)
                             tv.delete(*tv.get_children())
                             for _aid, _gname, _mtime in _data:
-                                _iid = tv.insert('', tk.END, values=(_aid, _gname, _mtime))
-                                if _aid in _lib_imgs:
-                                    tv.item(_iid, image=_lib_imgs[_aid])
+                                tv.insert('', tk.END, values=(_aid, _gname, _mtime))
                         def _set_sort(order):
                             _sort_order.set(order)
                             _sort_games()
-                        AB_lib(sort_frame, _tr(self, 'button.zipsirala_az'), lambda: _set_sort('az'), 40, 26,
+                        AB_lib(sort_frame, 'A-Z', lambda: _set_sort('az'), 40, 26,
                                '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
                                ('Segoe UI', 8)).pack(side=tk.LEFT, padx=1)
-                        AB_lib(sort_frame, _tr(self, 'button.zipsirala_za'), lambda: _set_sort('za'), 40, 26,
+                        AB_lib(sort_frame, 'Z-A', lambda: _set_sort('za'), 40, 26,
                                '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
                                ('Segoe UI', 8)).pack(side=tk.LEFT, padx=1)
                         def _open_used():
@@ -4451,31 +4358,27 @@ A: .luaファイルがstplug-inフォルダにあることを
                         _style = ttk.Style()
                         _style.theme_use('alt')
                         _style.configure('Lib.Treeview', background='#0a0a16', foreground='#d0d0e8',
-                                        fieldbackground='#0a0a16', rowheight=46, font=('Segoe UI', 10),
+                                        fieldbackground='#0a0a16', rowheight=28, font=('Segoe UI', 10),
                                         borderwidth=0)
                         _style.map('Lib.Treeview', background=[('selected', '#7c6fff')],
                                   foreground=[('selected', '#ffffff')])
                         _style.configure('Lib.Treeview.Heading', background='#12122a', foreground='#8a80e0',
                                         font=('Segoe UI Semibold', 9), borderwidth=0)
-                        tv = ttk.Treeview(_tv_frame, columns=('appid','name','date'), displaycolumns=('#0','#1','#2','#3'),
+                        tv = ttk.Treeview(_tv_frame, columns=('appid','name','date'), show='headings',
                                          height=14, style='Lib.Treeview')
-                        tv.heading('#0', text='')
                         tv.heading('appid', text='AppID')
                         tv.heading('name', text=_tr(self, 'library.col_game'), anchor='w')
                         tv.heading('date', text=_tr(self, 'library.col_date'), anchor='w')
-                        tv.column('#0', width=100, minwidth=80, anchor='center')
                         tv.column('appid', width=80)
-                        tv.column('name', width=460, anchor='w')
+                        tv.column('name', width=520, anchor='w')
                         tv.column('date', width=140, anchor='w')
                         _vsb = tk.Scrollbar(_tv_frame, orient=tk.VERTICAL, command=tv.yview, bg='#12122a',
                                            troughcolor='#08080e')
                         tv.configure(yscrollcommand=_vsb.set)
                         tv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
                         _vsb.pack(side=tk.RIGHT, fill=tk.Y)
-                        _items_sorted = sorted(_games, key=lambda x: x[1].lower())
-                        for _aid, _gname, _mtime in _items_sorted:
+                        for _aid, _gname, _mtime in sorted(_games, key=lambda x: x[1].lower()):
                             tv.insert('', tk.END, values=(_aid, _gname, _mtime))
-                        _thr2.Thread(target=_load_lib_icons, args=(tv, _items_sorted), daemon=True).start()
                         def _install_lib_game():
                             sel = tv.selection()
                             if sel:
@@ -4506,7 +4409,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                                     gAB(_dlg, 'Indir', _do_install, 80, 28,
                                         '#244363', '#315f8e', '#66c0f4', '#ffffff',
                                         ('Segoe UI Semibold', 10)).pack(pady=6)
-                        AB_lib(sort_frame, _tr(self, 'button.install_lib'), _install_lib_game, 100, 26,
+                        AB_lib(sort_frame, '\u2b07 Install', _install_lib_game, 100, 26,
                                '#1c3a2a', '#2a5a3a', '#48bb78', '#ffffff',
                                ('Segoe UI Semibold', 8)).pack(side=tk.RIGHT, padx=(4, 0))
                         def _tv_scroll2(e):
@@ -4522,7 +4425,6 @@ A: .luaファイルがstplug-inフォルダにあることを
         AB(lib_row, _tr(self, 'library.open'), _open_library, 130, 30,
            '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
-        self.open_library_window = _open_library
         # Remove License tab builder
         def _build_license_tab():
             for w in _license_page.winfo_children():
@@ -4731,26 +4633,11 @@ A: .luaファイルがstplug-inフォルダにあることを
                                     _games.append((_aid_m.group(1), _name_m.group(1), str(_inst_path)))
                             except: pass
                     _games.sort(key=lambda x: x[1].lower())
-                    _inst_imgs = {}
-                    def _load_inst_icons(_tv, _items):
-                        _ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36'
-                        for _aid2, _nm2, _p2 in _items:
-                            if _aid2:
-                                try:
-                                    _url = f'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{_aid2}/capsule_184x69.jpg'
-                                    _r = __import__('requests').get(_url, timeout=10, headers={'User-Agent': _ua})
-                                    if _r.status_code == 200:
-                                        _pil = Image.open(__import__('io').BytesIO(_r.content)).convert('RGBA')
-                                        _pil.thumbnail((92, 36), Image.Resampling.LANCZOS)
-                                        _ph = ImageTk.PhotoImage(_pil)
-                                        _inst_imgs[_aid2] = _ph
-                                        tv.after(0, lambda aid=_aid2, ph=_ph: tv.item([c for c in tv.get_children() if tv.item(c, 'values') and tv.item(c, 'values')[0] == aid][0], image=ph) if any(tv.item(c, 'values') and tv.item(c, 'values')[0] == aid for c in tv.get_children()) else None)
-                                except: pass
                     def _build_ui():
                         _load_win.destroy()
                         _w = tk.Toplevel(window)
                         _w.title(f'Installed Games ({len(_games)})')
-                        _w.geometry('860x500')
+                        _w.geometry('750x500')
                         _w.configure(bg='#08080e')
                         _w.transient(window)
                         _top = tk.Frame(_w, bg='#08080e')
@@ -4762,18 +4649,16 @@ A: .luaファイルがstplug-inフォルダにあることを
                         _style = ttk.Style()
                         _style.theme_use('alt')
                         _style.configure('Inst.Treeview', background='#0a0a16', foreground='#d0d0e8',
-                                        fieldbackground='#0a0a16', rowheight=46, font=('Segoe UI', 10),
+                                        fieldbackground='#0a0a16', rowheight=28, font=('Segoe UI', 10),
                                         borderwidth=0)
                         _style.map('Inst.Treeview', background=[('selected', '#7c6fff')],
                                   foreground=[('selected', '#ffffff')])
                         _style.configure('Inst.Treeview.Heading', background='#12122a', foreground='#8a80e0',
                                         font=('Segoe UI Semibold', 9), borderwidth=0)
-                        _tv = ttk.Treeview(_tv_frame, columns=('appid', 'name', 'path'), displaycolumns=('#0','#1','#2','#3'),
+                        _tv = ttk.Treeview(_tv_frame, columns=('appid', 'name', 'path'), show='headings',
                                          height=16, style='Inst.Treeview')
-                        _tv.heading('#0', text='')
                         _tv.heading('appid', text='AppID')
                         _tv.heading('name', text=_tr(self, 'library.col_game'))
-                        _tv.column('#0', width=100, minwidth=80, anchor='center')
                         _tv.column('appid', width=80)
                         _tv.column('name', width=520)
                         _tv.column('path', width=0, stretch=False)
@@ -4784,7 +4669,6 @@ A: .luaファイルがstplug-inフォルダにあることを
                         _vsb.pack(side=tk.RIGHT, fill=tk.Y)
                         for _aid, _name, _path in _games:
                             _tv.insert('', tk.END, values=(_aid, _name, _path))
-                        _thr2.Thread(target=_load_inst_icons, args=(_tv, _games), daemon=True).start()
                         def _launch_game():
                             sel = _tv.selection()
                             if sel:
@@ -4821,7 +4705,6 @@ A: .luaファイルがstplug-inフォルダにあることを
         AB(_inst_row, _tr(self, 'settings.installed_games'), _show_installed, 130, 30,
            '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
-        self.open_installed_window = _show_installed
 
         # ---- Bypass Injection Section ----
         _bypass_frame = tk.Frame(_p, bg='#0d1724')
