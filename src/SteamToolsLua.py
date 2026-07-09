@@ -1367,7 +1367,7 @@ def install_ui_fixes(g):
                         for i, _gd in enumerate(_batch):
                             _aid = _gd.get('appid', '') or _gd.get('id', '')
                             _name = _gd.get('name', '')
-                            _root_app._set_indicator(f'[{i+1}/{len(_batch)}] {_name}', 'working')
+                            _root_app._set_indicator(f'[{i+1}/{len(_batch)}] {_name} ({_aid})', 'working')
                             try:
                                 threading.Thread(target=lambda r=_gd: _root_app.indir_sonuclari(r), daemon=True).start()
                                 _time.sleep(3)
