@@ -1338,7 +1338,7 @@ def install_ui_fixes(g):
                     if not _games:
                         _games = getattr(_root_app, 'games', [])
                     if not _games:
-                        _messagebox.showinfo('Download First 100', 'Once SteamDB sayfasini acin.\nAna menu > SteamDB butonu.')
+                        _messagebox.showinfo('Toplu Indirme', 'Once SteamDB sayfasini acin.\nAna menu > SteamDB butonu.')
                         return
                     def _is_used(_name):
                         if not _name or not _used_cache:
@@ -1355,11 +1355,17 @@ def install_ui_fixes(g):
                         return False
                     _candidates = [g for g in _games if not _is_used(g.get('name', '')) and not g.get('_no_download') and not g.get('installed')]
                     if not _candidates:
-                        _messagebox.showinfo('Download First 100', 'Indirilecek oyun bulunamadi.')
+                        _messagebox.showinfo('Toplu Indirme', 'Indirilecek oyun bulunamadi.')
                         return
-                    _batch = _candidates[:100]
-                    _msg = _messagebox.askyesno('Download First 100',
-                        f'{len(_batch)} oyun bulundu.\nSteamDB\'den ilk 100\'u indir?\n\nNot: Her oyun sirasiyla indirilecek, bu biraz zaman alabilir.')
+                    import tkinter.simpledialog as _sd
+                    _count = _sd.askinteger('Toplu Indirme',
+                        f'Kac oyun indirmek istiyorsunuz?\n(Mevcut: {len(_candidates)} oyun)',
+                        minvalue=1, maxvalue=len(_candidates), initialvalue=100)
+                    if not _count:
+                        return
+                    _batch = _candidates[:_count]
+                    _msg = _messagebox.askyesno('Toplu Indirme',
+                        f'{len(_batch)} oyun bulundu.\nSteamDB\'den ilk {_count} oyun indirilecek.\n\nNot: Her oyun sirasiyla indirilecek, bu biraz zaman alabilir.')
                     if not _msg:
                         return
                     import threading as _thr2
@@ -1379,7 +1385,7 @@ def install_ui_fixes(g):
                 except Exception as _ex:
                     _messagebox.showerror('Hata', str(_ex))
 
-            AB(_parent, 'DL First 100', _download_first_100, 100, 30,
+            AB(_parent, 'Toplu Indir', _download_first_100, 100, 30,
                '#4a2a5a', '#6a3a8a', '#b088ff', '#f7fafc',
                ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=6)
             AB(_parent, _tr(_root_app, 'button.inject_all'), _root_app.batch_inject_all, 100, 30,
