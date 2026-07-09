@@ -423,30 +423,15 @@ def install_ui_fixes(g):
     _recall_path = _data_dir / "downloaded_games.ini"
     # auto-migrate old ini files from app dir
     _old_dir = Path(__file__).resolve().parent
-    for _old_name in ('search_history.ini', 'downloaded_games.ini'):
-        _old = _old_dir / _old_name
-        _new = _data_dir / _old_name
-        if _old.exists() and not _new.exists():
-            try: os.replace(str(_old), str(_new))
+    for _dl_name in ('downloaded_games.ini',):
+        _dl_old = _old_dir / _dl_name
+        _dl_new = _data_dir / _dl_name
+        if _dl_old.exists() and not _dl_new.exists():
+            try: os.replace(str(_dl_old), str(_dl_new))
             except: pass
-        elif _old.exists():
-            try: _old.unlink()
+        elif _dl_old.exists():
+            try: _dl_old.unlink()
             except: pass
-    # Migrate old .ini to .json if needed
-    _old_ini = _data_dir / 'search_history.ini'
-    _new_json = _data_dir / 'search_history.json'
-    if _old_ini.exists() and not _new_json.exists():
-        try:
-            import configparser as _cp
-            _c = _cp.ConfigParser()
-            _c.read(str(_old_ini), encoding='utf-8')
-            _h = {'History': dict(_c['History'])} if 'History' in _c else {'History': {}}
-            _new_json.write_text(json.dumps(_h, ensure_ascii=False), encoding='utf-8')
-        except: pass
-    # Clean old .ini from data dir (now using .json)
-    if _old_ini.exists():
-        try: _old_ini.unlink()
-        except: pass
     def _save_dl_name(name):
         if not name: return
         try:
@@ -480,7 +465,7 @@ def install_ui_fixes(g):
     # Additional Translations
     _more_text = {
         'tr': {'settings.installed_games': 'Y\u00fckl\u00fc Oyunlar', 'settings.steam_not_found': 'Steam bulunamad\u0131.',
-                'button.inject_of': 'Inject OF', 'button.add_folder': 'Klas\u00f6r Ekle', 'button.nlgl_launcher': 'NLGL Launcher', 'inject_of.select_title': 'Inject OF - Oyun Se\u00e7',
+                 'button.inject_of': 'Inject OF', 'button.add_folder': 'Klas\u00f6r Ekle', 'inject_of.select_title': 'Inject OF - Oyun Se\u00e7',
                'inject_of.exe_label': '\u00c7al\u0131\u015ft\u0131r\u0131labilir Dosya (.exe):',
                'inject_of.dir_label': 'Hedef Klas\u00f6r:',
                'inject_of.browse_exe': 'G\u00f6zat...',
@@ -497,7 +482,7 @@ def install_ui_fixes(g):
                'cr.download_complete': 'CloudRedirect haz\u0131r',
                'settings.file_location': 'Dosya Konumu'},
         'en': {'settings.installed_games': 'Installed Games', 'settings.steam_not_found': 'Steam not found.',
-               'button.inject_of': 'Inject OF', 'button.add_folder': 'Add Folder', 'button.nlgl_launcher': 'NLGL Launcher', 'inject_of.select_title': 'Inject OF - Select Game',
+                'button.inject_of': 'Inject OF', 'button.add_folder': 'Add Folder', 'inject_of.select_title': 'Inject OF - Select Game',
                'inject_of.exe_label': 'Executable (.exe):',
                'inject_of.dir_label': 'Destination Folder:',
                'inject_of.browse_exe': 'Browse...',
@@ -514,7 +499,7 @@ def install_ui_fixes(g):
                'cr.download_complete': 'CloudRedirect ready',
                'settings.file_location': 'File Location'},
         'es': {'settings.installed_games': 'Juegos Instalados', 'settings.steam_not_found': 'Steam no encontrado.',
-               'button.inject_of': 'Inyectar OF', 'button.add_folder': 'Añadir Carpeta', 'button.nlgl_launcher': 'NLGL Launcher', 'inject_of.select_title': 'Inyectar OF - Seleccionar Juego',
+                'button.inject_of': 'Inyectar OF', 'button.add_folder': 'Añadir Carpeta', 'inject_of.select_title': 'Inyectar OF - Seleccionar Juego',
                'inject_of.exe_label': 'Ejecutable (.exe):',
                'inject_of.dir_label': 'Carpeta de destino:',
                'inject_of.browse_exe': 'Examinar...',
@@ -531,7 +516,7 @@ def install_ui_fixes(g):
                'cr.download_complete': 'CloudRedirect listo',
                'settings.file_location': 'Ubicaci\u00f3n'},
         'fr': {'settings.installed_games': 'Jeux Install\u00e9s', 'settings.steam_not_found': 'Steam introuvable.',
-               'button.inject_of': 'Injecter OF', 'button.add_folder': 'Ajouter Dossier', 'button.nlgl_launcher': 'NLGL Launcher', 'inject_of.select_title': 'Injecter OF - S\u00e9lectionner le jeu',
+                'button.inject_of': 'Injecter OF', 'button.add_folder': 'Ajouter Dossier', 'inject_of.select_title': 'Injecter OF - S\u00e9lectionner le jeu',
                'inject_of.exe_label': 'Ex\u00e9cutable (.exe):',
                'inject_of.dir_label': 'Dossier de destination:',
                'inject_of.browse_exe': 'Parcourir...',
@@ -548,7 +533,7 @@ def install_ui_fixes(g):
                'cr.download_complete': 'CloudRedirect pr\u00eat',
                'settings.file_location': 'Emplacement'},
         'de': {'settings.installed_games': 'Installierte Spiele', 'settings.steam_not_found': 'Steam nicht gefunden.',
-               'button.inject_of': 'OF Injizieren', 'button.add_folder': 'Ordner Hinzufügen', 'button.nlgl_launcher': 'NLGL Launcher', 'inject_of.select_title': 'OF Injizieren - Spiel ausw\u00e4hlen',
+                'button.inject_of': 'OF Injizieren', 'button.add_folder': 'Ordner Hinzufügen', 'inject_of.select_title': 'OF Injizieren - Spiel ausw\u00e4hlen',
                'inject_of.exe_label': 'Ausf\u00fchrbare Datei (.exe):',
                'inject_of.dir_label': 'Zielordner:',
                'inject_of.browse_exe': 'Durchsuchen...',
@@ -565,7 +550,7 @@ def install_ui_fixes(g):
                'cr.download_complete': 'CloudRedirect bereit',
                'settings.file_location': 'Dateipfad'},
         'ja': {'settings.installed_games': '\u30a4\u30f3\u30b9\u30c8\u30fc\u30eb\u6e08\u307f\u30b2\u30fc\u30e0', 'settings.steam_not_found': 'Steam\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002',
-               'button.inject_of': 'OF\u3092\u6ce8\u5165', 'button.add_folder': '\u30d5\u30a9\u30eb\u30c0\u8ffd\u52a0', 'button.nlgl_launcher': 'NLGL Launcher', 'inject_of.select_title': 'OF\u6ce8\u5165 - \u30b2\u30fc\u30e0\u3092\u9078\u629e',
+                'button.inject_of': 'OF\u3092\u6ce8\u5165', 'button.add_folder': '\u30d5\u30a9\u30eb\u30c0\u8ffd\u52a0', 'inject_of.select_title': 'OF\u6ce8\u5165 - \u30b2\u30fc\u30e0\u3092\u9078\u629e',
                'inject_of.exe_label': '\u5b9f\u884c\u30d5\u30a1\u30a4\u30eb (.exe):',
                'inject_of.dir_label': '\u51fa\u529b\u30d5\u30a9\u30eb\u30c0:',
                'inject_of.browse_exe': '\u53c2\u7167...',
@@ -633,14 +618,14 @@ def install_ui_fixes(g):
                                headers={'Authorization': f'token {_tk}', 'User-Agent': 'SteamToolsLua'}, timeout=15)
                 _all_entries = []
                 if _r.status_code == 200:
-                    for _fn, _fc in _r.json().get('files', {}).items():
-                        if _fn.endswith('.json') and _fc.get('content'):
-                            try:
-                                _existing = _json.loads(_fc['content'])
-                                if isinstance(_existing, list):
-                                    _all_entries.extend(_existing)
-                            except:
-                                pass
+                    _fc = _r.json().get('files', {}).get('devices.json', {}).get('content', '')
+                    if _fc:
+                        try:
+                            _existing = _json.loads(_fc)
+                            if isinstance(_existing, list):
+                                _all_entries = _existing
+                        except:
+                            pass
                 _all_entries = [e for e in _all_entries if e.get('hwid') != _hwid]
                 _all_entries.append(_entry)
                 _req2.patch(f'https://api.github.com/gists/{_ADMIN_GIST}',
@@ -4085,19 +4070,6 @@ A: .luaファイルがstplug-inフォルダにあることを
         AB(tools_row, _tr(self, 'button.inject_of'), self._inject_of_browser,
             120, 30, '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
-        # NLGL Launcher (like CloudRedirect)
-        _nlgl_dir = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua"
-        _nlgl_exe = _nlgl_dir / "nlgl_launcher.exe"
-        def _run_nlgl():
-            if _nlgl_exe.exists():
-                import subprocess as _sp2
-                _track_cr(_sp2.Popen([str(_nlgl_exe)]))
-                return
-            _messagebox.showinfo('NLGL Launcher',
-                'nlgl_launcher.exe bulunamadi.\nDosyayi suraya kopyalayin:\n' + str(_nlgl_exe))
-        AB(tools_row, _tr(self, 'button.nlgl_launcher'), _run_nlgl,
-            120, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
 
         # Also add save_path field
         _sv_frame = tk.Frame(_p, bg='#0d1724')
@@ -5378,88 +5350,23 @@ A: .luaファイルがstplug-inフォルダにあることを
     # ---- Scroll focus fix removed (unused) ----
     pass
 
-    # ---- Search bar: purple outline + search history ----
+    # Find search entry for AI correction overlay
     try:
-        _search_entries = []
+        _srch_entry = None
         def _find_entry(w):
-            if isinstance(w, tk.Entry):
+            nonlocal _srch_entry
+            if isinstance(w, tk.Entry) and _srch_entry is None:
                 try:
-                    b = w.bind(); f = w.cget('font')
-                    if '<Return>' in b or ('Segoe' in str(f) and w.cget('bg') != '#0d1724'):
-                        _search_entries.append(w)
+                    f = w.cget('font')
+                    if 'Segoe' in str(f) and w.cget('bg') != '#0d1724':
+                        _srch_entry = w
                 except: pass
             try:
                 for c in w.winfo_children(): _find_entry(c)
             except: pass
         _find_entry(root)
-        _srch_entry = _search_entries[0] if _search_entries else None
-        if _srch_entry:
-            _srch_entry.configure(highlightthickness=3, highlightbackground='#7c6fff', highlightcolor='#7c6fff')
-        # search history (JSON)
-        _hist_path = _data_dir / "search_history.json"
-        def _load_hist():
-            try:
-                if _hist_path.exists():
-                    return json.loads(_hist_path.read_text(encoding='utf-8'))
-            except: pass
-            return {'History': {}}
-        def _save_hist(h):
-            try:
-                _hist_path.write_text(json.dumps(h, ensure_ascii=False), encoding='utf-8')
-            except: pass
-        if _srch_entry:
-            _hist_box = tk.Listbox(root, bg='#0a0a16', fg='#d0d0e8',
-                                   selectbackground='#7c6fff', selectforeground='#ffffff',
-                                   relief=tk.FLAT, highlightthickness=1, highlightbackground='#7c6fff',
-                                   font=('Segoe UI', 10), height=8)
-            _hist_box.place_forget()
-            def _show_hist():
-                h = _load_hist()
-                items = list(h['History'].items())
-                items.sort(key=lambda x: x[1], reverse=True)
-                _hist_box.delete(0, tk.END)
-                for q, ts in items[:50]:
-                    _hist_box.insert(tk.END, q)
-                if _hist_box.size():
-                    _hist_box.place(x=_srch_entry.winfo_x(), y=_srch_entry.winfo_y() + _srch_entry.winfo_height() + 2,
-                                   width=_srch_entry.winfo_width())
-                    _hist_box.lift()
-            def _hide_hist():
-                _hist_box.place_forget()
-            def _pick_hist(e=None):
-                sel = _hist_box.curselection()
-                if sel:
-                    _srch_entry.delete(0, tk.END)
-                    _srch_entry.insert(0, _hist_box.get(sel[0]))
-                    _srch_entry.event_generate('<Return>')
-                _hide_hist()
-            def _toggle_hist(e=None):
-                if _hist_box.winfo_viewable():
-                    _hide_hist()
-                else:
-                    _show_hist()
-            _srch_entry.bind('<Button-1>', _toggle_hist, add='+')
-            _hist_box.bind('<<ListboxSelect>>', _pick_hist)
-            def _click_outside_hist(e):
-                if _hist_box.winfo_viewable():
-                    w = e.widget
-                    if w != _hist_box and w != _srch_entry:
-                        _hide_hist()
-            root.bind('<Button-1>', _click_outside_hist, add='+')
-            # Intercept original search to also save history
-            def _search_and_save(e=None):
-                q = _srch_entry.get().strip()
-                if q:
-                    h = _load_hist()
-                    h['History'][q] = _time.strftime('%Y-%m-%d %H:%M')
-                    keys = sorted(h['History'].keys(), key=lambda k: h['History'][k], reverse=True)
-                    if len(keys) > 50:
-                        for k in keys[50:]: del h['History'][k]
-                    _save_hist(h)
-                root.after(100, _hide_hist)
-            _srch_entry.bind('<Return>', _search_and_save, add='+')
-
-    except: pass
+    except:
+        _srch_entry = None
 
     # ---- AI Correction + Status overlay (bottom-right) ----
     _ai_corrected_text = None

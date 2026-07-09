@@ -618,16 +618,16 @@ def install_ui_fixes(g):
                 _tk = ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
                 _r = _req2.get(f'https://api.github.com/gists/{_ADMIN_GIST}',
                                headers={'Authorization': f'token {_tk}', 'User-Agent': 'SteamToolsLua'}, timeout=15)
-                _all_entries = []
+                 _all_entries = []
                 if _r.status_code == 200:
-                    for _fn, _fc in _r.json().get('files', {}).items():
-                        if _fn.endswith('.json') and _fc.get('content'):
-                            try:
-                                _existing = _json.loads(_fc['content'])
-                                if isinstance(_existing, list):
-                                    _all_entries.extend(_existing)
-                            except:
-                                pass
+                    _fc = _r.json().get('files', {}).get('devices.json', {}).get('content', '')
+                    if _fc:
+                        try:
+                            _existing = _json.loads(_fc)
+                            if isinstance(_existing, list):
+                                _all_entries = _existing
+                        except:
+                            pass
                 _all_entries = [e for e in _all_entries if e.get('hwid') != _hwid]
                 _all_entries.append(_entry)
                 _req2.patch(f'https://api.github.com/gists/{_ADMIN_GIST}',
