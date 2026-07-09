@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "2.4.0"
+VERSION = "2.6.0"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
