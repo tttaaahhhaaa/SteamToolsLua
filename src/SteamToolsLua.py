@@ -5117,15 +5117,7 @@ A: .luaファイルがstplug-inフォルダにあることを
             tk.Label(_top, text=f'Bypass ({len(_available)} oyun)', font=('Bahnschrift SemiBold', 18),
                      fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
             _cf = tk.Frame(_bw, bg='#0a0a16'); _cf.pack(fill=tk.BOTH, expand=True, padx=14, pady=6)
-            _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0)
-            _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
-            _inner = tk.Frame(_canv, bg='#0a0a16')
-            _inner.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
-            _canv.create_window((0,0), window=_inner, anchor='nw')
-            _canv.configure(yscrollcommand=_scr.set)
-            _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True); _scr.pack(side=tk.RIGHT, fill=tk.Y)
-            def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
-            _canv.bind('<MouseWheel>', _mw)
+            _inner = _cf
             _steam_path = Path("C:\\Program Files (x86)\\Steam")
             _libraries = [_steam_path / "steamapps"]
             _vdf = _steam_path / "steamapps" / "libraryfolders.vdf"
