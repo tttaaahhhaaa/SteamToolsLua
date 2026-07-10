@@ -1,7 +1,9 @@
 # Build output
 SteamToolsLua.exe
+SteamToolsLua_v*.exe
 *.spec
 build_temp/
+build/
 __pycache__/
 *.pyc
 

@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "2.6.0"
+VERSION = "2.7.0"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
@@ -480,8 +480,9 @@ def install_ui_fixes(g):
                'cr.error': 'CloudRedirect hatas\u0131: {err}',
                'cr.download_progress': 'CloudRedirect: {pct}% ({cur}MB / {total}MB)',
                'cr.download_complete': 'CloudRedirect haz\u0131r',
-               'settings.file_location': 'Dosya Konumu'},
-        'en': {'settings.installed_games': 'Installed Games', 'settings.steam_not_found': 'Steam not found.',
+                'settings.file_location': 'Dosya Konumu',
+                'settings.auto_shutdown': 'Kurulum sonrasi PC\'yi otomatik kapat'},
+         'en': {'settings.installed_games': 'Installed Games', 'settings.steam_not_found': 'Steam not found.',
                 'button.inject_of': 'Inject OF', 'button.add_folder': 'Add Folder', 'inject_of.select_title': 'Inject OF - Select Game',
                'inject_of.exe_label': 'Executable (.exe):',
                'inject_of.dir_label': 'Destination Folder:',
@@ -497,8 +498,9 @@ def install_ui_fixes(g):
                'cr.error': 'CloudRedirect error: {err}',
                'cr.download_progress': 'CloudRedirect: {pct}% ({cur}MB / {total}MB)',
                'cr.download_complete': 'CloudRedirect ready',
-               'settings.file_location': 'File Location'},
-        'es': {'settings.installed_games': 'Juegos Instalados', 'settings.steam_not_found': 'Steam no encontrado.',
+                'settings.file_location': 'File Location',
+                'settings.auto_shutdown': 'Auto shutdown PC after installation'},
+         'es': {'settings.installed_games': 'Juegos Instalados', 'settings.steam_not_found': 'Steam no encontrado.',
                 'button.inject_of': 'Inyectar OF', 'button.add_folder': 'Añadir Carpeta', 'inject_of.select_title': 'Inyectar OF - Seleccionar Juego',
                'inject_of.exe_label': 'Ejecutable (.exe):',
                'inject_of.dir_label': 'Carpeta de destino:',
@@ -514,8 +516,9 @@ def install_ui_fixes(g):
                'cr.error': 'Error de CloudRedirect: {err}',
                'cr.download_progress': 'CloudRedirect: {pct}% ({cur}MB / {total}MB)',
                'cr.download_complete': 'CloudRedirect listo',
-               'settings.file_location': 'Ubicaci\u00f3n'},
-        'fr': {'settings.installed_games': 'Jeux Install\u00e9s', 'settings.steam_not_found': 'Steam introuvable.',
+                'settings.file_location': 'Ubicaci\u00f3n',
+                'settings.auto_shutdown': 'Apagar PC autom\u00e1ticamente tras instalaci\u00f3n'},
+         'fr': {'settings.installed_games': 'Jeux Install\u00e9s', 'settings.steam_not_found': 'Steam introuvable.',
                 'button.inject_of': 'Injecter OF', 'button.add_folder': 'Ajouter Dossier', 'inject_of.select_title': 'Injecter OF - S\u00e9lectionner le jeu',
                'inject_of.exe_label': 'Ex\u00e9cutable (.exe):',
                'inject_of.dir_label': 'Dossier de destination:',
@@ -531,8 +534,9 @@ def install_ui_fixes(g):
                'cr.error': 'Erreur CloudRedirect: {err}',
                'cr.download_progress': 'CloudRedirect: {pct}% ({cur}MB / {total}MB)',
                'cr.download_complete': 'CloudRedirect pr\u00eat',
-               'settings.file_location': 'Emplacement'},
-        'de': {'settings.installed_games': 'Installierte Spiele', 'settings.steam_not_found': 'Steam nicht gefunden.',
+                'settings.file_location': 'Emplacement',
+                'settings.auto_shutdown': '\u00c9teindre le PC automatiquement apr\u00e8s installation'},
+         'de': {'settings.installed_games': 'Installierte Spiele', 'settings.steam_not_found': 'Steam nicht gefunden.',
                 'button.inject_of': 'OF Injizieren', 'button.add_folder': 'Ordner Hinzufügen', 'inject_of.select_title': 'OF Injizieren - Spiel ausw\u00e4hlen',
                'inject_of.exe_label': 'Ausf\u00fchrbare Datei (.exe):',
                'inject_of.dir_label': 'Zielordner:',
@@ -548,8 +552,9 @@ def install_ui_fixes(g):
                'cr.error': 'CloudRedirect-Fehler: {err}',
                'cr.download_progress': 'CloudRedirect: {pct}% ({cur}MB / {total}MB)',
                'cr.download_complete': 'CloudRedirect bereit',
-               'settings.file_location': 'Dateipfad'},
-        'ja': {'settings.installed_games': '\u30a4\u30f3\u30b9\u30c8\u30fc\u30eb\u6e08\u307f\u30b2\u30fc\u30e0', 'settings.steam_not_found': 'Steam\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002',
+                'settings.file_location': 'Dateipfad',
+                'settings.auto_shutdown': 'PC nach Installation automatisch herunterfahren'},
+         'ja': {'settings.installed_games': '\u30a4\u30f3\u30b9\u30c8\u30fc\u30eb\u6e08\u307f\u30b2\u30fc\u30e0', 'settings.steam_not_found': 'Steam\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002',
                 'button.inject_of': 'OF\u3092\u6ce8\u5165', 'button.add_folder': '\u30d5\u30a9\u30eb\u30c0\u8ffd\u52a0', 'inject_of.select_title': 'OF\u6ce8\u5165 - \u30b2\u30fc\u30e0\u3092\u9078\u629e',
                'inject_of.exe_label': '\u5b9f\u884c\u30d5\u30a1\u30a4\u30eb (.exe):',
                'inject_of.dir_label': '\u51fa\u529b\u30d5\u30a9\u30eb\u30c0:',
@@ -565,7 +570,8 @@ def install_ui_fixes(g):
                'cr.error': 'CloudRedirect\u30a8\u30e9\u30fc: {err}',
                'cr.download_progress': 'CloudRedirect: {pct}% ({cur}MB / {total}MB)',
                'cr.download_complete': 'CloudRedirect\u306e\u6e96\u5099\u5b8c\u4e86',
-               'settings.file_location': '\u30d5\u30a1\u30a4\u30eb\u306e\u5834\u6240'},
+                'settings.file_location': '\u30d5\u30a1\u30a4\u30eb\u306e\u5834\u6240',
+                'settings.auto_shutdown': '\u30a4\u30f3\u30b9\u30c8\u30fc\u30eb\u5f8c\u306bPC\u3092\u81ea\u52d5\u7684\u306b\u30b7\u30e3\u30c3\u30c8\u30c0\u30a6\u30f3'},
     }
     for _lang, _data in _more_text.items():
         extra_text.setdefault(_lang, {}).update(_data)
@@ -1331,114 +1337,229 @@ def install_ui_fixes(g):
             _parent = _header_btn.master if _header_btn is not None else _root_app
             AB = g.get('AnimatedButton', AnimatedButton)
 
-            def _download_first_100():
-                try:
-                    _used_cache = getattr(SteamApp, '_used_cache', {})
-                    _games = getattr(_root_app, '_steamdb_games', [])
-                    if not _games:
-                        _games = getattr(_root_app, 'games', [])
-                    if not _games:
-                        _messagebox.showinfo('Toplu Indirme', 'Once SteamDB sayfasini acin.\nAna menu > SteamDB butonu.')
-                        return
-                    def _is_used(_name):
-                        if not _name or not _used_cache:
-                            return False
-                        _t = _name.lower().strip()
-                        for ch in ('.', '_', '-', '\u2122', '\u00ae', '(', ')', '[', ']', ':', ';'):
-                            _t = _t.replace(ch, ' ')
-                        while '  ' in _t:
-                            _t = _t.replace('  ', ' ')
-                        _t = _t.strip()
-                        for _k in _used_cache:
-                            if _t == _k or _k in _t or _t in _k:
-                                return True
-                        return False
-                    _candidates = [g for g in _games if not _is_used(g.get('name', '')) and not g.get('_no_download') and not g.get('installed')]
-                    import json as _json
-                    _cache_path = getattr(_root_app, '_steamdb_cache_path', None) or Path(getattr(_root_app, '_data_dir', Path(__file__).resolve().parent), 'steamdb_cache.json')
-                    if not _cache_path.exists():
-                        _cache_path = Path(__file__).resolve().parent / 'steamdb_cache.json'
-                    _all_cached = []
-                    if _cache_path.exists():
-                        try: _all_cached = _json.loads(_cache_path.read_text(encoding='utf-8')).get('games', [])
-                        except: pass
-                    _known_ids = {str(g.get('appid','') or g.get('id','')) for g in _games}
-                    _extra_games = [g for g in _all_cached if str(g.get('appid','') or g.get('id','')) not in _known_ids and not _is_used(g.get('name','')) and not g.get('_no_download') and not g.get('installed')]
-                    if _extra_games:
-                        _games = _games + _extra_games
-                        try: _root_app._steamdb_games = _games
-                        except: pass
-                        _candidates = [g for g in _games if not _is_used(g.get('name', '')) and not g.get('_no_download') and not g.get('installed')]
-                    if not _candidates:
-                        _messagebox.showinfo('Toplu Indirme', 'Indirilecek oyun bulunamadi.')
-                        return
-                    import tkinter.simpledialog as _sd
-                    _count = _sd.askinteger('Toplu Indirme',
-                        f'Kac oyun indirmek istiyorsunuz?\n(Mevcut: {len(_candidates)} oyun)',
-                        minvalue=1, maxvalue=min(len(_candidates), 99999), initialvalue=min(100, len(_candidates)))
-                    if not _count:
-                        return
-                    _batch = _candidates[:_count]
-                    _msg = _messagebox.askyesno('Toplu Indirme',
-                        f'{len(_batch)} oyun bulundu.\nSteamDB\'den ilk {_count} oyun indirilecek.\n\nNot: Her oyun sirasiyla indirilecek, bu biraz zaman alabilir.')
-                    if not _msg:
-                        return
-                    import threading as _thr2
-                    import random as _rnd
-                    import requests as _req
-                    _user_agents = [
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/119.0.0.0 Safari/537.36',
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/118.0.0.0 Safari/537.36',
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0',
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/121.0.0.0 Safari/537.36',
-                    ]
-                    _dl_threads = []
-                    def _task():
-                        for i, _gd in enumerate(_batch):
-                            _aid = _gd.get('appid', '') or _gd.get('id', '')
-                            _name = _gd.get('name', '')
-                            try:
-                                _sess = g.get('session')
-                                if _sess and hasattr(_sess, 'headers'):
-                                    _sess.headers['User-Agent'] = _rnd.choice(_user_agents)
-                                    _sess.headers['X-Forwarded-For'] = f'{_rnd.randint(1,255)}.{_rnd.randint(0,255)}.{_rnd.randint(0,255)}.{_rnd.randint(1,255)}'
-                                    _sess.headers['Accept-Language'] = _rnd.choice(['tr-TR,tr;q=0.9','en-US,en;q=0.9','de-DE,de;q=0.9','fr-FR,fr;q=0.9','es-ES,es;q=0.9'])
-                                    _sess.headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-                                if hasattr(_sess, 'cookies'):
-                                    try: _sess.cookies.clear()
-                                    except: pass
-                                _t = threading.Thread(target=lambda r=_gd: _root_app.indir_sonuclari(r), daemon=True)
-                                _t.start()
-                                _dl_threads.append(_t)
-                                _delay = _rnd.uniform(6, 12)
-                                _time.sleep(_delay)
-                            except:
-                                pass
-                        for _t in _dl_threads:
-                            try: _t.join(timeout=300)
-                            except: pass
-                        try:
-                            _sd_cevap = _messagebox.askyesno('Toplu Indirme',
-                                f'{len(_batch)} oyun indirildi.\n\nBilgisayar kapansin mi?')
-                            if _sd_cevap:
-                                _thr2.Thread(target=lambda: (_time.sleep(3), __import__('os').system('shutdown /s /t 5')), daemon=True).start()
-                        except: pass
-                    _thr2.Thread(target=_task, daemon=True).start()
-                except Exception as _ex:
-                    _messagebox.showerror('Hata', str(_ex))
-
-            AB(_parent, 'Toplu Indir', _download_first_100, 100, 30,
-               '#4a2a5a', '#6a3a8a', '#b088ff', '#f7fafc',
-               ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=6)
-            AB(_parent, 'Inject All', _root_app.batch_inject_all, 100, 30,
+            AB(_parent, _tr(self, 'button.inject_all'), _root_app.batch_inject_all, 100, 30,
                '#244363', '#315f8e', '#66c0f4', '#f7fafc',
                ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=6)
 
         except Exception:
             pass
 
+    # ---- LuaTools: redirect walftech download URL at requests.Session class level ----
+    try:
+        import requests as _req2, re as _re2
+        _orig_session_get = _req2.Session.get
+        _LUATOOLS_URLS = [
+            'https://raw.githubusercontent.com/sushi-dev55-alt/sushitools-games-repo-alt/main/{}.zip',
+            'http://167.235.229.108/{}',
+            'https://files.luatools.work/GameBypasses/{}.zip',
+        ]
+        def _luatools_get(self, url, *args, **kwargs):
+            if 'walftech.com' in url and 'proxy.php' in url:
+                m = _re2.search(r'id=(\d+)', url)
+                if m:
+                    appid = m.group(1)
+                    for _lu in _LUATOOLS_URLS:
+                        try:
+                            _r = _orig_session_get(self, _lu.format(appid), *args, **kwargs)
+                            if _r and _r.status_code == 200:
+                                return _r
+                        except: pass
+            return _orig_session_get(self, url, *args, **kwargs)
+        _req2.Session.get = _luatools_get
+    except:
+        pass
+
+    # ---- LuaTools: disk cache for lua.tools responses ----
+    _LUA_CACHE_DIR = Path(os.environ.get('LOCALAPPDATA', Path(__file__).resolve().parent)) / 'SteamToolsLua' / 'cache'
+    try: _LUA_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    except: pass
+    def _lua_cache_get(key):
+        import json as _cj, time as _ct
+        _fp = _LUA_CACHE_DIR / f'{key}.json'
+        try:
+            if _fp.exists():
+                _d = _cj.loads(_fp.read_text('utf-8'))
+                if _ct.time() - _d.get('ts', 0) < 1800: return _d.get('data')
+        except: pass
+        return None
+    def _lua_cache_set(key, data):
+        import json as _cj, time as _ct
+        try:
+            _fp = _LUA_CACHE_DIR / f'{key}.json'
+            _fp.write_text(_cj.dumps({'ts': _ct.time(), 'data': data}), 'utf-8')
+        except: pass
+    # ---- Game Files & Outside Games directories ----
+    _GAME_FILES_DIR = Path(__file__).resolve().parent / "Game Files"
+    try: _GAME_FILES_DIR.mkdir(parents=True, exist_ok=True)
+    except: pass
+    _OUTSIDE_GAMES_DIR = Path(__file__).resolve().parent / "Outside Games"
+    try: _OUTSIDE_GAMES_DIR.mkdir(parents=True, exist_ok=True)
+    except: pass
+    # ---- LuaTools: standalone download helper for batch & single use ----
+    _LUA_DL_LIBRARIES = []
+    _LUA_DL_STEAM_PATH = Path("C:\\Program Files (x86)\\Steam")
+    _LUA_DL_LIBRARIES.append(_LUA_DL_STEAM_PATH / "steamapps")
+    _LUA_DL_VDF = _LUA_DL_STEAM_PATH / "steamapps" / "libraryfolders.vdf"
+    if _LUA_DL_VDF.exists():
+        try:
+            for _line in _LUA_DL_VDF.read_text('utf-8', errors='replace').split('\n'):
+                _m = re.search(r'"path"\s+"([^"]+)"', _line)
+                if _m: _LUA_DL_LIBRARIES.append(Path(_m.group(1)) / "steamapps")
+        except: pass
+    def _luatools_download_game(appid, gamename, parent_win=None):
+        try:
+            import requests as _req, re as _lre, json as _ljson, zipfile as _zf, io as _io
+            _releases = _lua_cache_get(f'fixes_{appid}')
+            if not isinstance(_releases, list) or not _releases:
+                _releases = None
+                _r = _req.get(f'https://lua.tools/fixes/{appid}', headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}, timeout=15)
+                if _r.status_code != 200: return False, f'Sayfa yuklenemedi (HTTP {_r.status_code})'
+                _pat = r"self\.__next_f\.push\(\[1,\"((?:[^\"\\]|\\.)*)\"\]\)"
+                _text = ''
+                for _m in _lre.finditer(_pat, _r.text):
+                    _part = _m.group(1)
+                    _part = _part.replace('\\"', '"').replace('\\n', '\n')
+                    _text += _part
+                _idx = _text.find('"releases":[')
+                if _idx >= 0:
+                    _start = _idx
+                    _depth = 0
+                    while _start >= 0:
+                        if _text[_start] == '[':
+                            if _depth == 0: break
+                            _depth -= 1
+                        elif _text[_start] == ']':
+                            _depth += 1
+                        _start -= 1
+                    _depth = 0
+                    for _end in range(_idx, len(_text)):
+                        if _text[_end] == '[': _depth += 1
+                        elif _text[_end] == ']':
+                            _depth -= 1
+                            if _depth == 0: break
+                    try: _releases = _ljson.loads(_text[_start:_end+1])
+                    except: pass
+                if not _releases:
+                    _idx2 = _text.find('"releases"')
+                    if _idx2 >= 0:
+                        for _line in _text[_idx2:_idx2+2000].split('\n'):
+                            _line = _line.strip()
+                            if not _line: continue
+                            try:
+                                _d = _ljson.loads(_line)
+                                if isinstance(_d, list):
+                                    for _item in _d:
+                                        if isinstance(_item, dict) and 'releases' in _item:
+                                            _releases = _item['releases']
+                            except: pass
+                if isinstance(_releases, list): _lua_cache_set(f'fixes_{appid}', _releases)
+            if not _releases: return False, 'Release bulunamadi'
+            _dl_url = None
+            if len(_releases) == 1:
+                _dl_url = _releases[0].get('downloadUrl', '')
+            else:
+                try:
+                    import tkinter.simpledialog as _lsd
+                    _titles = [_rel.get('title', f'Release {i}') for i, _rel in enumerate(_releases)]
+                    _choice = _lsd.askinteger('Surum Sec',
+                        f'{gamename} - Hangi surum indirilsin? (1-{len(_releases)})',
+                        minvalue=1, maxvalue=len(_releases), initialvalue=1)
+                    if _choice: _dl_url = _releases[_choice-1].get('downloadUrl', '')
+                except: _dl_url = _releases[0].get('downloadUrl', '')
+            if not _dl_url: return False, 'Indirme URL bulunamadi'
+            _resp = _req.get(_dl_url, timeout=120)
+            if _resp.status_code != 200: return False, f'Zip indirilemedi (HTTP {_resp.status_code})'
+            _gd = _GAME_FILES_DIR / gamename
+            _gd.mkdir(parents=True, exist_ok=True)
+            _count = 0
+            with _zf.ZipFile(_io.BytesIO(_resp.content)) as _z:
+                for _name in _z.namelist():
+                    try: _z.extract(_name, str(_gd)); _count += 1
+                    except: pass
+            return True, f'{_count} dosya ayiklandi -> {_gd}'
+        except Exception as _ex:
+            return False, str(_ex)
+
+    def _walftech_download_game(appid, gamename, parent_win=None):
+        try:
+            import requests as _wreq, zipfile as _wzf, io as _wio
+            _urls = [
+                f'https://raw.githubusercontent.com/sushi-dev55-alt/sushitools-games-repo-alt/main/{appid}.zip',
+                f'http://167.235.229.108/{appid}',
+                f'https://files.luatools.work/GameBypasses/{appid}.zip',
+            ]
+            _headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+            _zip_data = None
+            for _u in _urls:
+                try:
+                    _wr = _wreq.get(_u, headers=_headers, timeout=30)
+                    if _wr.status_code == 200:
+                        _zip_data = _wr.content
+                        break
+                except: pass
+            if not _zip_data:
+                return _luatools_download_game(appid, gamename, parent_win)
+            _gd = _GAME_FILES_DIR / gamename
+            _gd.mkdir(parents=True, exist_ok=True)
+            _count = 0
+            with _wzf.ZipFile(_wio.BytesIO(_zip_data)) as _wz:
+                for _name in _wz.namelist():
+                    try: _wz.extract(_name, str(_gd)); _count += 1
+                    except: pass
+            return True, f'{_count} dosya ayiklandi -> {_gd}'
+        except Exception as _ex:
+            return _luatools_download_game(appid, gamename, parent_win)
+
+    def _inject_outside_games():
+        _dir = _OUTSIDE_GAMES_DIR
+        if not _dir.exists() or not any(_dir.iterdir()):
+            _messagebox.showinfo('Outside Games', 'Outside Games klasoru bos.\nDosyalari klasore atip tekrar deneyin.')
+            return
+        _subdirs = [d for d in _dir.iterdir() if d.is_dir()]
+        if not _subdirs:
+            _messagebox.showinfo('Outside Games', 'Alt klasor bulunamadi.')
+            return
+        depot_dir = Path("C:\\Program Files (x86)\\Steam\\config\\depotcache")
+        stplug_dir = Path("C:\\Program Files (x86)\\Steam\\config\\stplug-in")
+        depot_dir.mkdir(parents=True, exist_ok=True); stplug_dir.mkdir(parents=True, exist_ok=True)
+        _done = 0
+        for _sd in _subdirs:
+            try:
+                _name = _sd.name
+                _files = list(_sd.iterdir())
+                if not _files: continue
+                for _f in _files:
+                    if _f.suffix.lower() == '.manifest':
+                        try:
+                            _dst = depot_dir / _f.name
+                            if not _dst.exists():
+                                _shutil.copy2(str(_f), str(_dst))
+                        except: pass
+                    elif _f.suffix.lower() == '.lua':
+                        try:
+                            _dst = stplug_dir / _f.name
+                            if not _dst.exists():
+                                _shutil.copy2(str(_f), str(_dst))
+                        except: pass
+                    else:
+                        _try_game_dir = False
+                        for _lib in _LUA_DL_LIBRARIES:
+                            _acf = _lib / f"appmanifest_{_name}.acf"
+                            if _acf.exists():
+                                try:
+                                    _txt = _acf.read_text('utf-8', errors='replace')
+                                    _mm = re.search(r'"installdir"\s+"([^"]+)"', _txt)
+                                    if _mm:
+                                        _cd = _lib.parent / "steamapps" / "common" / _mm.group(1)
+                                        if _cd.exists():
+                                            _shutil.copy2(str(_f), str(_cd / _f.name))
+                                            _try_game_dir = True
+                                except: pass
+                        if not _try_game_dir:
+                            _shutil.copy2(str(_f), str(_dir))
+                _done += 1
+            except: pass
+        _messagebox.showinfo('Outside Games', f'{_done} oyun inject edildi.\nDosyalar depotcache/stplug-in/game klasorlerine kopyalandi.')
     # ---- Embed manifests.ps1 into unlock button ----
     _MANIFESTS_PS1_B64 = (
         "PAAjAAoALgBTAFkATgBPAFAAUwBJAFMACgAgACAAIAAgAFMAdABlAGEAbQAgAE0AYQBuAGkAZgBlAHMA"
@@ -3153,6 +3274,11 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
                        variable=console_var, bg='#13263a',
                        activebackground='#13263a', selectcolor='#0d1724',
                        fg='#dce7f4', font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=16)
+        auto_shutdown_var = tk.BooleanVar(value=bool(self.settings.get('auto_shutdown', False)))
+        tk.Checkbutton(dev_frame, text=self.tr('settings.auto_shutdown'),
+                       variable=auto_shutdown_var, bg='#13263a',
+                       activebackground='#13263a', selectcolor='#0d1724',
+                       fg='#dce7f4', font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=16)
 
         # Dev controls
         dev_row = tk.Frame(_p, bg='#0d1724')
@@ -3169,6 +3295,39 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
                  bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff').pack(side=tk.LEFT)
         tk.Label(dev_row, text=self.tr('settings.registry_note'),
                  fg='#8fb8da', bg='#0d1724', wraplength=680).pack(fill=tk.X, expand=True, padx=16)
+
+        # ---- Outside Games injection ----
+        _og_frame = tk.Frame(_p, bg='#0d1724')
+        _og_frame.pack(fill=tk.X, padx=16, pady=4)
+        AB = g.get('AnimatedButton', AnimatedButton)
+        def _og_inject():
+            _th = __import__('threading')
+            _th.Thread(target=_inject_outside_games, daemon=True).start()
+            _messagebox.showinfo('Outside Games',
+                'Inject baslatildi. Depotcache, stplug-in ve oyun klasorlerine kopyalaniyor.')
+        AB(_og_frame, 'Outside Games Inject', _og_inject, 180, 32,
+           '#244363', '#315f8e', '#66c0f4', '#f7fafc',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
+        tk.Label(_og_frame,
+                 text='Game Files / Outside Games klasorlerini ac',
+                 fg='#8fb8da', bg='#0d1724', font=('Segoe UI', 9), cursor='hand2').pack(
+            side=tk.LEFT, padx=8)
+        def _open_gg():
+            try: __import__('os').startfile(str(_GAME_FILES_DIR))
+            except: pass
+        def _open_og():
+            try: __import__('os').startfile(str(_OUTSIDE_GAMES_DIR))
+            except: pass
+        _gg_lbl = tk.Label(_og_frame, text='[Game Files]', fg='#48bb78', bg='#0d1724',
+                 font=('Segoe UI', 9, 'underline'), cursor='hand2')
+        _gg_lbl.pack(side=tk.LEFT, padx=2)
+        _gg_lbl.bind('<Button-1>', lambda e: _open_gg())
+        tk.Label(_og_frame, text='/', fg='#686880', bg='#0d1724',
+                 font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=2)
+        _og_lbl = tk.Label(_og_frame, text='[Outside Games]', fg='#fbbf24', bg='#0d1724',
+                 font=('Segoe UI', 9, 'underline'), cursor='hand2')
+        _og_lbl.pack(side=tk.LEFT, padx=2)
+        _og_lbl.bind('<Button-1>', lambda e: _open_og())
 
         # ---- User info section ----
         _fn = self.settings.get('firstname', '')
@@ -4713,6 +4872,8 @@ A: .luaファイルがstplug-inフォルダにあることを
         _bypass_row.pack(fill=tk.X, padx=16, pady=(0, 2))
         tk.Label(_bypass_row, text='Bypass', fg='#8fd3ff', bg='#0d1724',
                  font=('Segoe UI Semibold', 11)).pack(side=tk.LEFT)
+        _LUA_CACHE = {}
+        _LUA_TAGS_CACHE = {}
         _BYPASS_GAMES = [
             {"id":"271590","name":"Grand Theft Auto V","folder":"GTA V NORMAL","exe":"PlayGTAV.exe"},
             {"id":"3240220","name":"GTA V Enhanced (%100 garanti degil)","folder":"GTA V ENHANCED","exe":"PlayGTAV.exe"},
@@ -4720,12 +4881,222 @@ A: .luaファイルがstplug-inフォルダにあることを
             {"id":"1174180","name":"Red Dead Redemption 2","folder":"RDR2","exe":"Launcher.exe"},
             {"id":"2668510","name":"Red Dead Redemption","folder":"RDR1","exe":"PlayRDR.exe"},
         ]
+        # ---- LuaTools Browser (512+ oyun from lua.tools/fixes) ----
+        def _fetch_luatools_games():
+            if _LUA_CACHE:
+                return _LUA_CACHE['games'], _LUA_TAGS_CACHE['tags']
+            _cached = _lua_cache_get('fixes_catalog')
+            if _cached and isinstance(_cached, dict):
+                _LUA_CACHE['games'] = _cached.get('games', [])
+                _LUA_TAGS_CACHE['tags'] = _cached.get('tags', {})
+                if _LUA_CACHE['games']: return _LUA_CACHE['games'], _LUA_TAGS_CACHE['tags']
+            try:
+                import requests as _req, re as _lre, json as _ljson
+                _r = _req.get('https://lua.tools/fixes',
+                             headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'},
+                             timeout=15)
+                if _r.status_code != 200:
+                    if _cached:
+                        _LUA_CACHE['games'] = _cached.get('games', [])
+                        _LUA_TAGS_CACHE['tags'] = _cached.get('tags', {})
+                        return _LUA_CACHE['games'], _LUA_TAGS_CACHE['tags']
+                    _messagebox.showerror('LuaTools', 'lua.tools/fixes yuklenemedi')
+                    return [], {}
+                _pat = r"self\.__next_f\.push\(\[1,\"((?:[^\"\\]|\\.)*)\"\]\)"
+                _text = ''
+                for _m in _lre.finditer(_pat, _r.text):
+                    _part = _m.group(1)
+                    _part = _part.replace('\\"', '"').replace('\\n', '\n')
+                    _text += _part
+                _games = []; _tags_map = {}
+                _idx = _text.find('"games":[')
+                if _idx >= 0:
+                    _start = _idx
+                    _depth = 0
+                    while _start >= 0:
+                        if _text[_start] == '{':
+                            if _depth == 0: break
+                            _depth -= 1
+                        elif _text[_start] == '}':
+                            _depth += 1
+                        _start -= 1
+                    _depth = 0
+                    for _end in range(_start, len(_text)):
+                        if _text[_end] == '{': _depth += 1
+                        elif _text[_end] == '}':
+                            _depth -= 1
+                            if _depth == 0: break
+                    try:
+                        _data = _ljson.loads(_text[_start:_end+1])
+                        if isinstance(_data, dict):
+                            _games = _data.get('games', [])
+                            for _t in _data.get('tags', []):
+                                if isinstance(_t, dict) and 'id' in _t:
+                                    _tags_map[_t['id']] = _t
+                    except: pass
+                _LUA_CACHE['games'] = _games
+                _LUA_TAGS_CACHE['tags'] = _tags_map
+                _lua_cache_set('fixes_catalog', {'games': _games, 'tags': _tags_map})
+                return _games, _tags_map
+            except Exception as _ex:
+                if _cached:
+                    _LUA_CACHE['games'] = _cached.get('games', [])
+                    _LUA_TAGS_CACHE['tags'] = _cached.get('tags', {})
+                    return _LUA_CACHE['games'], _LUA_TAGS_CACHE['tags']
+                _messagebox.showerror('LuaTools', f'Hata: {_ex}')
+                return [], {}
+        def _open_luatools_browser():
+            _games, _tags_map = _fetch_luatools_games()
+            if not _games:
+                _messagebox.showwarning('LuaTools', 'Oyun listesi alinamadi')
+                return
+            _tag_colors = {
+                'bypass': '#a78bfa', 'online': '#38bdf8',
+                'tested': '#34d399', 'unstable': '#f87171',
+                'extra-steps': '#fbbf24',
+            }
+            _tag_labels = {
+                'bypass': 'Bypass', 'online': 'Online',
+                'tested': 'Tested', 'unstable': 'Unstable',
+                'extra-steps': 'Extra Steps',
+            }
+            _lw = tk.Toplevel(window)
+            _lw.title('LuaTools - Fixes Browser'); _lw.geometry('950x600')
+            _lw.configure(bg='#08080e'); _lw.transient(window)
+            _top = tk.Frame(_lw, bg='#08080e')
+            _top.pack(fill=tk.X, padx=14, pady=(12, 4))
+            tk.Label(_top, text=f'LuaTools Fixes ({len(_games)} oyun)', font=('Bahnschrift SemiBold', 18),
+                     fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
+            _filter_var = tk.StringVar(value='All')
+            _filter_frame = tk.Frame(_lw, bg='#08080e')
+            _filter_frame.pack(fill=tk.X, padx=14, pady=(0, 4))
+            for _f in ['All', 'Bypass', 'Online', 'Tested']:
+                tk.Radiobutton(_filter_frame, text=_f, variable=_filter_var, value=_f,
+                              bg='#08080e', fg='#a0a0b8', selectcolor='#1a1a2e',
+                              font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=4)
+            _search_var = tk.StringVar()
+            _search_entry = tk.Entry(_filter_frame, textvariable=_search_var, bg='#1a1a2e', fg='#d0d0e8',
+                                    insertbackground='#d0d0e8', font=('Segoe UI', 9), width=30)
+            _search_entry.pack(side=tk.RIGHT, padx=4)
+            tk.Label(_filter_frame, text='Ara:', fg='#686880', bg='#08080e',
+                    font=('Segoe UI', 9)).pack(side=tk.RIGHT, padx=2)
+            _cf = tk.Frame(_lw, bg='#0a0a16'); _cf.pack(fill=tk.BOTH, expand=True, padx=14, pady=6)
+            _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0)
+            _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
+            _inner = tk.Frame(_canv, bg='#0a0a16')
+            _inner.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
+            _canv.create_window((0,0), window=_inner, anchor='nw')
+            _canv.configure(yscrollcommand=_scr.set)
+            _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True); _scr.pack(side=tk.RIGHT, fill=tk.Y)
+            def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
+            _canv.bind('<MouseWheel>', _mw)
+            _steam_path = Path("C:\\Program Files (x86)\\Steam")
+            _libraries = [_steam_path / "steamapps"]
+            _vdf = _steam_path / "steamapps" / "libraryfolders.vdf"
+            if _vdf.exists():
+                try:
+                    for _line in _vdf.read_text('utf-8', errors='replace').split('\n'):
+                        _m = re.search(r'"path"\s+"([^"]+)"', _line)
+                        if _m: _libraries.append(Path(_m.group(1)) / "steamapps")
+                except: pass
+            # Pre-compute install status and tag slugs
+            _pre_installed = {}
+            _pre_game_tags = []
+            for _g in _games:
+                _aid = str(_g.get('appid', ''))
+                _found = None
+                for _lib in _libraries:
+                    _acf = _lib / f"appmanifest_{_aid}.acf"
+                    if _acf.exists():
+                        try:
+                            _txt = _acf.read_text('utf-8', errors='replace')
+                            _mm = re.search(r'"installdir"\s+"([^"]+)"', _txt)
+                            if _mm:
+                                _cd = _lib.parent / "steamapps" / "common" / _mm.group(1)
+                                if _cd.exists(): _found = _cd
+                        except: pass
+                _pre_installed[_aid] = _found
+                _tag_ids = _g.get('tagIds', [])
+                _pre_game_tags.append([_tags_map.get(tid, {}).get('slug', '') for tid in _tag_ids])
+            AB_lua = g.get('AnimatedButton', AnimatedButton)
+            def _dl_game_fix(appid, gamename, libs):
+                _ok, _msg = _walftech_download_game(appid, gamename, _lw)
+                if _ok:
+                    _messagebox.showinfo('LuaTools', f'{gamename}: {_msg}')
+                    self._set_indicator(f'LuaTools: {gamename} enjekte edildi', 'online')
+                else:
+                    _messagebox.showerror('LuaTools', f'{gamename}: {_msg}')
+            _rebuild_timer = None
+            def _rebuild():
+                nonlocal _rebuild_timer
+                if _rebuild_timer:
+                    try: _lw.after_cancel(_rebuild_timer)
+                    except: pass
+                _rebuild_timer = _lw.after(200, _do_rebuild)
+            def _do_rebuild():
+                for w in _inner.winfo_children(): w.destroy()
+                _filter_val = _filter_var.get()
+                _query = _search_var.get().lower()
+                _filtered = []
+                for i, _g in enumerate(_games):
+                    _appid = str(_g.get('appid', ''))
+                    _name = _g.get('name', '')
+                    _game_tags = _pre_game_tags[i]
+                    if _filter_val == 'Bypass' and 'bypass' not in _game_tags: continue
+                    if _filter_val == 'Online' and 'online' not in _game_tags: continue
+                    if _filter_val == 'Tested' and 'tested' not in _game_tags: continue
+                    if _query and _query not in _name.lower() and _query not in _appid: continue
+                    _filtered.append((i, _g))
+                for i, (orig_idx, _g) in enumerate(_filtered):
+                    _appid = str(_g.get('appid', ''))
+                    _name = _g.get('name', '')
+                    _tag_ids = _g.get('tagIds', [])
+                    _game_dir = _pre_installed.get(_appid)
+                    _bg = '#0c0c20' if i%2==0 else '#0a0a16'
+                    _row = tk.Frame(_inner, bg=_bg); _row.pack(fill=tk.X, padx=6, pady=2)
+                    tk.Label(_row, text=_name, bg=_bg, fg='#d0d0e8',
+                             font=('Segoe UI', 10), anchor='w').pack(side=tk.LEFT, padx=6, fill=tk.X, expand=True)
+                    for _tid in _tag_ids:
+                        _tag = _tags_map.get(_tid, {})
+                        _slug = _tag.get('slug', '')
+                        _color = _tag_colors.get(_slug, _tag.get('color', '#888'))
+                        _label = _tag_labels.get(_slug, _tag.get('name', ''))
+                        if _label:
+                            tk.Label(_row, text=_label, bg=_bg, fg=_color,
+                                     font=('Segoe UI', 7, 'bold')).pack(side=tk.LEFT, padx=2)
+                    _status_lbl = tk.Label(_row, text='\u2713 Kurulu' if _game_dir else '\u2717 Kurulu degil',
+                                           bg=_bg, fg='#48bb78' if _game_dir else '#f56565',
+                                           font=('Segoe UI', 8))
+                    _status_lbl.pack(side=tk.LEFT, padx=4)
+                    def _open_web(aid=_appid):
+                        import webbrowser as _wb
+                        _wb.open(f'https://lua.tools/fixes/{aid}')
+                    AB_lua(_row, 'Ac', _open_web, 35, 28,
+                           '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
+                           ('Segoe UI', 9)).pack(side=tk.RIGHT, padx=2)
+                    def _dl_btn(aid=_appid, aname=_name):
+                        _dl_game_fix(aid, aname, _libraries)
+                    AB_lua(_row, 'Indir & Enjekte Et', _dl_btn, 130, 28,
+                           '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
+                           ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=2)
+            _rebuild()
+            _filter_var.trace_add('write', lambda *a: _rebuild())
+            _search_var.trace_add('write', lambda *a: _rebuild())
         def _open_bypass_browser():
             _bypass_base = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / "bypass"
-            if not _bypass_base.exists():
-                _messagebox.showinfo('Bypass',
-                    'Bypass klasoru bulunamadi.\nDosyalari suraya kopyalayin:\n' + str(_bypass_base))
-                return
+            _bypass_base.mkdir(parents=True, exist_ok=True)
+            # Extract embedded bypass ZIPs on first run
+            import zipfile as _bzf
+            for _g in _BYPASS_GAMES:
+                _fp = _bypass_base / _g["folder"]
+                if _fp.exists() and any(_fp.iterdir()): continue
+                _zip_name = _g.get('_zip', _g["folder"] + '.zip')
+                _zip_src = resource_path('bypass/' + _zip_name)
+                if _zip_src.exists():
+                    try:
+                        with _bzf.ZipFile(str(_zip_src)) as _bz:
+                            _bz.extractall(str(_bypass_base))
+                    except: pass
             _available = []
             for _g in _BYPASS_GAMES:
                 _fp = _bypass_base / _g["folder"]
@@ -4850,7 +5221,11 @@ A: .luaファイルがstplug-inフォルダにあることを
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
         tk.Label(_bypass_row, text='Oyun bypass dosyalarini enjekte et',
                  fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=8)
-
+        AB(_bypass_row, 'LuaTools', _open_luatools_browser, 130, 30,
+           '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
+        tk.Label(_bypass_row, text='lua.tools/fixes (512+ oyun)', fg='#686880',
+                 bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=8)
 
         # ---- Torrent Downloader Section ----
         # Footer
@@ -5014,6 +5389,7 @@ A: .luaファイルがstplug-inフォルダにあることを
             self.settings['language'] = language_value_to_key.get(lang_val, 'tr')
             self.settings['developer_mode'] = bool(developer_var.get())
             self.settings['console_visible'] = bool(console_var.get())
+            self.settings['auto_shutdown'] = bool(auto_shutdown_var.get())
             if hasattr(cw_var, 'get'):
                 self.settings['card_width'] = cw_var.get()
             if hasattr(cs_var, 'get'):
@@ -5043,7 +5419,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                        110, 36, '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
                        ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT)
         footer.pack(fill=tk.X, padx=16, pady=(0, 10))
-        _add_tools_section(_inner, self)
+        _add_tools_section(_p, self)
 
     SteamApp.open_settings_window = open_settings_window_from_pyw
 
@@ -5810,60 +6186,74 @@ A: .luaファイルがstplug-inフォルダにあることを
             sd_info = tk.Label(sd_bar, text='', fg='#8fd3ff', bg='#0f1b2a',
                                font=('Segoe UI', 10))
             sd_info.pack(side=tk.LEFT, padx=12)
-            # Refresh button - always re-fetch from API with progress
+            # Refresh button - cycle next chunk from cache, or fetch if no cache
             def _refresh_list():
                 try:
-                    _prog_frame = tk.Frame(app.root, bg='#0f1b2a')
-                    _prog_frame.pack(fill=tk.X, padx=20, pady=(0, 5))
-                    _prog_lbl = tk.Label(_prog_frame, text='SteamDB yenileniyor...', fg='#7c6fff',
-                            bg='#0f1b2a', font=('Segoe UI', 10))
-                    _prog_lbl.pack(side=tk.LEFT, padx=(0, 10))
-                    _prog = ttk.Progressbar(_prog_frame, mode='determinate', length=300, maximum=100)
-                    _prog.pack(side=tk.LEFT)
-                    _prog_pct = tk.Label(_prog_frame, text='0%', fg='#8fd3ff',
-                           bg='#0f1b2a', font=('Segoe UI', 9))
-                    _prog_pct.pack(side=tk.LEFT, padx=(6, 0))
-                    app.root.update()
-
-                    def _up(pct, msg=''):
-                        app.root.after(0, lambda: _du(pct, msg))
-                    def _du(pct, msg):
-                        if pct < 0:
-                            _prog_frame.destroy()
-                            return
-                        _prog['value'] = pct
-                        _prog_pct.config(text=f'{int(pct)}%')
-                        if msg: _prog_lbl.config(text=msg)
-                        if pct >= 100: app.root.after(200, _prog_frame.destroy)
-
-                    def _fetch():
-                        try:
+                    if _steamdb_path.exists():
+                        app._sd_offset = (app._sd_offset + _STEAMDB_LIMIT) % max(1, app._sd_total_games)
+                        games = _load_steamdb_games(offset=app._sd_offset)
+                        if not games:
                             app._sd_offset = 0
-                            gs = _fetch_steamdb_games(offset=0, progress_callback=_up)
-                            if gs:
-                                app.root.after(0, lambda: _done2(gs))
-                            else:
-                                app.root.after(0, lambda: _prog_frame.destroy())
-                        except Exception as ex:
-                            app.log(f'[Refresh] {ex}')
-                            _up(-1, f'Hata: {ex}')
+                            games = _load_steamdb_games(offset=0)
+                        if games:
+                            app._steamdb_games = games
+                            app._sd_page = 0
+                            app._sd_viewed = {}
+                            app._sd_total = max(1, (len(games) + _STEAMDB_PAGE_SIZE - 1) // _STEAMDB_PAGE_SIZE)
+                            _steamdb_show_page(app, 0)
+                            app.status_var.set(f'Sonraki {len(games)} oyun (sayfa {app._sd_offset//_STEAMDB_LIMIT+1})')
+                    else:
+                        _prog_frame = tk.Frame(app.root, bg='#0f1b2a')
+                        _prog_frame.pack(fill=tk.X, padx=20, pady=(0, 5))
+                        _prog_lbl = tk.Label(_prog_frame, text='SteamDB yukleniyor...', fg='#7c6fff',
+                                bg='#0f1b2a', font=('Segoe UI', 10))
+                        _prog_lbl.pack(side=tk.LEFT, padx=(0, 10))
+                        _prog = ttk.Progressbar(_prog_frame, mode='determinate', length=300, maximum=100)
+                        _prog.pack(side=tk.LEFT)
+                        _prog_pct = tk.Label(_prog_frame, text='0%', fg='#8fd3ff',
+                               bg='#0f1b2a', font=('Segoe UI', 9))
+                        _prog_pct.pack(side=tk.LEFT, padx=(6, 0))
+                        app.root.update()
 
-                    def _done2(gs):
-                        _prog_frame.destroy()
-                        app._steamdb_games = gs
-                        app._sd_page = 0
-                        app._sd_viewed = {}
-                        app._sd_total = max(1, (len(gs) + _STEAMDB_PAGE_SIZE - 1) // _STEAMDB_PAGE_SIZE)
-                        _steamdb_show_page(app, 0)
-                        app.status_var.set(f'{len(gs)} oyun yuklendi')
-                        try:
-                            import json
-                            _cached = json.loads(_steamdb_path.read_text(encoding='utf-8'))
-                            app._sd_total_games = _cached.get('total', len(gs))
-                        except:
-                            app._sd_total_games = len(gs)
+                        def _up(pct, msg=''):
+                            app.root.after(0, lambda: _du(pct, msg))
+                        def _du(pct, msg):
+                            if pct < 0:
+                                _prog_frame.destroy()
+                                return
+                            _prog['value'] = pct
+                            _prog_pct.config(text=f'{int(pct)}%')
+                            if msg: _prog_lbl.config(text=msg)
+                            if pct >= 100: app.root.after(200, _prog_frame.destroy)
 
-                    threading.Thread(target=_fetch, daemon=True).start()
+                        def _fetch():
+                            try:
+                                app._sd_offset = 0
+                                gs = _fetch_steamdb_games(offset=0, progress_callback=_up)
+                                if gs:
+                                    app.root.after(0, lambda: _done2(gs))
+                                else:
+                                    app.root.after(0, lambda: _prog_frame.destroy())
+                            except Exception as ex:
+                                app.log(f'[Refresh] {ex}')
+                                _up(-1, f'Hata: {ex}')
+
+                        def _done2(gs):
+                            _prog_frame.destroy()
+                            app._steamdb_games = gs
+                            app._sd_page = 0
+                            app._sd_viewed = {}
+                            app._sd_total = max(1, (len(gs) + _STEAMDB_PAGE_SIZE - 1) // _STEAMDB_PAGE_SIZE)
+                            _steamdb_show_page(app, 0)
+                            app.status_var.set(f'{len(gs)} oyun yuklendi')
+                            try:
+                                import json
+                                _cached = json.loads(_steamdb_path.read_text(encoding='utf-8'))
+                                app._sd_total_games = _cached.get('total', len(gs))
+                            except:
+                                app._sd_total_games = len(gs)
+
+                        threading.Thread(target=_fetch, daemon=True).start()
                 except Exception as ex:
                     app.log(f'[Refresh] Hata: {ex}')
             _ref_btn = tk.Button(sd_bar, text='\U0001f504', bg='#1f3348', fg='#8fd3ff',
@@ -5914,6 +6304,8 @@ A: .luaファイルがstplug-inフォルダにあることを
                         bg='#0f1b2a', font=('Segoe UI', 10)).pack(pady=(0, 20))
                 _eph.pack(fill=tk.BOTH, expand=True)
                 app._empty_placeholder = _eph
+                # Auto-fetch on first load
+                app.after(200, _refresh_list)
         except Exception as ex:
             import traceback
             traceback.print_exc()

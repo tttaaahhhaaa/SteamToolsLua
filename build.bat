@@ -3,7 +3,8 @@ REM Build SteamToolsLua EXE
 REM Requires: pyinstaller, requests, pillow
 REM Usage: build.bat
 
-pyinstaller --onefile --windowed --icon=icon.ico --name=SteamToolsLua ^
+pyinstaller --onefile --windowed --icon="%~dp0icon.ico" --name=SteamToolsLua_v2.7.0 ^
+  --add-data "%~dp0bypass;./bypass" ^
   --hidden-import=html --hidden-import=html.parser --hidden-import=html.entities ^
   --hidden-import=requests --hidden-import=urllib3 --hidden-import=certifi ^
   --hidden-import=charset_normalizer --hidden-import=idna ^
@@ -13,7 +14,7 @@ pyinstaller --onefile --windowed --icon=icon.ico --name=SteamToolsLua ^
   --hidden-import=tkinter.simpledialog --hidden-import=tkinter.commondialog ^
   --hidden-import=tkinter.scrolledtext --hidden-import=tkinter.ttk ^
   --hidden-import=tkinter.colorchooser --hidden-import=tkinter.font ^
-  --distpath=. --workpath=build_temp --specpath=build_temp --noconfirm SteamToolsLua.py
+  --distpath=. --workpath=build_temp --specpath=build_temp --noconfirm src\SteamToolsLua.py
 
 echo.
 echo Build complete. EXE is in current directory.
