@@ -1,9 +1,9 @@
 @echo off
-REM Build SteamToolsLua EXE
+REM Build SteamToolsLua EXE (onedir mode - more reliable)
 REM Requires: pyinstaller, requests, pillow
 REM Usage: build.bat
 
-pyinstaller --onefile --windowed --icon="%~dp0icon.ico" --name=SteamToolsLua_v2.7.0 ^
+pyinstaller --onedir --windowed --icon="%~dp0icon.ico" --name=SteamToolsLua_v2.7.1 ^
   --add-data "%~dp0bypass;./bypass" ^
   --hidden-import=html --hidden-import=html.parser --hidden-import=html.entities ^
   --hidden-import=requests --hidden-import=urllib3 --hidden-import=certifi ^
@@ -17,5 +17,5 @@ pyinstaller --onefile --windowed --icon="%~dp0icon.ico" --name=SteamToolsLua_v2.
   --distpath=. --workpath=build_temp --specpath=build_temp --noconfirm src\SteamToolsLua.py
 
 echo.
-echo Build complete. EXE is in current directory.
+echo Build complete. Folder SteamToolsLua_v2.7.1 is in current directory.
 pause
