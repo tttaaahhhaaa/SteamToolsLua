@@ -1030,12 +1030,7 @@ def install_ui_fixes(g):
 
     # ---- Batch Inject All ----
     def batch_inject_all(self):
-        base_dir = Path(__file__).resolve().parent
-        saved = self.settings.get('save_path', '') or self.settings.get('new_games_folder', '')
-        if saved and Path(saved).exists():
-            games_dir = Path(saved)
-        else:
-            games_dir = base_dir / "1 New Games"
+        games_dir = _get_1ng_base()
         if not games_dir.exists():
             try:
                 games_dir.mkdir(parents=True, exist_ok=True)
@@ -1394,13 +1389,16 @@ def install_ui_fixes(g):
             _fp = _LUA_CACHE_DIR / f'{key}.json'
             _fp.write_text(_cj.dumps({'ts': _ct.time(), 'data': data}), 'utf-8')
         except: pass
-    # ---- Game Files & Outside Games directories ----
-    _GAME_FILES_DIR = Path(__file__).resolve().parent / "1 New Games" / "Game Files"
-    try: _GAME_FILES_DIR.mkdir(parents=True, exist_ok=True)
-    except: pass
-    _OUTSIDE_GAMES_DIR = Path(__file__).resolve().parent / "1 New Games" / "Outside Games"
-    try: _OUTSIDE_GAMES_DIR.mkdir(parents=True, exist_ok=True)
-    except: pass
+    # ---- Game Files & Outside Games directories (dynamic, under 1 New Games) ----
+    def _get_1ng_base():
+        _base = Path(__file__).resolve().parent
+        try:
+            _saved = getattr(_root_app, 'settings', {}).get('save_path', '') or getattr(_root_app, 'settings', {}).get('new_games_folder', '')
+            if _saved and Path(_saved).exists(): _base = Path(_saved)
+        except: pass
+        return _base
+    def _get_game_files_dir(): _d = _get_1ng_base() / "Game Files"; _d.mkdir(parents=True, exist_ok=True); return _d
+    def _get_outside_games_dir(): _d = _get_1ng_base() / "Outside Games"; _d.mkdir(parents=True, exist_ok=True); return _d
     # ---- LuaTools: standalone download helper for batch & single use ----
     _LUA_DL_LIBRARIES = []
     _LUA_DL_STEAM_PATH = Path("C:\\Program Files (x86)\\Steam")
@@ -1475,7 +1473,7 @@ def install_ui_fixes(g):
             if not _dl_url: return False, 'Indirme URL bulunamadi'
             _resp = _req.get(_dl_url, timeout=120)
             if _resp.status_code != 200: return False, f'Zip indirilemedi (HTTP {_resp.status_code})'
-            _gd = _GAME_FILES_DIR / gamename
+            _gd = _get_game_files_dir() / gamename
             _gd.mkdir(parents=True, exist_ok=True)
             _count = 0
             with _zf.ZipFile(_io.BytesIO(_resp.content)) as _z:
@@ -1484,7 +1482,7 @@ def install_ui_fixes(g):
                     except: pass
             return True, f'{_count} dosya ayiklandi -> {_gd}'
         except Exception as _ex:
-            return False, str(_ex)
+            return _luatools_download_game(appid, gamename, parent_win)
 
     def _walftech_download_game(appid, gamename, parent_win=None):
         try:
@@ -1505,7 +1503,7 @@ def install_ui_fixes(g):
                 except: pass
             if not _zip_data:
                 return _luatools_download_game(appid, gamename, parent_win)
-            _gd = _GAME_FILES_DIR / gamename
+            _gd = _get_game_files_dir() / gamename
             _gd.mkdir(parents=True, exist_ok=True)
             _count = 0
             with _wzf.ZipFile(_wio.BytesIO(_zip_data)) as _wz:
@@ -1517,7 +1515,7 @@ def install_ui_fixes(g):
             return _luatools_download_game(appid, gamename, parent_win)
 
     def _inject_outside_games():
-        _dir = _OUTSIDE_GAMES_DIR
+        _dir = _get_outside_games_dir()
         if not _dir.exists() or not any(_dir.iterdir()):
             _messagebox.showinfo('Outside Games', 'Outside Games klasoru bos.\nDosyalari klasore atip tekrar deneyin.')
             return
@@ -3319,10 +3317,10 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
                  fg='#8fb8da', bg='#0d1724', font=('Segoe UI', 9), cursor='hand2').pack(
             side=tk.LEFT, padx=8)
         def _open_gg():
-            try: __import__('os').startfile(str(_GAME_FILES_DIR))
+            try: __import__('os').startfile(str(_get_game_files_dir()))
             except: pass
         def _open_og():
-            try: __import__('os').startfile(str(_OUTSIDE_GAMES_DIR))
+            try: __import__('os').startfile(str(_get_outside_games_dir()))
             except: pass
         _gg_lbl = tk.Label(_og_frame, text='[Game Files]', fg='#48bb78', bg='#0d1724',
                  font=('Segoe UI', 9, 'underline'), cursor='hand2')
