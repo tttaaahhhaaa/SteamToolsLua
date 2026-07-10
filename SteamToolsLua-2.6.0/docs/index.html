@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SteamToolsLua</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#05050a;color:#e8e8f8;min-height:100vh}
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+.bg .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.2;animation:float 20s infinite ease-in-out}
+.bg .orb:nth-child(1){width:600px;height:600px;background:#7c6fff;top:-200px;left:-200px}
+.bg .orb:nth-child(2){width:500px;height:500px;background:#b098ff;bottom:-150px;right:-150px;animation-delay:-7s}
+.bg .orb:nth-child(3){width:400px;height:400px;background:#4a3fbf;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-14s}
+@keyframes float{0%,100%{transform:translate(0,0)scale(1)}25%{transform:translate(60px,-40px)scale(1.08)}50%{transform:translate(-30px,50px)scale(.95)}75%{transform:translate(40px,30px)scale(1.05)}}
+.grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(124,111,255,.04)1px,transparent 1px),linear-gradient(90deg,rgba(124,111,255,.04)1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+.container{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:40px 20px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px}
+h1{font-size:28px;background:linear-gradient(135deg,#7c6fff,#b098ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.login-btn{background:#1f3348;color:#8fd3ff;border:1px solid#2b4b68;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600}
+.login-btn:hover{background:#2b4b68}
+.hero{text-align:center;padding:40px 0}
+.hero h2{font-size:36px;margin-bottom:10px}
+.hero p{color:#97afc6;font-size:16px;margin-bottom:24px;line-height:1.6}
+.btn-download{display:inline-block;background:linear-gradient(135deg,#7c6fff,#5a4edf);color:#fff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;transition:transform .2s}
+.btn-download:hover{transform:translateY(-2px)}
+.card{background:#0d1724;border:1px solid#1f3348;border-radius:12px;padding:24px;margin-bottom:20px}
+.card h3{color:#8fd3ff;margin-bottom:12px;font-size:16px}
+.card p{color:#97afc6;font-size:14px;line-height:1.7}
+.card ul{list-style:none;margin-top:8px}
+.card ul li{padding:6px 0;color:#b8c8dc;font-size:13px}
+.card ul li:before{content:'\2713';color:#48bb78;margin-right:8px}
+.modal{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.7);align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-box{background:#0d1724;border:1px solid#1f3348;border-radius:12px;padding:30px;width:400px;max-width:90%}
+.modal-box h3{color:#8fd3ff;margin-bottom:16px}
+.modal-box input{width:100%;padding:10px;background:#122235;border:1px solid#1f3348;border-radius:6px;color:#f7fafc;font-size:14px;margin-bottom:12px}
+.modal-box input:focus{outline:none;border-color:#66c0f4}
+.modal-box button{padding:10px 24px;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-weight:600;margin-right:8px}
+.btn-primary{background:#2a2a5a;color:#7c6fff}
+.btn-primary:hover{background:#3a3a7a}
+.btn-danger{background:#4a2020;color:#f56565}
+.btn-danger:hover{background:#6a3030}
+.btn-success{background:#1a3a2a;color:#48bb78}
+.btn-success:hover{background:#2a5a3a}
+.btn-sm{padding:6px 12px;font-size:12px}
+.admin-panel{display:none}
+.admin-panel.show{display:block}
+.entry{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#122235;border-radius:4px;margin-bottom:6px}
+.entry span{font-family:monospace;font-size:14px}
+.row{display:flex;gap:8px;align-items:center}
+.row input{flex:1;margin-bottom:0}
+.msg{padding:10px;border-radius:6px;margin-bottom:12px;font-size:13px;display:none}
+.msg.success{display:block;background:#1a3a2a;color:#48bb78}
+.msg.error{display:block;background:#4a2020;color:#f56565}
+.empty{color:#686880;font-style:italic;padding:12px 0;text-align:center}
+footer{text-align:center;padding:30px;color:#686880;font-size:13px}
+footer a{color:#7c6fff;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="bg"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+<div class="grid"></div>
+
+<div class="container">
+  <header>
+    <h1>SteamToolsLua</h1>
+    <button class="login-btn" onclick="showLogin()">\U0001f511 Admin</button>
+  </header>
+
+  <div class="hero">
+    <h2>All-in-One Injector + CloudRedirect</h2>
+    <p>Online Fix downloader \u00b7 Lua injection \u00b7 AI translation \u00b7 CloudRedirect</p>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+      <a class="btn-download" id="dlBtn" href="https://github.com/tttaaahhhaaa/SteamToolsLua/releases" target="_blank">📥 Download App</a>
+      <span id="verInfo" style="color:#686880;font-size:12px">Checking updates...</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>What is SteamToolsLua?</h3>
+    <p>SteamToolsLua is a desktop tool that automates downloading, extracting, and managing Online Fix game releases.</p>
+    <ul>
+      <li>Online Fix download &amp; extraction</li>
+      <li>SteamDB game browser</li>
+      <li>Lua injection into Steam client</li>
+      <li>CloudRedirect for internet fix</li>
+      <li>AI-powered translation</li>
+    </ul>
+  </div>
+
+  <div id="adminPanel" class="admin-panel">
+    <div class="card">
+      <h3>\U0001f464 Admin Panel - Blacklist Yonetimi</h3>
+      <div id="msg" class="msg"></div>
+      <div class="row" style="margin-bottom:12px">
+        <input type="text" id="newEntry" placeholder="Bilgisayar adi (COMPUTERNAME)" onkeydown="if(event.key==='Enter')addEntry()" />
+        <button class="btn-success" onclick="addEntry()">Ekle</button>
+      </div>
+      <div id="entries"><div class="empty">Yukleniyor...</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Need Help?</h3>
+    <p>Join our <a href="https://discord.gg/EwVcjdh6u" target="_blank" style="color:#7c6fff">Discord server</a> for support and updates.</p>
+  </div>
+</div>
+
+<div id="loginModal" class="modal">
+  <div class="modal-box">
+    <h3>\U0001f511 Admin Girisi</h3>
+    <input type="password" id="pwInput" placeholder="Sifre" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="btn-primary" onclick="doLogin()">Giris</button>
+    <button class="btn-primary" style="background:#1f3348;color:#97afc6" onclick="hideLogin()">Iptal</button>
+  </div>
+</div>
+
+<footer>
+  <a href="https://github.com/tttaaahhhaaa/SteamToolsLua" target="_blank">GitHub</a> &middot;
+  <a href="https://discord.gg/EwVcjdh6u" target="_blank">Discord</a>
+</footer>
+
+<script>
+const OWNER='tttaaahhhaaa',REPO='SteamToolsLua',PATH='blacklist.txt',BRANCH='master';
+const ADMIN_PW='Ekrem0579';
+let currentData=[],currentSha=null,token=localStorage.getItem('gh_token')||'';
+
+function showLogin(){document.getElementById('loginModal').classList.add('show');document.getElementById('pwInput').value='';document.getElementById('pwInput').focus()}
+function hideLogin(){document.getElementById('loginModal').classList.remove('show')}
+function showMsg(text,type){const el=document.getElementById('msg');el.textContent=text;el.className='msg '+type}
+function showTokenPrompt(){
+  const t=prompt('GitHub token girin (Settings > Developer settings > Personal access tokens > Tokens classic, scope: repo)');
+  if(t&&t.trim()){localStorage.setItem('gh_token',t.trim());token=t.trim();loadEntries()}
+}
+
+function doLogin(){
+  const pw=document.getElementById('pwInput').value;
+  if(pw===ADMIN_PW){
+    hideLogin();
+    document.getElementById('adminPanel').classList.add('show');
+    if(!token)showTokenPrompt();else loadEntries();
+  }else{
+    document.getElementById('pwInput').style.borderColor='#f56565';
+    setTimeout(()=>document.getElementById('pwInput').style.borderColor='#1f3348',1500);
+  }
+}
+
+async function ghFetch(url,opts={}){
+  const h={'User-Agent':'SteamToolsLua-Panel'};
+  if(token)h['Authorization']='Bearer '+token;
+  if(opts.body)h['Content-Type']='application/json';
+  return fetch(url,{...opts,headers:h})
+}
+
+async function loadEntries(){
+  const c=document.getElementById('entries');
+  c.innerHTML='<div class="empty">Yukleniyor...</div>';
+  if(!token){c.innerHTML='<div class="empty">Token gerekli. Sayfayi yenileyin.</div>';return}
+  try{
+    const r=await ghFetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}?ref=${BRANCH}`);
+    if(r.status===404){currentData=[];currentSha=null;c.innerHTML='<div class="empty">blacklist.txt henuz olusturulmamis.</div>';return}
+    if(!r.ok){c.innerHTML='<div class="empty">Hata: '+r.status+'</div>';return}
+    const d=await r.json();
+    currentSha=d.sha;
+    currentData=atob(d.content).split('\n').map(s=>s.trim()).filter(s=>s.length>0);
+    render()
+  }catch(e){c.innerHTML='<div class="empty">Hata: '+e.message+'</div>'}
+}
+
+function render(){
+  const c=document.getElementById('entries');
+  if(!currentData.length){c.innerHTML='<div class="empty">Liste bos.</div>';return}
+  c.innerHTML=currentData.map((n,i)=>'<div class="entry"><span>'+esc(n)+'</span><button class="btn-danger btn-sm" onclick="removeEntry('+i+')">Sil</button></div>').join('')
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+async function saveEntries(){
+  let content=currentData.join('\n');if(content)content+='\n';
+  const body={message:'blacklist guncelleme',content:btoa(content),branch:BRANCH};
+  if(currentSha)body.sha=currentSha;
+  const r=await ghFetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`,{method:'PUT',body:JSON.stringify(body)});
+  if(!r.ok){const e=await r.text();showMsg('Kaydetme hatasi: '+e,'error');return false}
+  const d=await r.json();currentSha=d.content.sha;showMsg('Kaydedildi!','success');return true
+}
+
+async function addEntry(){
+  const inp=document.getElementById('newEntry');
+  const val=inp.value.trim().toUpperCase();
+  if(!val){showMsg('Bilgisayar adi girin.','error');return}
+  if(currentData.includes(val)){showMsg('Zaten mevcut: '+val,'error');return}
+  if(!token){showMsg('Token gerekli.','error');return}
+  currentData.push(val);inp.value='';
+  if(await saveEntries())render()
+}
+
+async function removeEntry(i){
+  currentData.splice(i,1);
+  if(await saveEntries())render()
+}
+
+// Auto-update check
+(async function(){
+  try{
+    const r=await fetch('https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest');
+    if(!r.ok)return;
+    const d=await r.json();
+    const ver=d.tag_name.replace('v','');
+    const exe=d.assets.find(a=>a.name.endsWith('.exe'));
+    document.getElementById('verInfo').textContent='v'+ver;
+    document.getElementById('verInfo').style.color='#48bb78';
+    if(exe)document.getElementById('dlBtn').href=exe.browser_download_url;
+  }catch(e){
+    document.getElementById('verInfo').textContent='Update check failed';
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+# Build output
+SteamToolsLua.exe
+*.spec
+build_temp/
+__pycache__/
+*.pyc
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.github_token
+NLGL SOURCE CODE/
+Nightlight-Game-Launcher-NLLauncherV5.2.7 (1).zip
+SUMMARY.md
+SteamToolsLua-2.1.0/
+SteamToolsLua.py
+_extract_cmds.txt
+build/build_temp_314/dist/*.exe
+build/build_temp_314/build/v23/*.pkg
+build/build_temp_314/build/v23/Analysis-*.toc
+build/build_temp_314/build/v23/EXE-*.toc
+build/build_temp_314/build/v23/PKG-*.toc
+build/build_temp_314/build/v23/PYZ-*.pyz
+build/build_temp_314/build/v23/PYZ-*.toc
+build/build_temp_314/build/v23/base_library.zip
+build/build_temp_314/build/v23/warn-v23.txt
+build/build_temp_314/build/v23/xref-v23.html
