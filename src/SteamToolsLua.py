@@ -137,7 +137,13 @@ def main():
                        bordercolor='#1a1a38', lightcolor='#7c6fff')
     except: pass
     # --- END PATCH ---
-    code = _load_main()
+    try:
+        code = _load_main()
+    except Exception:
+        tkinter.messagebox.showerror('Python Version Hatasi',
+            'Bu Python versiyonu desteklenmiyor.\nPython 3.11.x gereklidir.\n\n'
+            'EXE dosyasini kullanmaniz tavsiye edilir.')
+        return
     real_mainloop = _tk.Tk.mainloop
     _tk.Tk.mainloop = lambda self, *args, **kwargs: None
     app_globals = {
