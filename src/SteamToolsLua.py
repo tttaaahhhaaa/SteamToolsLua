@@ -137,25 +137,23 @@ def main():
                        bordercolor='#1a1a38', lightcolor='#7c6fff')
     except: pass
     # --- END PATCH ---
-    if sys.version_info >= (3, 12):
-        # Python 3.12+ marshal incompatible with embedded 3.11 bytecode
-        # Try to launch the EXE instead
+    try:
+        code = _load_main()
+    except Exception:
         import subprocess as _sp
-        _exe_candidates = [
+        for _exe in [
             Path(sys.argv[0]).with_name('SteamToolsLua_v2.7.1.exe'),
             Path(sys.argv[0]).with_name('SteamToolsLua_v2.7.0.exe'),
             Path(sys.argv[0]).with_suffix('.exe'),
             Path.home() / 'Desktop' / 'SteamToolsLua_v2.7.1.exe',
-        ]
-        for _exe in _exe_candidates:
+        ]:
             if _exe.exists():
                 try: _sp.Popen([str(_exe)], shell=False); return
                 except: pass
         tkinter.messagebox.showerror('Python Versiyonu',
-            'Python 3.12+ ile uyumlu bytecode bulunamadi.\n\n'
-            'EXE dosyasini kullanin veya Python 3.11 yukleyin.')
+            'Bytecode uyumsuz (3.11 gerekiyor).\n\n'
+            'EXE dosyasini kullanin.')
         return
-    code = _load_main()
     real_mainloop = _tk.Tk.mainloop
     _tk.Tk.mainloop = lambda self, *args, **kwargs: None
     app_globals = {
@@ -6617,4 +6615,5 @@ if __name__ == '__main__':
     except Exception as e:
         import traceback
         traceback.print_exc()
-        input('Hata olustu. Enter tusuna basin...')
+        try: input('Hata olustu. Enter tusuna basin...')
+        except: pass
