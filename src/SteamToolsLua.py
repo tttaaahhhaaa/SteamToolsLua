@@ -4965,7 +4965,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                 'extra-steps': 'Extra Steps',
             }
             _lw = tk.Toplevel(window)
-            _lw.title('LuaTools - Fixes Browser'); _lw.geometry('950x600')
+            _lw.title('LuaTools - Fixes Browser'); _lw.geometry('1000x650')
             _lw.configure(bg='#08080e'); _lw.transient(window)
             _top = tk.Frame(_lw, bg='#08080e')
             _top.pack(fill=tk.X, padx=14, pady=(12, 4))
@@ -4986,7 +4986,12 @@ A: .luaファイルがstplug-inフォルダにあることを
                     font=('Segoe UI', 9)).pack(side=tk.RIGHT, padx=2)
             _cf = tk.Frame(_lw, bg='#0a0a16'); _cf.pack(fill=tk.BOTH, expand=True, padx=14, pady=6)
             _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0)
-            _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
+            _scr_style = ttk.Style()
+            _scr_style.theme_use('clam')
+            _scr_style.configure('LScrl.Vertical.TScrollbar', background='#1a1a2e', troughcolor='#0a0a16',
+                                 bordercolor='#0a0a16', arrowcolor='#7c6fff', lightcolor='#1a1a2e',
+                                 darkcolor='#1a1a2e')
+            _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview, style='LScrl.Vertical.TScrollbar')
             _inner = tk.Frame(_canv, bg='#0a0a16')
             _inner.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
             _canv.create_window((0,0), window=_inner, anchor='nw')
@@ -5030,6 +5035,8 @@ A: .luaファイルがstplug-inフォルダにあることを
                     self._set_indicator(f'LuaTools: {gamename} enjekte edildi', 'online')
                 else:
                     _messagebox.showerror('LuaTools', f'{gamename}: {_msg}')
+            _PAGE_SIZE = 50
+            _page_var = tk.IntVar(value=1)
             _rebuild_timer = None
             def _rebuild():
                 nonlocal _rebuild_timer
@@ -5051,13 +5058,20 @@ A: .luaファイルがstplug-inフォルダにあることを
                     if _filter_val == 'Tested' and 'tested' not in _game_tags: continue
                     if _query and _query not in _name.lower() and _query not in _appid: continue
                     _filtered.append((i, _g))
-                for i, (orig_idx, _g) in enumerate(_filtered):
+                _total = len(_filtered)
+                _max_page = max(1, (_total - 1) // _PAGE_SIZE + 1)
+                if _page_var.get() > _max_page: _page_var.set(_max_page)
+                _p = _page_var.get() - 1
+                _start = _p * _PAGE_SIZE
+                _end = min(_start + _PAGE_SIZE, _total)
+                _batch = _filtered[_start:_end]
+                for j, (orig_idx, _g) in enumerate(_batch):
                     _appid = str(_g.get('appid', ''))
                     _name = _g.get('name', '')
                     _tag_ids = _g.get('tagIds', [])
                     _game_dir = _pre_installed.get(_appid)
-                    _bg = '#0c0c20' if i%2==0 else '#0a0a16'
-                    _row = tk.Frame(_inner, bg=_bg); _row.pack(fill=tk.X, padx=6, pady=2)
+                    _bg = '#111125' if j%2==0 else '#0d0d1e'
+                    _row = tk.Frame(_inner, bg=_bg); _row.pack(fill=tk.X, padx=6, pady=1)
                     tk.Label(_row, text=_name, bg=_bg, fg='#d0d0e8',
                              font=('Segoe UI', 10), anchor='w').pack(side=tk.LEFT, padx=6, fill=tk.X, expand=True)
                     for _tid in _tag_ids:
@@ -5083,9 +5097,22 @@ A: .luaファイルがstplug-inフォルダにあることを
                     AB_lua(_row, 'Indir & Enjekte Et', _dl_btn, 130, 28,
                            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
                            ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=2)
+                # Pagination bar
+                _nav = tk.Frame(_inner, bg='#0a0a16')
+                _nav.pack(fill=tk.X, padx=6, pady=6)
+                if _max_page > 1:
+                    def _go_page(p):
+                        _page_var.set(p); _do_rebuild()
+                    for _pnum in range(1, _max_page + 1):
+                        _fg = '#7c6fff' if _pnum == _page_var.get() else '#686880'
+                        _lbl = tk.Label(_nav, text=str(_pnum), bg='#0a0a16', fg=_fg,
+                                        font=('Segoe UI', 9, 'bold' if _pnum == _page_var.get() else 'normal'),
+                                        cursor='hand2')
+                        _lbl.pack(side=tk.LEFT, padx=3)
+                        _lbl.bind('<Button-1>', lambda e, p=_pnum: _go_page(p))
             _rebuild()
-            _filter_var.trace_add('write', lambda *a: _rebuild())
-            _search_var.trace_add('write', lambda *a: _rebuild())
+            _filter_var.trace_add('write', lambda *a: (_page_var.set(1), _rebuild()))
+            _search_var.trace_add('write', lambda *a: (_page_var.set(1), _rebuild()))
         def _open_bypass_browser():
             _bypass_base = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / "bypass"
             _bypass_base.mkdir(parents=True, exist_ok=True)
