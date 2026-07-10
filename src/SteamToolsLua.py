@@ -1389,10 +1389,10 @@ def install_ui_fixes(g):
             _fp.write_text(_cj.dumps({'ts': _ct.time(), 'data': data}), 'utf-8')
         except: pass
     # ---- Game Files & Outside Games directories ----
-    _GAME_FILES_DIR = Path(__file__).resolve().parent / "Game Files"
+    _GAME_FILES_DIR = Path(__file__).resolve().parent / "1 New Games" / "Game Files"
     try: _GAME_FILES_DIR.mkdir(parents=True, exist_ok=True)
     except: pass
-    _OUTSIDE_GAMES_DIR = Path(__file__).resolve().parent / "Outside Games"
+    _OUTSIDE_GAMES_DIR = Path(__file__).resolve().parent / "1 New Games" / "Outside Games"
     try: _OUTSIDE_GAMES_DIR.mkdir(parents=True, exist_ok=True)
     except: pass
     # ---- LuaTools: standalone download helper for batch & single use ----
