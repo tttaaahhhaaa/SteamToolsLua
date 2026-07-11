@@ -3196,8 +3196,10 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
                 _exe = resource_path('SAM.Picker.exe')
                 if os.path.exists(_exe):
                     subprocess.Popen([_exe], shell=True)
-            except:
-                pass
+                else:
+                    tk.messagebox.showerror('Hata', f'SAM.Picker.exe bulunamadi: {_exe}')
+            except Exception as _sam_e:
+                tk.messagebox.showerror('SAM Hatasi', str(_sam_e))
 
         _btnf = tk.Frame(_w, bg='#0d1724')
         _btnf.pack(fill=tk.X, padx=16, pady=(4, 8))

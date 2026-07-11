@@ -33,6 +33,7 @@ $AbsSam = (Resolve-Path -LiteralPath "bypass\SAM.Picker.exe").Path
     --noconfirm $Source
 
 if ($?) {
+    Remove-Item -LiteralPath $Output -Force -ErrorAction SilentlyContinue
     Move-Item -LiteralPath "C:\Users\Taha\Desktop\SteamToolsLua.exe" -Destination $Output -Force
     Write-Host "BUILD BASARILI: $Output"
 } else {
