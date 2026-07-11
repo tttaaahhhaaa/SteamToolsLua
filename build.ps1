@@ -22,7 +22,8 @@ $HiddenImports = @(
 
 Remove-Item -LiteralPath "build_temp" -Recurse -Force -ErrorAction SilentlyContinue
 
-& $PyInstaller --onefile --console --icon=icon.ico --name=SteamToolsLua `
+$AbsIcon = (Resolve-Path -LiteralPath "bypass\icon.ico").Path
+& $PyInstaller --onefile --noconsole --icon="$AbsIcon" --name=SteamToolsLua `
     @HiddenImports `
     --distpath="C:\Users\Taha\Desktop" `
     --workpath="build_temp" `

@@ -165,6 +165,8 @@ def main():
         exec(code, app_globals)
     finally:
         _tk.Tk.mainloop = real_mainloop
+    app_globals['_sam_game_exe'] = _sam_game_exe
+    app_globals['_sam_picker_exe'] = _sam_picker_exe
     install_ui_fixes(app_globals)
     # Replace Python SAM with embedded C# SAM
     _sam_steam_app = app_globals.get('SteamApp')
@@ -3219,38 +3221,8 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
                  font=('Segoe UI', 10), fg='#97afc6', bg='#0d1724',
                  anchor='w', wraplength=700, justify='left').pack(fill=tk.X, padx=16, pady=(0, 8))
 
-        # ---- Tab bar (window level) ----
-        _tab_bar = tk.Frame(window, bg='#0d1724')
-        _tab_bar.pack(fill=tk.X, padx=16, pady=(0, 2))
-
         _settings_page = tk.Frame(window, bg='#0d1724')
-        _license_page = tk.Frame(window, bg='#0d1724')
         _settings_page.pack(fill=tk.BOTH, expand=True)
-
-        _current_tab = ['settings']
-
-        _tab_lbl_s = tk.Label(_tab_bar, text='  Ayarlar  ', bg='#1a2a40', fg='#f7fafc',
-                               font=('Segoe UI Semibold', 10), cursor='hand2')
-        _tab_lbl_l = tk.Label(_tab_bar, text='  Lisans Yoneticisi  ', bg='#0d1724', fg='#686880',
-                               font=('Segoe UI Semibold', 10), cursor='hand2')
-
-        def _show_tab(name):
-            if name == _current_tab[0]: return
-            _settings_page.pack_forget(); _license_page.pack_forget()
-            if name == 'settings':
-                _tab_lbl_s.configure(bg='#1a2a40', fg='#f7fafc')
-                _tab_lbl_l.configure(bg='#0d1724', fg='#686880')
-                _settings_page.pack(fill=tk.BOTH, expand=True)
-            else:
-                _tab_lbl_s.configure(bg='#0d1724', fg='#686880')
-                _tab_lbl_l.configure(bg='#1a2a40', fg='#f7fafc')
-                _license_page.pack(fill=tk.BOTH, expand=True)
-            _current_tab[0] = name
-
-        _tab_lbl_s.pack(side=tk.LEFT, padx=(0, 2))
-        _tab_lbl_s.bind('<Button-1>', lambda e: _show_tab('settings'))
-        _tab_lbl_l.pack(side=tk.LEFT)
-        _tab_lbl_l.bind('<Button-1>', lambda e: _show_tab('license'))
 
         # Settings content (no scroll, direct frame)
         _p = _settings_page
@@ -4312,6 +4284,18 @@ A: .luaファイルがstplug-inフォルダにあることを
         AB(tools_row, _tr(self, 'button.inject_of'), self._inject_of_browser,
             120, 30, '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
+        # LuaTools Browser
+        AB(tools_row, 'LuaTools Browser', _open_luatools_browser,
+            120, 30, '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
+            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
+        # Achievement Manager (SAM)
+        _sam_game_exe_path = g.get('_sam_game_exe')
+        def _launch_sam():
+            if _sam_game_exe_path:
+                __import__('subprocess').Popen([str(_sam_game_exe_path)], close_fds=True)
+        AB(tools_row, 'Achievement Manager', _launch_sam,
+            140, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
 
         # Also add save_path field
         _sv_frame = tk.Frame(_p, bg='#0d1724')
@@ -4564,148 +4548,6 @@ A: .luaファイルがstplug-inフォルダにあることを
         AB(lib_row, _tr(self, 'library.open'), _open_library, 130, 30,
            '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
-        # Remove License tab builder
-        def _build_license_tab():
-            for w in _license_page.winfo_children():
-                w.destroy()
-            _depot = Path("C:\\Program Files (x86)\\Steam\\config\\depotcache")
-            _stplug = Path("C:\\Program Files (x86)\\Steam\\config\\stplug-in")
-            _steam_path = Path("C:\\Program Files (x86)\\Steam")
-            _bd = Path(__file__).resolve().parent
-            _saved = self.settings.get('save_path', '') or self.settings.get('new_games_folder', '')
-            _gd = Path(_saved) if _saved and Path(_saved).exists() else _bd / "1 New Games"
-            _used = _gd / "used"
-            # Show loading indicator
-            _loading_lbl = tk.Label(_license_page, text='Zip taranıyor...',
-                                     fg='#8fd3ff', bg='#0d1724', font=('Segoe UI', 10))
-            _loading_lbl.pack(pady=20)
-            _license_page.update()
-            import threading as _lthr, queue as _lq
-            _result_q = _lq.Queue()
-            def _scan_used():
-                _items = []
-                try:
-                    if _used.exists():
-                        import zipfile as _zf
-                        for _zip_f in sorted(_used.glob('*.zip'), key=lambda f: f.stat().st_mtime, reverse=True):
-                            try:
-                                _gname = _zip_f.stem
-                                _aid = ''
-                                _has_lua_in_zip = False
-                                _has_manifest_in_zip = False
-                                with _zf.ZipFile(str(_zip_f), 'r') as _z:
-                                    for _zn in _z.namelist():
-                                        if _zn.lower().endswith('.lua'):
-                                            _lua_only = _zn.rsplit('/', 1)[-1].rsplit('\\', 1)[-1]
-                                            _base = _lua_only.rsplit('.', 1)[0]
-                                            if _base.isdigit():
-                                                _aid = _base
-                                            _has_lua_in_zip = True
-                                        if _zn.lower().endswith('.manifest'):
-                                            _has_manifest_in_zip = True
-                                # Check Steam config
-                                _lua_installed = _stplug.exists() and any(_stplug.glob(f"{_aid}.lua"))
-                                _manifest_installed = _depot.exists() and any(_depot.glob(f"{_aid}_*.manifest"))
-                                _items.append({
-                                    'aid': _aid, 'name': _gname,
-                                    'has_lua': _lua_installed,
-                                    'has_manifest': _manifest_installed,
-                                    'in_zip_lua': _has_lua_in_zip,
-                                    'in_zip_manifest': _has_manifest_in_zip,
-                                })
-                            except: pass
-                except: pass
-                _result_q.put(_items)
-            _lthr.Thread(target=_scan_used, daemon=True).start()
-            def _on_scan_done():
-                try:
-                    _games = _result_q.get_nowait()
-                except:
-                    _license_page.after(100, _on_scan_done); return
-                _loading_lbl.destroy()
-                if not _games:
-                    tk.Label(_license_page, text='used/ klasorunde zip bulunamadi.',
-                             fg='#686880', bg='#0a0a16', font=('Segoe UI', 10)).pack(pady=20)
-                    _btnf = tk.Frame(_license_page, bg='#08080e')
-                    _btnf.pack(fill=tk.X, padx=16, pady=(0, 8))
-                    AB_rl = g.get('AnimatedButton', AnimatedButton)
-                    AB_rl(_btnf, 'Geri', lambda: _show_tab('settings'), 110, 30,
-                          '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
-                          ('Segoe UI', 9)).pack(side=tk.LEFT)
-                    return
-                # Build UI
-                _top = tk.Frame(_license_page, bg='#08080e')
-                _top.pack(fill=tk.X, padx=14, pady=(10, 4))
-                tk.Label(_top, text='Lisans Yoneticisi', font=('Bahnschrift SemiBold', 18),
-                         fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
-                _sel_vars = {}
-                _cf = tk.Frame(_license_page, bg='#0a0a16')
-                _cf.pack(fill=tk.BOTH, expand=True, padx=14, pady=(4, 8))
-                _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0, height=280)
-                _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
-                _inner2 = tk.Frame(_canv, bg='#0a0a16')
-                _inner2.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
-                _canv.create_window((0, 0), window=_inner2, anchor='nw')
-                _canv.configure(yscrollcommand=_scr.set)
-                _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-                _scr.pack(side=tk.RIGHT, fill=tk.Y)
-                def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
-                _canv.bind('<MouseWheel>', _mw)
-                for i, _g in enumerate(_games):
-                    var = tk.BooleanVar(value=False)
-                    _sel_vars[_g['aid']] = var
-                    bg = '#0c0c20' if i % 2 == 0 else '#0a0a16'
-                    row = tk.Frame(_inner2, bg=bg)
-                    row.pack(fill=tk.X, padx=4, pady=1)
-                    tk.Checkbutton(row, variable=var, bg=bg, activebackground='#14142a',
-                                   selectcolor='#7c6fff').pack(side=tk.LEFT)
-                    tk.Label(row, text=_g['name'], bg=bg, fg='#d0d0e8',
-                             font=('Segoe UI', 10), anchor='w').pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
-                    _status_parts = []
-                    if _g['has_lua']: _status_parts.append('Lua')
-                    if _g['has_manifest']: _status_parts.append('Manifest')
-                    _status = ', '.join(_status_parts) if _status_parts else 'Yok'
-                    _status_fg = '#48bb78' if _status_parts else '#686880'
-                    tk.Label(row, text=_g['aid'], bg=bg, fg='#686880',
-                             font=('Segoe UI', 8), anchor='e', width=8).pack(side=tk.RIGHT, padx=(2, 0))
-                    tk.Label(row, text=_status, bg=bg, fg=_status_fg,
-                             font=('Segoe UI', 8), anchor='e', width=10).pack(side=tk.RIGHT, padx=(2, 4))
-                _btnf = tk.Frame(_license_page, bg='#08080e')
-                _btnf.pack(fill=tk.X, padx=14, pady=(0, 10))
-                def _confirm():
-                    _chosen = [aid for aid, var in _sel_vars.items() if var.get()]
-                    if not _chosen:
-                        _messagebox.showinfo('Remove License', 'Oyun secilmedi.')
-                        return
-                    removed = {'lua': 0, 'manifest': 0}
-                    for _aid in _chosen:
-                        if _stplug.exists():
-                            for _f in _stplug.glob(f"{_aid}.lua"):
-                                try: _f.unlink(); removed['lua'] += 1
-                                except: pass
-                        if _depot.exists():
-                            for _f in _depot.glob(f"{_aid}_*.manifest"):
-                                try: _f.unlink(); removed['manifest'] += 1
-                                except: pass
-                    _messagebox.showinfo('Remove License',
-                        f'{removed["lua"]} .lua, {removed["manifest"]} .manifest silindi.')
-                    self._set_indicator(f'License removed: {len(_chosen)} oyun', 'online')
-                    _build_license_tab()
-                AB_rl = g.get('AnimatedButton', AnimatedButton)
-                AB_rl(_btnf, 'Remove Selected', _confirm, 140, 30,
-                      '#4a2020', '#6a3030', '#f56565', '#f7fafc',
-                      ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(6, 0))
-                AB_rl(_btnf, 'Geri', lambda: _show_tab('settings'), 90, 30,
-                      '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
-                      ('Segoe UI', 9)).pack(side=tk.RIGHT)
-            _license_page.after(100, _on_scan_done)
-
-        def _open_license_tab():
-            _build_license_tab()
-            _show_tab('license')
-        AB(lib_row, 'Remove License', _open_license_tab, 120, 30,
-           '#4a2020', '#6a3030', '#f56565', '#f7fafc',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
         tk.Label(lib_row, text=_tr(self, 'library.desc'),
                  fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=8)
 
@@ -4870,32 +4712,28 @@ A: .luaファイルがstplug-inフォルダにあることを
                         return _LUA_CACHE['games'], _LUA_TAGS_CACHE['tags']
                     _messagebox.showerror('LuaTools', 'lua.tools/fixes yuklenemedi')
                     return [], {}
-                _pat = r"self\.__next_f\.push\(\[1,\"((?:[^\"\\]|\\.)*)\"\]\)"
-                _text = ''
-                for _m in _lre.finditer(_pat, _r.text):
-                    _part = _m.group(1)
-                    _part = _part.replace('\\"', '"').replace('\\n', '\n')
-                    _text += _part
+                _text = _r.text
                 _games = []; _tags_map = {}
-                _idx = _text.find('"games":[')
-                if _idx >= 0:
-                    _start = _idx
+                _mobj = _lre.search(r'"games":\s*\[', _text)
+                if _mobj:
+                    _start = _mobj.start()
+                    _b = _start
+                    while _b >= 0:
+                        if _text[_b] == '{':
+                            break
+                        _b -= 1
                     _depth = 0
-                    while _start >= 0:
-                        if _text[_start] == '{':
-                            if _depth == 0: break
-                            _depth -= 1
-                        elif _text[_start] == '}':
-                            _depth += 1
-                        _start -= 1
-                    _depth = 0
-                    for _end in range(_start, len(_text)):
-                        if _text[_end] == '{': _depth += 1
-                        elif _text[_end] == '}':
+                    _end = _b
+                    for _ch in _text[_b:]:
+                        if _ch == '{': _depth += 1
+                        elif _ch == '}':
                             _depth -= 1
                             if _depth == 0: break
+                        _end += 1
+                    _tmp = _text[_b:_end+1]
+                    _tmp = _tmp.replace('\\"', '"').replace('\\n', '\n')
                     try:
-                        _data = _ljson.loads(_text[_start:_end+1])
+                        _data = _ljson.loads(_tmp)
                         if isinstance(_data, dict):
                             _games = _data.get('games', [])
                             for _t in _data.get('tags', []):
@@ -5075,170 +4913,8 @@ A: .luaファイルがstplug-inフォルダにあることを
             _filter_var.trace_add('write', lambda *a: (_page_var.set(1), _rebuild()))
             _search_var.trace_add('write', lambda *a: (_page_var.set(1), _rebuild()))
 
-        # ---- LuaTools Browser button ----
-        _luatools_row = tk.Frame(window, bg='#0d1724')
-        _luatools_row.pack(fill=tk.X, padx=16, pady=(2, 2))
-        AB(_luatools_row, 'LuaTools Browser', _open_luatools_browser, 140, 30,
-               '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
-               ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
-        tk.Label(_luatools_row, text='lua.tools/fixes (512+ oyun)', fg='#686880',
-                 bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=8)
-
-        # ---- Torrent Downloader Section ----
-        # Footer
+        # ---- Footer with Save/Close ----
         footer = tk.Frame(window, bg='#0d1724')
-
-        # Left: Versions button + Check Update
-        _left_frame = tk.Frame(footer, bg='#0d1724')
-        _left_frame.pack(side=tk.LEFT)
-
-        def _open_releases():
-            import webbrowser
-            webbrowser.open("https://github.com/tttaaahhhaaa/SteamToolsLua/releases")
-        AB(_left_frame, "Versions", _open_releases, 90, 30,
-           "#1c1c3a", "#2a2a5a", "#7c6fff", "#e0e0f0",
-           ("Segoe UI Semibold", 9)).pack(side=tk.LEFT)
-
-        def _check_update_now():
-            import threading as _thr
-            def _task():
-                try:
-                    import requests as _req
-                    r = _req.get(UPDATE_URL, timeout=10)
-                    if r.status_code != 200:
-                        self.log('[Update] Sürüm kontrolü başarısız'); return
-                    latest = r.text.strip()
-                    current = VERSION
-                    if not latest or latest == current:
-                        self.log(f'[Update] Zaten guncel (v{current})')
-                        _messagebox.showinfo('Update', _tr(self, 'update.up_to_date'))
-                        return
-                    def _parse(v):
-                        parts = v.split('.')
-                        return tuple(int(x) if x.isdigit() else 0 for x in parts) + (0,)*4
-                    if _parse(latest) <= _parse(current):
-                        self.log(f'[Update] Zaten guncel (v{current})')
-                        _messagebox.showinfo('Update', _tr(self, 'update.up_to_date'))
-                        return
-                    dl_url = f'{DOWNLOAD_BASE}/v{latest}/SteamToolsLua.exe'
-                    self.log(f'[Update] {latest} indiriliyor...')
-                    d = _req.get(dl_url, timeout=120, stream=True)
-                    if d.status_code != 200:
-                        self.log('[Update] Indirme basarisiz'); return
-                    me = Path(sys.argv[0] if getattr(sys, 'frozen', False) else __file__).resolve()
-                    out_path = me.parent / f'SteamToolsLua_v{latest}.exe'
-                    total = int(d.headers.get('Content-Length', 0))
-                    downloaded = 0
-                    with open(str(out_path), 'wb') as f:
-                        for chunk in d.iter_content(8192):
-                            if chunk:
-                                f.write(chunk)
-                                downloaded += len(chunk)
-                                if total and downloaded % (1024*1024) < 8192:
-                                    pct = downloaded * 100 // total
-                                    self.root.after(0, lambda p=pct: self._set_indicator(f'Guncelleme: %{p}', 'working'))
-                    self.log(f'[Update] v{latest} indirildi, baslatiliyor...')
-                    try:
-                        _info = {"old_name": me.name, "old_path": str(me.parent), "updated_to": latest}
-                        _info_file = me.parent / '.update_info.txt'
-                        _info_file.write_text(json.dumps(_info), encoding='utf-8')
-                    except: pass
-                    import subprocess as _sp
-                    _sp.Popen([str(out_path)], close_fds=True)
-                    self.root.after(500, lambda: os._exit(0))
-                except:
-                    import traceback; traceback.print_exc()
-            _thr.Thread(target=_task, daemon=True).start()
-        AB(_left_frame, _tr(self, 'button.update_check'), _check_update_now, 90, 30,
-           "#1c1c3a", "#2a2a5a", "#7c6fff", "#e0e0f0",
-           ("Segoe UI Semibold", 9)).pack(side=tk.LEFT, padx=(6, 0))
-
-        # Center: Version + YouTube
-
-        # Center: Version + YouTube
-        _center_frame = tk.Frame(footer, bg='#0d1724')
-        _center_frame.pack(side=tk.LEFT, expand=True)
-        _ver_frame = tk.Frame(_center_frame, bg='#0d1724')
-        _ver_frame.pack(expand=True)
-        _lbl_v = tk.Label(_ver_frame, text="v" + VERSION, fg='#585878', bg='#0d1724',
-                 font=('Segoe UI', 9), cursor='hand2')
-        _lbl_v.pack(side=tk.LEFT)
-        def _show_versions(e=None):
-            import threading as _thr
-            def _show_ui(releases):
-                _win = tk.Toplevel(self.root)
-                _win.title('Versions')
-                _win.configure(bg='#0f1b2a')
-                _win.geometry('420x380')
-                tk.Label(_win, text='Versions', fg='#7c6fff', bg='#0f1b2a',
-                         font=('Segoe UI', 14, 'bold')).pack(pady=(12, 6))
-                _cf = tk.Frame(_win, bg='#0f1b2a')
-                _cf.pack(fill=tk.BOTH, expand=True, padx=16)
-                _canv = tk.Canvas(_cf, bg='#0f1b2a', highlightthickness=0)
-                _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
-                _inner = tk.Frame(_canv, bg='#0f1b2a')
-                _inner.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
-                _canv.create_window((0, 0), window=_inner, anchor='nw')
-                _canv.configure(yscrollcommand=_scr.set)
-                _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-                _scr.pack(side=tk.RIGHT, fill=tk.Y)
-                def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
-                _canv.bind('<MouseWheel>', _mw)
-                current_tag = 'v' + VERSION
-                newer_found = False
-                for rel in releases:
-                    tag = rel.get('tag_name', '')
-                    name = rel.get('name', tag)
-                    body = (rel.get('body', '') or '')[:80]
-                    published = rel.get('published_at', '')[:10]
-                    is_current = tag == current_tag
-                    is_newer = False
-                    if not is_current and current_tag:
-                        try:
-                            cv = tuple(int(x) for x in VERSION.split('.'))
-                            lv = tuple(int(x) for x in tag.lstrip('v').split('.'))
-                            if lv > cv: is_newer = True
-                        except: pass
-                    bg = '#0a0a16' if is_current else ('#122030' if is_newer else '#0f1b2a')
-                    row = tk.Frame(_inner, bg=bg, highlightthickness=1,
-                                   highlightbackground='#1f3448' if is_newer else '#0f1b2a')
-                    row.pack(fill=tk.X, pady=2)
-                    tk.Label(row, text=tag, fg='#7c6fff' if is_current else '#f7fafc',
-                            bg=bg, font=('Segoe UI', 11, 'bold')).pack(side=tk.LEFT, padx=8, pady=4)
-                    if is_newer:
-                        tk.Label(row, text='NEW', fg='#48bb78', bg=bg,
-                                font=('Segoe UI', 8, 'bold')).pack(side=tk.LEFT, padx=(0, 4))
-                        newer_found = True
-                    if is_current:
-                        tk.Label(row, text='current', fg='#585878', bg=bg,
-                                font=('Segoe UI', 8)).pack(side=tk.LEFT, padx=(0, 4))
-                    tk.Label(row, text=published, fg='#686880', bg=bg,
-                            font=('Segoe UI', 8)).pack(side=tk.RIGHT, padx=8)
-                    if body:
-                        tk.Label(row, text=body, fg='#8fb8da', bg=bg,
-                                font=('Segoe UI', 8), anchor='w', wraplength=300).pack(side=tk.BOTTOM, fill=tk.X, padx=8, pady=(0, 4))
-                self.root.after(0, lambda: _lbl_v.config(fg='#48bb78' if newer_found else '#585878'))
-            def _task():
-                try:
-                    import requests as _req
-                    r = _req.get(SNAPSHOT_URL, timeout=10, headers={'Accept': 'application/vnd.github.v3+json',
-                        'User-Agent': 'SteamToolsLua/1.0'})
-                    if r.status_code != 200: return
-                    releases = r.json()
-                    if not releases: return
-                    self.root.after(0, lambda: _show_ui(releases))
-                except:
-                    pass
-            _thr.Thread(target=_task, daemon=True).start()
-        _lbl_v.bind('<Button-1>', _show_versions)
-        tk.Label(_ver_frame, text=VERSION_NAME, fg='#686880', bg='#0d1724',
-                 font=('Segoe UI', 8)).pack(side=tk.LEFT, padx=(4, 0))
-        def _open_yt():
-            import webbrowser
-            webbrowser.open('https://www.youtube.com/@oWL-Nexial')
-        AB(_ver_frame, _tr(self, 'button.youtube'), _open_yt, 70, 26,
-           '#8b0000', '#cc0000', '#ffffff', '#ffffff',
-           ('Segoe UI Black', 10)).pack(side=tk.LEFT, padx=(8, 0))
 
         def save_and_close():
             self.settings['ai_route'] = route_display.get(route_var.get(), 'auto')
@@ -5275,7 +4951,7 @@ A: .luaファイルがstplug-inフォルダにあることを
                        110, 36, '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
                        ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT)
         footer.pack(fill=tk.X, padx=16, pady=(0, 10))
-        _add_tools_section(_inner, self)
+        _add_tools_section(_p, self)
 
     SteamApp.open_settings_window = open_settings_window_from_pyw
 
