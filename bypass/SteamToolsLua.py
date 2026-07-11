@@ -4913,6 +4913,36 @@ A: .luaファイルがstplug-inフォルダにあることを
             _filter_var.trace_add('write', lambda *a: (_page_var.set(1), _rebuild()))
             _search_var.trace_add('write', lambda *a: (_page_var.set(1), _rebuild()))
 
+        # ---- AI Provider Settings ----
+        row_vars = {}
+        _providers = g.get('PROVIDER_DEFAULTS', {})
+        _prov_labels = g.get('PROVIDER_LABELS', {})
+        _providers_guide = g.get('provider_guide', lambda p, l: {})
+        _lang = self.settings.get('language', 'tr')
+        if _providers:
+            _ai_frame = tk.Frame(_p, bg='#0d1724')
+            _ai_frame.pack(fill=tk.X, padx=16, pady=(6, 1))
+            tk.Label(_ai_frame, text='AI Providers', fg='#8fd3ff', bg='#0d1724',
+                     font=('Segoe UI Semibold', 11)).pack(anchor='w')
+            _prov_settings = self.settings.setdefault('providers', {})
+            for _pname in _providers:
+                _pdefaults = _providers[_pname]
+                _plabel = _prov_labels.get(_pname, _pname)
+                _psaved = _prov_settings.get(_pname, {})
+                _pk = tk.StringVar(value=_psaved.get('api_key', _pdefaults.get('api_key', '')))
+                _pm = tk.StringVar(value=_psaved.get('model', _pdefaults.get('model', '')))
+                row_vars[_pname] = (_pk, _pm)
+                _prov_row = tk.Frame(_p, bg='#0d1724')
+                _prov_row.pack(fill=tk.X, padx=16, pady=2)
+                tk.Label(_prov_row, text=_plabel, fg='#dce7f4', bg='#0d1724',
+                         font=('Segoe UI', 10), width=12, anchor='w').pack(side=tk.LEFT)
+                tk.Entry(_prov_row, textvariable=_pk, width=48, relief=tk.FLAT,
+                         bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
+                         font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=(0, 4))
+                tk.Entry(_prov_row, textvariable=_pm, width=16, relief=tk.FLAT,
+                         bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
+                         font=('Segoe UI', 9)).pack(side=tk.LEFT)
+
         # ---- Footer with Save/Close ----
         footer = tk.Frame(window, bg='#0d1724')
 
