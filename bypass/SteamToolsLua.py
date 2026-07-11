@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "2.6.0"
+VERSION = "2.8.0"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
@@ -2941,6 +2941,13 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
                         if _fp.exists(): _fp.unlink()
                 except: pass
             threading.Thread(target=_task, daemon=True).start()
+        def _launch_sam_picker():
+            try:
+                _exe = resource_path('SAM.Picker.exe')
+                if os.path.exists(_exe):
+                    subprocess.Popen([_exe], shell=True)
+            except:
+                pass
         _btnf = tk.Frame(_w, bg='#0d1724')
         _btnf.pack(fill=tk.X, padx=16, pady=(4, 8))
         AB2 = g.get('AnimatedButton', AnimatedButton)
@@ -2952,6 +2959,9 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=2)
         AB2(_btnf, _t('Reset Licenses', 'Reset Licenses'), _reset_licenses, 120, 30,
             '#8b0000', '#b22222', '#f56565', '#ffffff',
+            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=2)
+        AB2(_btnf, _t('Basarimlar', 'Achievements'), _launch_sam_picker, 120, 30,
+            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=2)
     # ---- open_settings_window_from_pyw (the big one) ----
     def open_settings_window_from_pyw(self):
