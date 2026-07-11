@@ -3194,18 +3194,20 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
         def _launch_sam_picker():
             _sam_data_dir = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / "SAM"
             _sam_exe = _sam_data_dir / "SAM.Picker.exe"
+            _sam_game_exe = _sam_data_dir / "SAM.Game.exe"
             if not _sam_exe.exists():
                 _sam_data_dir.mkdir(parents=True, exist_ok=True)
-                _src = resource_path('SAM.Picker.exe')
-                if not os.path.exists(_src):
-                    tk.messagebox.showerror('Hata', f'SAM.Picker.exe gomulu bulunamadi: {_src}')
-                    return
-                try:
-                    import shutil as _sam_sh
-                    _sam_sh.copy2(_src, str(_sam_exe))
-                except Exception as _sam_cp_e:
-                    tk.messagebox.showerror('Hata', f'SAM.Picker.exe kopyalanamadi: {_sam_cp_e}')
-                    return
+                import shutil as _sam_sh
+                for _fn in ('SAM.Picker.exe', 'SAM.Game.exe'):
+                    _src = resource_path(_fn)
+                    if not os.path.exists(_src):
+                        tk.messagebox.showerror('Hata', f'{_fn} gomulu bulunamadi: {_src}')
+                        return
+                    try:
+                        _sam_sh.copy2(_src, str(_sam_data_dir / _fn))
+                    except Exception as _sam_cp_e:
+                        tk.messagebox.showerror('Hata', f'{_fn} kopyalanamadi: {_sam_cp_e}')
+                        return
             try:
                 subprocess.Popen([str(_sam_exe)], shell=True)
             except Exception as _sam_lp_e:
