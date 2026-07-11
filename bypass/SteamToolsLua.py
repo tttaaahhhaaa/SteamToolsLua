@@ -3207,19 +3207,18 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
                 _sam_dir.mkdir(parents=True, exist_ok=True)
                 try:
                     import requests as _sam_req
-                    _sam_api = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/tags/sam-picker-7.0.1"
-                    _sam_r = _sam_req.get(_sam_api, timeout=15, headers={'User-Agent': 'SteamToolsLua'})
-                    if _sam_r.status_code != 200:
-                        tk.messagebox.showerror('SAM Hatasi', f'Release alinamadi: HTTP {_sam_r.status_code}')
-                        return
-                    for _sam_asset in _sam_r.json().get('assets', []):
-                        if _sam_asset.get('name') in ('SAM.Picker.exe', 'SAM.Game.exe'):
-                            _sam_dl = _sam_req.get(_sam_asset['browser_download_url'], timeout=120, stream=True)
-                            _sam_path = _sam_dir / _sam_asset['name']
-                            with open(str(_sam_path), 'wb') as _sam_f:
-                                for _sam_chunk in _sam_dl.iter_content(8192):
-                                    if _sam_chunk:
-                                        _sam_f.write(_sam_chunk)
+                    _sam_base = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/main/bypass"
+                    for _sam_fn in ('SAM.Picker.exe', 'SAM.Game.exe'):
+                        _sam_url = f"{_sam_base}/{_sam_fn}"
+                        _sam_dl = _sam_req.get(_sam_url, timeout=120, stream=True)
+                        if _sam_dl.status_code != 200:
+                            tk.messagebox.showerror('SAM Hatasi', f'{_sam_fn} indirilemedi: HTTP {_sam_dl.status_code}')
+                            return
+                        _sam_path = _sam_dir / _sam_fn
+                        with open(str(_sam_path), 'wb') as _sam_f:
+                            for _sam_chunk in _sam_dl.iter_content(8192):
+                                if _sam_chunk:
+                                    _sam_f.write(_sam_chunk)
                     if _sam_exe.exists():
                         subprocess.Popen([str(_sam_exe)], shell=True)
                     else:
