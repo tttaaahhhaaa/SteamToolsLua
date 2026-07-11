@@ -23,12 +23,8 @@ $HiddenImports = @(
 Remove-Item -LiteralPath "build_temp" -Recurse -Force -ErrorAction SilentlyContinue
 
 $AbsIcon = (Resolve-Path -LiteralPath "bypass\icon.ico").Path
-$AbsSamPicker = (Resolve-Path -LiteralPath "bypass\SAM.Picker.exe").Path
-$AbsSamGame = (Resolve-Path -LiteralPath "bypass\SAM.Game.exe").Path
 & $PyInstaller --onefile --noconsole --icon="$AbsIcon" --name=SteamToolsLua `
     @HiddenImports `
-    --add-data "$AbsSamPicker;." `
-    --add-data "$AbsSamGame;." `
     --distpath="C:\Users\Taha\Desktop" `
     --workpath="build_temp" `
     --specpath="build_temp" `

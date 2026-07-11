@@ -3192,26 +3192,41 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
                 except: pass
             threading.Thread(target=_task, daemon=True).start()
         def _launch_sam_picker():
-            _sam_data_dir = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / "SAM"
-            _sam_exe = _sam_data_dir / "SAM.Picker.exe"
-            _sam_game_exe = _sam_data_dir / "SAM.Game.exe"
-            if not _sam_exe.exists():
-                _sam_data_dir.mkdir(parents=True, exist_ok=True)
-                import shutil as _sam_sh
-                for _fn in ('SAM.Picker.exe', 'SAM.Game.exe'):
-                    _src = resource_path(_fn)
-                    if not os.path.exists(_src):
-                        tk.messagebox.showerror('Hata', f'{_fn} gomulu bulunamadi: {_src}')
+            _sam_dir = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / "SAM"
+            _sam_exe = _sam_dir / "SAM.Picker.exe"
+            if _sam_exe.exists():
+                try:
+                    subprocess.Popen([str(_sam_exe)], shell=True)
+                except Exception as _sam_e:
+                    tk.messagebox.showerror('SAM Hatasi', f'SAM.Picker.exe calistirilamadi: {_sam_e}')
+                return
+            if not tk.messagebox.askyesno('SAM Picker', 'SAM.Picker.exe bulunamadi.\nIndirilsin mi?'):
+                return
+            import threading as _sam_thr
+            def _sam_task():
+                _sam_dir.mkdir(parents=True, exist_ok=True)
+                try:
+                    import requests as _sam_req
+                    _sam_api = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/tags/sam-picker-7.0.1"
+                    _sam_r = _sam_req.get(_sam_api, timeout=15, headers={'User-Agent': 'SteamToolsLua'})
+                    if _sam_r.status_code != 200:
+                        tk.messagebox.showerror('SAM Hatasi', f'Release alinamadi: HTTP {_sam_r.status_code}')
                         return
-                    try:
-                        _sam_sh.copy2(_src, str(_sam_data_dir / _fn))
-                    except Exception as _sam_cp_e:
-                        tk.messagebox.showerror('Hata', f'{_fn} kopyalanamadi: {_sam_cp_e}')
-                        return
-            try:
-                subprocess.Popen([str(_sam_exe)], shell=True)
-            except Exception as _sam_lp_e:
-                tk.messagebox.showerror('Hata', f'SAM.Picker.exe calistirilamadi: {_sam_lp_e}')
+                    for _sam_asset in _sam_r.json().get('assets', []):
+                        if _sam_asset.get('name') in ('SAM.Picker.exe', 'SAM.Game.exe'):
+                            _sam_dl = _sam_req.get(_sam_asset['browser_download_url'], timeout=120, stream=True)
+                            _sam_path = _sam_dir / _sam_asset['name']
+                            with open(str(_sam_path), 'wb') as _sam_f:
+                                for _sam_chunk in _sam_dl.iter_content(8192):
+                                    if _sam_chunk:
+                                        _sam_f.write(_sam_chunk)
+                    if _sam_exe.exists():
+                        subprocess.Popen([str(_sam_exe)], shell=True)
+                    else:
+                        tk.messagebox.showerror('SAM Hatasi', 'SAM.Picker.exe indirilemedi')
+                except Exception as _sam_ex:
+                    tk.messagebox.showerror('SAM Hatasi', f'Indirme hatasi: {_sam_ex}')
+            _sam_thr.Thread(target=_sam_task, daemon=True).start()
 
         _btnf = tk.Frame(_w, bg='#0d1724')
         _btnf.pack(fill=tk.X, padx=16, pady=(4, 8))
