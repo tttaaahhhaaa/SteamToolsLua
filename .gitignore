@@ -22,6 +22,7 @@ Desktop.ini
 *.swo
 
 # Temp / junk
-SteamToolsLua.py
+/SteamToolsLua.py
+!bypass/SteamToolsLua.py
 SUMMARY.md
 _extract_cmds.txt

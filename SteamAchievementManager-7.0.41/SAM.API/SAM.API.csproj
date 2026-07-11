@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
+    <Platforms>AnyCPU</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Company>Gibbed</Company>
+    <Authors>Gibbed</Authors>
+    <Copyright>Copyright © Gibbed 2019</Copyright>
+    <Version>7.0.1</Version>
+    <AssemblyVersion>7.0.1.0</AssemblyVersion>
+    <FileVersion>7.0.1.0</FileVersion>
+    <RepositoryUrl>https://github.com/gibbed/SteamAchievementManager/</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+  </PropertyGroup>
+</Project>

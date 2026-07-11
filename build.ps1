@@ -1,7 +1,7 @@
-$Python311 = "C:\Users\Taha\AppData\Local\Programs\Python\Python311\python.exe"
-$PyInstaller = "C:\Users\Taha\AppData\Local\Programs\Python\Python311\Scripts\pyinstaller.exe"
+$Python311 = "C:\Users\Taha\AppData\Local\Programs\Python\Python314\python.exe"
+$PyInstaller = "C:\Users\Taha\AppData\Local\Programs\Python\Python314\Scripts\pyinstaller.exe"
 $Source = "bypass\SteamToolsLua.py"
-$Output = "C:\Users\Taha\Desktop\SteamToolsLua_v2.7.1.exe"
+$Output = "C:\Users\Taha\Desktop\SteamToolsLua_v2.8.0.exe"
 
 $HiddenImports = @(
     "--hidden-import=html", "--hidden-import=html.parser", "--hidden-import=html.entities"
