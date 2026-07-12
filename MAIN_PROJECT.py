@@ -3106,18 +3106,37 @@ def install_ui_fixes(g):
 
     # ---- Helper: find bundled UnRAR.exe (no WinRAR/WinRAR dep) ----
     def _get_bundled_unrar():
+        _check = [str(Path(os.environ.get('APPDATA', str(Path.home()))) / 'SteamToolsLua' / 'UnRAR.exe')]
         if getattr(sys, 'frozen', False):
             _mp = getattr(sys, '_MEIPASS', None)
             if _mp:
-                _c = Path(_mp) / 'UnRAR.exe'
-                if _c.exists(): return str(_c)
-        _c = Path(__file__).parent / 'UnRAR.exe'
-        if _c.exists(): return str(_c)
+                _check.append(str(Path(_mp) / 'UnRAR.exe'))
+        _check.append(str(Path(__file__).parent / 'UnRAR.exe'))
+        for _p in _check:
+            if os.path.exists(_p):
+                return _p
         return None
     _BUNDLED_UNRAR = _get_bundled_unrar()
 
+    def _ensure_unrar():
+        global _BUNDLED_UNRAR
+        if _BUNDLED_UNRAR and os.path.exists(_BUNDLED_UNRAR):
+            return _BUNDLED_UNRAR
+        _target = str(Path(os.environ.get('APPDATA', str(Path.home()))) / 'SteamToolsLua' / 'UnRAR.exe')
+        try:
+            _r = __import__('requests').get('https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/main/bypass/UnRAR.exe', timeout=15)
+            if _r.status_code == 200:
+                Path(_target).write_bytes(_r.content)
+                _BUNDLED_UNRAR = _target
+                return _target
+        except: pass
+        return None
+
     def _extract_rar_with_unrar(rar_path, out_dir, passwords, log, indicator):
-        _unrar = _BUNDLED_UNRAR or 'unrar'
+        _unrar = _ensure_unrar()
+        if not _unrar:
+            log('[OnlineFix] UnRAR.exe bulunamadi, indirme de basarisiz')
+            return False
         for pw in passwords:
             try:
                 cmd = [_unrar, 'x', '-y', str(rar_path), f'{out_dir}\\']
