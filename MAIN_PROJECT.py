@@ -3119,10 +3119,13 @@ def install_ui_fixes(g):
     _BUNDLED_UNRAR = _get_bundled_unrar()
 
     def _ensure_unrar():
-        global _BUNDLED_UNRAR
+        nonlocal _BUNDLED_UNRAR
         if _BUNDLED_UNRAR and os.path.exists(_BUNDLED_UNRAR):
             return _BUNDLED_UNRAR
         _target = str(Path(os.environ.get('APPDATA', str(Path.home()))) / 'SteamToolsLua' / 'UnRAR.exe')
+        if os.path.exists(_target):
+            _BUNDLED_UNRAR = _target
+            return _target
         try:
             _r = __import__('requests').get('https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/main/bypass/UnRAR.exe', timeout=15)
             if _r.status_code == 200:
