@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "2.9.0"
+VERSION = "3.0.0"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
@@ -1861,29 +1861,78 @@ def install_ui_fixes(g):
 
     # ---- Inject OF Browser (per-game extracted OF inject) ----
     def _inject_of_browser(self):
-        _tk_fd2 = __import__('tkinter.filedialog')
+        _parent_win = self.root
+        _sw = getattr(self, 'settings_window', None)
+        if _sw and _sw.winfo_exists():
+            _parent_win = _sw
+        _installed = self._get_installed_games()
+        _steam_root = Path('C:\\Program Files (x86)\\Steam') if not _installed else None
+        if not _steam_root:
+            import winreg as _wr
+            for _hive in (_wr.HKEY_CURRENT_USER, _wr.HKEY_LOCAL_MACHINE):
+                try:
+                    _key = _wr.OpenKey(_hive, r'SOFTWARE\Valve\Steam')
+                    _steam_root = Path(_wr.QueryValueEx(_key, 'SteamPath')[0])
+                    _wr.CloseKey(_key)
+                    if _steam_root: break
+                except: pass
+        if not _steam_root:
+            for _hive in (_wr.HKEY_CURRENT_USER, _wr.HKEY_LOCAL_MACHINE):
+                try:
+                    _key = _wr.OpenKey(_hive, r'SOFTWARE\WOW6432Node\Valve\Steam')
+                    _steam_root = Path(_wr.QueryValueEx(_key, 'SteamPath')[0])
+                    _wr.CloseKey(_key)
+                    if _steam_root: break
+                except: pass
+        if not _steam_root:
+            _steam_root = Path('C:\\Program Files (x86)\\Steam')
+        _stplug_dir = _steam_root / 'config' / 'stplug-in'
+        _stplug_dir.mkdir(parents=True, exist_ok=True)
+        _tk_fd2 = __import__('tkinter.filedialog').filedialog
         base_dir = Path(__file__).resolve().parent
         saved = self.settings.get('save_path', '') or self.settings.get('new_games_folder', '')
         games_dir = Path(saved) if saved and Path(saved).exists() else base_dir / "1 New Games"
-        # Scan for extracted OF folders (contain .exe)
         _exe_folders = []
-        for _root, _dirs, _files in os.walk(str(games_dir)):
-            _has_exe = any(f.lower().endswith('.exe') for f in _files)
-            if _has_exe:
-                _folder_name = Path(_root).name
-                _exe_path = next((Path(_root) / f for f in _files if f.lower().endswith('.exe')), None)
-                if _exe_path:
-                    _exe_folders.append({'folder': Path(_root), 'exe': _exe_path, 'name': _folder_name})
-        _parent = getattr(self, 'results_canvas', None) or getattr(self, 'cards_frame', None) or self.root
-        _ov = tk.Frame(self.root, bg='#08080e', highlightthickness=1, highlightbackground='#1a1a30')
+        _scan_dirs = [str(games_dir)]
+        _of_dir = Path(str(games_dir)) / 'Online Fixes'
+        if _of_dir.exists():
+            _scan_dirs.append(str(_of_dir))
+        for _sd in _scan_dirs:
+            _is_of = Path(_sd).name == 'Online Fixes'
+            if _is_of:
+                for _sub in Path(_sd).iterdir():
+                    if _sub.name.lower() == 'used' or not _sub.is_dir(): continue
+                    _fp = _sub
+                    _exe_path = next(_fp.glob('*.exe'), None)
+                    _game_name = ' '.join(w.capitalize() for w in _fp.name.replace('_',' ').replace('-',' ').strip().split())
+                    _gn_clean = _game_name.lower().replace(' ', '')
+                    _found = None
+                    for _iname, _ipath in _installed.items():
+                        _in_clean = _iname.replace(' ', '')
+                        if _gn_clean in _in_clean or _in_clean in _gn_clean:
+                            _found = _ipath; break
+                    _exe_folders.append({'folder': _fp, 'exe': _exe_path or _fp, 'name': _game_name, 'installed': _found})
+            else:
+                for _root, _dirs, _files in os.walk(_sd):
+                    if not any(f.lower().endswith('.exe') for f in _files): continue
+                    _fp = Path(_root)
+                    _exe_path = next((_fp / f for f in _files if f.lower().endswith('.exe')), None)
+                    _game_name = ' '.join(w.capitalize() for w in _fp.name.replace('_',' ').replace('-',' ').strip().split())
+                    _gn_clean = _game_name.lower().replace(' ', '')
+                    _found = None
+                    for _iname, _ipath in _installed.items():
+                        _in_clean = _iname.replace(' ', '')
+                        if _gn_clean in _in_clean or _in_clean in _gn_clean:
+                            _found = _ipath; break
+                    _exe_folders.append({'folder': _fp, 'exe': _exe_path or _fp, 'name': _game_name, 'installed': _found})
+        _ov = tk.Frame(_parent_win, bg='#08080e', highlightthickness=1, highlightbackground='#1a1a30')
         _ov.place(x=0, y=0, relwidth=1, relheight=1, anchor='nw')
         _ov.lift()
         _top = tk.Frame(_ov, bg='#08080e')
         _top.pack(fill=tk.X, padx=16, pady=(14, 6))
         tk.Label(_top, text=_tr(self, 'inject_of.select_title'),
                  font=('Bahnschrift SemiBold', 18), fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
-        _sel_vars = {}
-        _path_vars = {}
+        _sel_vars = {}; _path_vars = {}
         _cf = tk.Frame(_ov, bg='#0a0a16')
         _cf.pack(fill=tk.BOTH, expand=True, padx=16, pady=(8, 10))
         _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0)
@@ -1899,19 +1948,24 @@ def install_ui_fixes(g):
         if not _exe_folders:
             _lng = self.settings.get('language', 'tr')
             _no_folder_msg = 'Extracted OF klasoru bulunamadi.' if _lng == 'tr' else 'No extracted OF folders found.'
-            tk.Label(_inner, text=_no_folder_msg,
-                     bg='#0a0a16', fg='#686880', font=('Segoe UI', 12)).pack(pady=40)
+            tk.Label(_inner, text=_no_folder_msg, bg='#0a0a16', fg='#686880', font=('Segoe UI', 12)).pack(pady=40)
         else:
             for i, _ef in enumerate(_exe_folders):
-                var = tk.BooleanVar(value=True)
-                _sel_vars[_ef['folder']] = var
+                _var = tk.BooleanVar(value=True)
+                _sel_vars[_ef['folder']] = _var
                 bg = '#0c0c20' if i % 2 == 0 else '#0a0a16'
                 row = tk.Frame(_inner, bg=bg)
                 row.pack(fill=tk.X, padx=6, pady=1)
-                tk.Checkbutton(row, variable=var, bg=bg, activebackground='#14142a',
+                tk.Checkbutton(row, variable=_var, bg=bg, activebackground='#14142a',
                                selectcolor='#7c6fff', fg='#d0d0e8', font=('Segoe UI', 10)).pack(side=tk.LEFT)
-                tk.Label(row, text=_ef['name'], bg=bg, fg='#d0d0e8',
-                         font=('Segoe UI', 10), anchor='w', width=25).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+                _st = '✓' if _ef['installed'] else '✗'
+                _sc = '#48bb78' if _ef['installed'] else '#f56565'
+                _stx = '' if _ef['installed'] else ' (not installed)'
+                tk.Label(row, text=_st, fg=_sc, bg=bg,
+                         font=('Segoe UI', 12, 'bold')).pack(side=tk.LEFT, padx=(2, 0))
+                tk.Label(row, text=_ef['name'] + _stx, bg=bg,
+                         fg='#d0d0e8' if _ef['installed'] else '#f56565',
+                         font=('Segoe UI', 10), anchor='w', width=30).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
                 _exe_name_lbl = tk.Label(row, text=_ef['exe'].name, bg=bg, fg='#686880',
                          font=('Segoe UI', 8), anchor='e', width=30)
                 _exe_name_lbl.pack(side=tk.RIGHT, padx=4)
@@ -1919,108 +1973,124 @@ def install_ui_fixes(g):
                 _path_vars[_ef['folder']] = _browse_var
                 def _make_browse(_fld, _var, _lbl):
                     def _browse():
-                        _p = _tk_fd_imp.askopenfilename(title='Select .exe for ' + _fld.name,
+                        _p = _tk_fd2.askopenfilename(title='Select .exe for ' + _fld.name,
                             filetypes=[('Executable files', '*.exe'), ('All files', '*.*')])
-                        if not _p: return
-                        _var[0] = _p
-                        _lbl.config(text=Path(_p).name)
+                        if _p: _var[0] = _p; _lbl.config(text=Path(_p).name)
                     return _browse
                 AB4 = g.get('AnimatedButton', AnimatedButton)
                 AB4(row, '...', _make_browse(_ef['folder'], _browse_var, _exe_name_lbl), 28, 24,
-                    '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
-                    ('Segoe UI', 8)).pack(side=tk.RIGHT, padx=2)
+                    '#1f3348', '#2b4b68', '#66c0f4', '#ffffff', ('Segoe UI', 8)).pack(side=tk.RIGHT, padx=2)
         _btnf = tk.Frame(_ov, bg='#08080e')
         _btnf.pack(fill=tk.X, padx=16, pady=(0, 14))
-        _tk_fd_imp = __import__('tkinter.filedialog')
         def _add_folder():
-            _sel = _tk_fd_imp.askdirectory(title=_tr(self, 'inject.select_title'))
+            _sel = _tk_fd2.askdirectory(title=_tr(self, 'inject.select_title'))
             if not _sel: return
             _sp = Path(_sel)
             _exes = list(_sp.glob('*.exe'))
             if not _exes:
-                _messagebox.showinfo(_tr(self, 'inject.info_title'), 'No .exe found in selected folder.')
+                _messagebox.showinfo(_tr(self, 'inject.info_title'), 'No .exe found.')
                 return
-            _exe_folders.append({'folder': _sp, 'exe': _exes[0], 'name': _sp.name})
-            _ov.destroy()
-            self._inject_of_browser()
+            _gn = ' '.join(w.capitalize() for w in _sp.name.replace('_',' ').replace('-',' ').strip().split())
+            _gn_clean = _gn.lower().replace(' ', '')
+            _found = None
+            for _iname, _ipath in _installed.items():
+                _in_clean = _iname.replace(' ', '')
+                if _gn_clean in _in_clean or _in_clean in _gn_clean:
+                    _found = _ipath; break
+            _exe_folders.append({'folder': _sp, 'exe': _exes[0], 'name': _gn, 'installed': _found})
+            _ov.destroy(); self._inject_of_browser()
         _ok = [False]
-        def _confirm():
-            _ok[0] = True; _ov.destroy()
-        def _cancel():
-            _ov.destroy()
+        def _confirm(): _ok[0] = True; _ov.destroy()
+        def _cancel(): _ov.destroy()
         AB = g.get('AnimatedButton', AnimatedButton)
         AB(_btnf, _tr(self, 'button.add_folder'), _add_folder, 120, 34,
-           '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 8))
+           '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0', ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 8))
         AB(_btnf, _tr(self, 'inject.select_inject'), _confirm, 140, 34,
-           '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
-           ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(8, 0))
+           '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0', ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(8, 0))
         AB(_btnf, _tr(self, 'button.close'), _cancel, 110, 34,
-           '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
-           ('Segoe UI', 9)).pack(side=tk.RIGHT)
-        self.root.wait_window(_ov)
+           '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0', ('Segoe UI', 9)).pack(side=tk.RIGHT)
+        _parent_win.wait_window(_ov)
         if not _ok[0]: return
         chosen = [fp for fp, var in _sel_vars.items() if var.get()]
         if not chosen:
             _messagebox.showinfo(_tr(self, 'inject.info_title'), 'No folders selected.')
             return
-        stplug_dir = Path("C:\\Program Files (x86)\\Steam\\config\\stplug-in")
-        stplug_dir.mkdir(parents=True, exist_ok=True)
-        _steam_common = Path("C:\\Program Files (x86)\\Steam\\steamapps\\common")
-        done = 0
+        done = 0; skipped = 0
         for _folder in chosen:
             try:
+                _ef = next((x for x in _exe_folders if x['folder'] == _folder), None)
+                if not _ef: continue
+                if not _ef['installed']:
+                    self.log(f'[Inject OF] Atlaniyor (yuklu degil): {_ef["name"]}')
+                    skipped += 1; continue
+                _target_dir = _ef['installed']
                 _custom_exe = Path(_path_vars.get(_folder, [''])[0]) if _path_vars.get(_folder) else None
-                _exe_file = _custom_exe if (_custom_exe and _custom_exe.suffix.lower() == '.exe' and _custom_exe.exists()) else None
-                if not _exe_file:
-                    for f in _folder.iterdir():
-                        if f.suffix.lower() == '.exe':
-                            _exe_file = f; break
-                if not _exe_file:
-                    self.log(f'[Inject OF] No .exe in {_folder.name}')
-                    continue
+                _exe_file = _custom_exe if (_custom_exe and _custom_exe.suffix.lower() == '.exe' and _custom_exe.exists()) else _ef['exe']
                 _lua_file = _folder / (_exe_file.stem + '.lua')
-                # Find installed game folder matching this OF
-                _game_name = _folder.name.replace('_', ' ').replace('-', ' ').strip()
-                _game_name = ' '.join(w.capitalize() for w in _game_name.split())
-                _target_dir = None
-                for _gd in _steam_common.iterdir():
-                    if _gd.is_dir() and (_game_name.lower() in _gd.name.lower() or _gd.name.lower() in _game_name.lower()):
-                        _target_dir = _gd; break
-                # Also check via Steam .acf for appid
-                if not _target_dir and hasattr(self, '_find_steam_game_path'):
-                    try:
-                        _found = self._find_steam_game_path(_exe_file.stem)
-                        if _found: _target_dir = Path(_found)
-                    except: pass
-                if not _target_dir:
-                    _target_dir = _steam_common / _folder.name
-                if not _target_dir.exists():
-                    self.log(f'[Inject OF] Oyun yuklu degil, atlaniyor: {_game_name}')
-                    continue
-                # Copy folder contents (not folder itself) to target dir
                 for _src_file in _folder.iterdir():
-                    if _src_file.is_file():
-                        _dst = _target_dir / _src_file.name
-                        try:
-                            _shutil.copy2(str(_src_file), str(_dst))
-                            self.log(f'[Inject OF] {_src_file.name} -> {_target_dir.name}/')
-                        except Exception as _cp_err:
-                            self.log(f'[Inject OF] Kopyalama hatasi {_src_file.name}: {_cp_err}')
-                # Copy .lua companion to stplug-in
+                    if not _src_file.is_file(): continue
+                    try:
+                        _shutil.copy2(str(_src_file), str(_target_dir / _src_file.name))
+                        self.log(f'[Inject OF] {_src_file.name} -> {_target_dir.name}/')
+                    except Exception as _cp_err:
+                        self.log(f'[Inject OF] Kopyalama hatasi {_src_file.name}: {_cp_err}')
                 if _lua_file.exists():
                     try:
-                        _shutil.copy2(str(_lua_file), str(stplug_dir / _lua_file.name))
+                        _shutil.copy2(str(_lua_file), str(_stplug_dir / _lua_file.name))
                         self.log(f'[Inject OF] Lua: {_lua_file.name} -> stplug-in/')
                     except Exception as _lua_err:
                         self.log(f'[Inject OF] Lua hatasi: {_lua_err}')
                 done += 1
             except Exception as _ex:
                 self.log(f'[Inject OF] HATA: {_ex}')
-        self._set_indicator(_tr(self, 'indicator.done'), 'online' if done > 0 else 'offline')
-        if done > 0:
-            _messagebox.showinfo(_tr(self, 'inject.done_title'), f'{done} inject edildi.')
+        _msg = f'{done} oyun injectlendi'
+        if skipped > 0: _msg += f', {skipped} oyun atlandi (not installed)'
+        self._set_indicator(_msg, 'online' if done > 0 else 'offline')
+        _messagebox.showinfo(_tr(self, 'inject.done_title'), _msg)
+
+    def _get_installed_games(self):
+        import winreg as _wr, re as _rei
+        _out = {}
+        _steam_path = None
+        for _hive in (_wr.HKEY_CURRENT_USER, _wr.HKEY_LOCAL_MACHINE):
+            try:
+                _key = _wr.OpenKey(_hive, r'SOFTWARE\Valve\Steam')
+                _steam_path = Path(_wr.QueryValueEx(_key, 'SteamPath')[0])
+                _wr.CloseKey(_key)
+                if _steam_path: break
+            except: pass
+        if not _steam_path or not _steam_path.exists():
+            return _out
+        _lib_folders = [_steam_path / 'steamapps']
+        _vdf = _steam_path / 'steamapps' / 'libraryfolders.vdf'
+        if _vdf.exists():
+            try:
+                _txt = _vdf.read_text('utf-8', errors='ignore')
+                for _m in _rei.finditer(r'"\d+"\s*"([^"]+)"', _txt):
+                    _p = Path(_m.group(1))
+                    if _p.exists() and (_p / 'steamapps') not in _lib_folders:
+                        _lib_folders.append(_p / 'steamapps')
+                if len(_lib_folders) == 1:
+                    for _m in _rei.finditer(r'"path"\s*"([^"]+)"', _txt):
+                        _p = Path(_m.group(1))
+                        if _p.exists() and (_p / 'steamapps') not in _lib_folders:
+                            _lib_folders.append(_p / 'steamapps')
+            except: pass
+        for _lib in _lib_folders:
+            if not _lib.exists(): continue
+            for _acf in _lib.glob('*.acf'):
+                try:
+                    _txt2 = _acf.read_text('utf-8', errors='ignore')
+                    _aid_m = _rei.search(r'"appid"\s*"(\d+)"', _txt2)
+                    _name_m = _rei.search(r'"name"\s*"([^"]+)"', _txt2)
+                    _inst_m = _rei.search(r'"installdir"\s*"([^"]+)"', _txt2)
+                    if _aid_m and _name_m:
+                        _inst_path = _lib / 'common' / (_inst_m.group(1) if _inst_m else _name_m.group(1))
+                        _out[_name_m.group(1).lower()] = _inst_path
+                except: pass
+        return _out
     SteamApp._inject_of_browser = _inject_of_browser
+    SteamApp._get_installed_games = _get_installed_games
 
     # Add Inject All button to header
     _root_app = g.get('app')
@@ -3106,18 +3176,52 @@ def install_ui_fixes(g):
 
     # ---- Helper: find bundled UnRAR.exe (no WinRAR/WinRAR dep) ----
     def _get_bundled_unrar():
+        _check = [str(Path(os.environ.get('APPDATA', str(Path.home()))) / 'SteamToolsLua' / 'UnRAR.exe')]
         if getattr(sys, 'frozen', False):
             _mp = getattr(sys, '_MEIPASS', None)
             if _mp:
-                _c = Path(_mp) / 'UnRAR.exe'
-                if _c.exists(): return str(_c)
-        _c = Path(__file__).parent / 'UnRAR.exe'
-        if _c.exists(): return str(_c)
+                _check.append(str(Path(_mp) / 'UnRAR.exe'))
+        _check.append(str(Path(__file__).parent / 'UnRAR.exe'))
+        for _p in _check:
+            if os.path.exists(_p):
+                return _p
         return None
     _BUNDLED_UNRAR = _get_bundled_unrar()
 
+    def _ensure_unrar():
+        nonlocal _BUNDLED_UNRAR
+        if _BUNDLED_UNRAR and os.path.exists(_BUNDLED_UNRAR):
+            return _BUNDLED_UNRAR
+        _target = str(Path(os.environ.get('APPDATA', str(Path.home()))) / 'SteamToolsLua' / 'UnRAR.exe')
+        if os.path.exists(_target):
+            _BUNDLED_UNRAR = _target
+            return _target
+        try:
+            _r = __import__('requests').get('https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/main/bypass/UnRAR.exe', timeout=15)
+            if _r.status_code == 200:
+                Path(_target).write_bytes(_r.content)
+                _BUNDLED_UNRAR = _target
+                return _target
+        except: pass
+        return None
+
     def _extract_rar_with_unrar(rar_path, out_dir, passwords, log, indicator):
-        _unrar = _BUNDLED_UNRAR or 'unrar'
+        # Try 7-Zip first (much faster, multi-threaded)
+        for _7z in (r'C:\Program Files\7-Zip\7z.exe', r'C:\Program Files (x86)\7-Zip\7z.exe'):
+            if os.path.exists(_7z):
+                for pw in passwords:
+                    try:
+                        cmd = [_7z, 'x', '-y', f'-p{pw}' if pw else '-p""', f'-o{out_dir}', '-mmt=on', str(rar_path)]
+                        proc = subprocess.run(cmd, capture_output=True, timeout=120, creationflags=0x08000000)
+                        if proc.returncode == 0:
+                            log(f'[OnlineFix] 7z basarili (pw={pw})')
+                            return True
+                    except: pass
+                break
+        _unrar = _ensure_unrar()
+        if not _unrar:
+            log('[OnlineFix] UnRAR.exe bulunamadi, indirme de basarisiz')
+            return False
         for pw in passwords:
             try:
                 cmd = [_unrar, 'x', '-y', str(rar_path), f'{out_dir}\\']
@@ -3163,8 +3267,8 @@ def install_ui_fixes(g):
                                     indicator(f'OnlineFix: %{pct} ({speed:.0f} KB/s)', 'working')
                     log(f'[OnlineFix] İndirme tamam: {dl_path}')
                     # Extract directly into out_dir (flatten subfolders)
-                    _passwords = ('', 'knkm', 'online-fix.me', 'cs.rin.ru', 'Online-fix')
-                    _pw_map = {'': 'yok', 'knkm': 'knkm', 'online-fix.me': 'online-fix.me', 'cs.rin.ru': 'cs.rin.ru', 'Online-fix': 'Online-fix'}
+                    _passwords = ('', 'online-fix.me')
+                    _pw_map = {'': 'yok', 'online-fix.me': 'online-fix.me'}
                     ok = _extract_rar_with_unrar(dl_path, out_dir, _passwords, log, indicator)
                     if ok:
                         log(f'[OnlineFix] Çıkartıldı -> {out_dir}')
@@ -3342,431 +3446,338 @@ def install_ui_fixes(g):
 
     # ---- FALSE GUİDE Guide button on header ----
     def _open_guide(self):
-        import webbrowser
         lang = self.settings.get('language', 'tr')
-        is_tr = lang == 'tr'
-        content = []
+        _tr_g = lambda t, e: t if lang == 'tr' else e
         ul = '\n' + '\u2500'*68 + '\n'
-
-        # Turkish content
-        tr = f"""{ul}  STEAMTOOLSLUA - KAPSAMLI KULLANIM REHBERI
+        guides = {
+            'tr': f"""{ul}  1. AI API KEY (GROQ UCRETSIZ)
 {ul}
-
-  SteamToolsLua, Steam oyun dosyalarinizi yonetmek, .zip
-  arsivlerini inject etmek, manifest dosyalarini indirmek
-  ve Steam yardimci araclarini yonetmek icin gelistirilmis
-  bir masaustu uygulamasidir.
-
-  Yapay zeka destekli ceviri, oyun bilgisi goruntuleme,
-  toplu inject ve arac yonetimi ozellikleri sunar.
-
-
-{ul}
-GEREKSINIMLER / PREREQUISITES
-{ul}
-
-  Uygulama ilk acilista sizi yonlendirecektir. Asagidaki
-  3 arac zorunludur:
-
-  1. Millenium - Steam arayuzu icin
-     (github.com/SteamClientHomebrew/Millenium)
-  2. LuaTools - Lua script calistirmak icin
-     (github.com/Selectively11/LuaTools)
-  3. CloudRedirect - LuaTools + Online-Fix icin
-     (github.com/Selectively11/CloudRedirect)
-
-  Bu araclar kurulmadan uygulama kullanilamaz.
-
+  Uygulamanin yapay zeka ozelliklerini kullanmak icin
+  Groq'dan ucretsiz bir API anahtari almaniz gerekir.
+  
+  Adimlar:
+  ① console.groq.com adresine gidin
+  ② "Sign Up" butonuna tiklayin (Google hesabi ile girilebilir)
+  ③ Sol menuden "API Keys" secin
+  ④ "Create API Key" tiklayin
+  ⑤ Bir isim verin (ornek: "SteamTools")
+  ⑥ Olusan anahtari kopyalayin (gsk_ ile baslar)
+  ⑦ Ayarlar sayfasina gidin, Groq satirindaki API Key
+     alanina yapistirin ve Kaydet butonuna basin
+  ⑧ Kaydettikten sonra AI ceviri aktif olacaktir
+  
+  NOT: Groq ucretsizdir, gunluk limiti vardir.
+  Diger saglayicilar: OpenAI (ucretli), Anthropic (Claude),
+  Google (Gemini), OpenRouter, DeepSeek, Ollama (yerel).
 
 {ul}
-1. ARAMA VE SONUCLAR
+  2. CLOUDREDIRECT
 {ul}
-
-  Ustteki arama kutusuna oyun adini yazin ve Enter'a basin.
-  Sonuclar kart seklinde goruntulenir. Her kartta 4 buton
-  bulunur: Indir, OnlineFix, Unlock Download.
-
-  Arama gecmisi otomatik kaydedilir (son 50). Arama
-  kutusuna tiklayinca gecmis acilir, tiklayarak tekrar
-  arayabilirsiniz. Geri/ileri oklari (veya Alt+Sol/
-  Alt+Sag) ile arama gecmisinde gezinebilirsiniz.
-
-
-{ul}
-1a. INDIR BUTONU
-{ul}
-
-  Secili oyunun dosyalarini Steam'e entegre eder.
-  Oyunun .lua dosyasini Steam/config/stplug-in/ klasorune
-  kopyalar ve otomatik olarak SteamDB'den guncel manifest
-  ID'lerini ceker.
-
+  CloudRedirect, SteamTools ile birlikte calisan ve
+  Online-Fix oyunlarinin Steam'de dogru sekilde
+  goruntulenmesini saglayan bir bilesendir.
+  
+  Kurulum:
+  ① Ayarlar > Tools bolumune gidin
+  ② "CloudRedirect" butonuna basin
+  ③ En son surum GitHub'dan indirilir ve otomatik calisir
+  ④ Kurulum tamamlandiginda "CloudRedirect hazir" yazisi cikar
+  
+  Not: CloudRedirect olmadan Online-Fix oyunlari
+  Steam'de gorunmeyebilir veya calismayabilir.
 
 {ul}
-1b. ONLINEFIX BUTONU
+  3. MILLENIUM (STEAM TEMASI)
 {ul}
-
-  Oyunun OnlineFix surumunu arar, indirir ve cikartir.
-  Dosyalar save_path/Online Fixes/{oyun_adi}/ klasorune
-  kaydedilir. Steam klasorune OTOMATIK kopyalanmaz,
-  kendiniz yonetimek icin Ayarlar > Klasorler'deki
-  "Online Fixes" butonunu kullanabilirsiniz.
-
-
-{ul}
-1c. UNLOCK DOWNLOAD (MANIFEST INDIRICI)
-{ul}
-
-  Bu buton, SteamTools icin gerekli olan depot manifest
-  dosyalarini (.manifest) indirir. Powersehll ile calisir:
-
-  1. Otomatik olarak GitHub Mirror modu secilir
-  2. Oyunun AppID'si otomatik doldurulur
-  3. Lua dosyasindaki depot ID'leri parse edilir
-  4. Her depot icin manifest ID SteamCMD API'den alinir
-  5. Manifestler GitHub mirror'dan indirilir
-  6. Steam\\config\\depotcache klasorune kaydedilir
-
-  NOT: SteamTools'un yuklu olmasi ve oyunun .lua dosyasinin
-  stplug-in klasorunde bulunmasi gerekir.
-
+  Millenium, Steam istemcisinin arayuzunu tamamen
+  degistiren modern bir temadir.
+  
+  Kurulum:
+  ① Ayarlar > Tools > "Millenium Kur" butonuna basin
+  ② PowerShell betigi otomatik calisir
+  ③ Kurulum bittiginde Steam yeniden baslatilir
+  ④ Steam'de yeni bir tema goruntulenir
+  
+  Kaldirmak icin:
+  Steam klasorundeki Millenium dosyalarini silin
+  veya tekrar "Millenium Kur" butonuna basarak
+  guncel surumu yukleyin.
 
 {ul}
-2. HEADER BUTONLARI
+  4. LUATOOLS
 {ul}
-
-
-2a. INJECT ALL
-{ul}
-
-  "1 New Games" klasorundeki tum .zip arsivlerini otomatik
-  olarak acar ve dogru klasore yerlestirir:
-
-  - .manifest dosyalari -> Steam\\config\\depotcache
-  - .st / .lua / diger dosyalar -> Steam\\config\\stplug-in
-
-  Islem sonrasi Steam'i yeniden baslatma secenegi sunar.
-
-
-2b. ? (BU REHBER)
-{ul}
-
-  Kapsamli kullanim rehberini acar.
-
-
-2c. AYARLAR (DISLI CEKRISLI BUTON)
-{ul}
-
-  Uygulama ayarlarini acar. Icerisinde:
-  - Tools (Millenium, LuaTools, SteamTools, Steam)
-  - Klasorler (Setups, Online Fixes, Oyun Dosyalari)
-  - AI Saglayicilari (API anahtarlari, modeller)
-  - Dil secimi, Kart genisligi
-  - Gelistirici modu, konsol
-
+  LuaTools, Steam'de Lua tabanli eklentilerin
+  calismasini saglayan bir platformdur.
+  
+  Kurulum:
+  ① Ayarlar > Tools > "LuaTools Kur" butonuna basin
+  ② PowerShell ile en son surum indirilir
+  3417:   bulunur: Indir, OnlineFix, Unlock Download.
+  ③ Eklenti dosyasi Steam/plugins/ klasorune yerlestirilir
+  ④ Steam yeniden baslatildiginda LuaTools aktif olur
+  
+  LuaTools ile Steam arayuzune ozel ozellikler
+  ekleyebilir, oyun bilgilerini goruntuleyebilir
+  ve cesitli otomasyonlar yapabilirsiniz.
 
 {ul}
-3. AYARLAR > TOOLS
+  5. BASARIMLAR (ACHIEVEMENTS)
 {ul}
+  Steam basari kilidi acma aracidir.
+  
+  Kullanim:
+  ① Ayarlar > Tools > "Achievements" butonuna basin
+  ② SAM.Picker.exe otomatik indirilip calistirilir
+  ③ Listeden bir oyun secin
+  ④ Basari kilidini acmak istediginiz basariyi isaretleyin
+  ⑤ "Unlock" butonuna basin
+  
+  Uyari: Steam basari kilidi acmak VAC veya oyun
+  gelistiricileri tarafindan hos karsilanmayabilir.
+  Kendi sorumlulugunuzda kullanin.
+  
+  SAM.Picker.exe suradan indirilir:
+  github.com/tttaaahhhaaa/SteamToolsLua/main/bypass/
+  
+  Not: SAM.Game.exe de ayni konumda bulunur.""",
 
-  Tools bolumunde 4 arac ve 1 rehber butonu bulunur.
-
-
-3a. MILLENIUM KUR
+            'en': f"""{ul}  1. AI API KEY (FREE GROQ)
 {ul}
-
-  Millenium adli Steam overlay/arayuzunu kurar. PowerShell
-  uzerinden kurulum betigini calistirir.
-
-3b. LUATOOLS KUR / 3c. STEAMTOOLS AC / 3d. STEAM'I YENIDEN BASLAT
-{ul}
-
-  Ilgili araclari kurar/acar/yeniden baslatir.
-
-
-{ul}
-4. AYARLAR > KLASORLER
-{ul}
-
-  Ayarlar'da save_path altinda 3 hizli erisim butonu:
-
-  - Setups: CloudRedirect ve diger kurulum dosyalari icin
-  - Online Fixes: online-fix.me'den indirilen dosyalar
-  - Oyun Dosyalari: save_path ana klasoru
-
-  Her buton tiklandiginda klasoru acar (yoksa olusturur).
-
-
-{ul}
-5. AYARLAR > AI SAGLAYICILAR
-{ul}
-
-  Uygulama 7 farkli yapay zeka saglayicisini destekler:
-  Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek,
-  Ollama (yerel). Her biri icin API Key ve Model girilir.
-
+  To use AI translation features, get a free API key:
+  
+  Steps:
+  ① Go to console.groq.com
+  ② Click "Sign Up" (Google sign-in works)
+  ③ From left menu select "API Keys"
+  ④ Click "Create API Key"
+  ⑤ Give it a name (e.g. "SteamTools")
+  ⑥ Copy the generated key (starts with "gsk_")
+  ⑦ In Settings, paste into Groq API Key field and Save
+  
+  NOTE: Groq is free with daily limits.
+  Other providers: OpenAI (paid), Anthropic (Claude),
+  Google (Gemini), OpenRouter, DeepSeek, Ollama (local).
 
 {ul}
-6. OTOMATIK GUNCELLEME
+  2. CLOUDREDIRECT
 {ul}
-
-  Uygulama baslatildiktan 1.5 saniye sonra GitHub'da yeni
-  surum kontrol edilir. Varsa popup ile bildirilir.
-  "Guncelle" tusuna basinca yeni .exe indirilir, eski
-  dosyanin uzerine yazilir ve uygulama yeniden baslatilir.
-  Tum islem tarayici acilmadan, arka planda yapilir.
-
-
-{ul}
-7. STEAMDB BROWSER (OYUN TARAYICI)
-{ul}
-
-  Entegre SteamDB tarayicisi. 12'li sayfalar halinde
-  5000+ oyunu goruntuler. Ilk acilista cache kullanilir,
-  Refresh butonu SteamSpy API'sinden veri ceker.
-
-"""
-
-        en = f"""{ul}  STEAMTOOLSLUA - COMPREHENSIVE USER GUIDE
-{ul}
-
-  SteamToolsLua is a desktop application for managing
-  Steam game files, injecting .zip archives, downloading
-  manifest files, and managing Steam companion tools.
-
-  Features: AI-powered translation, game info display,
-  batch injection, tool management, Online-Fix downloader.
-
+  CloudRedirect works with SteamTools to properly
+  display Online-Fix games in Steam.
+  
+  Installation:
+  ① Go to Settings > Tools
+  ② Click "CloudRedirect" button
+  ③ Latest version is downloaded from GitHub and runs
+  ④ When done, shows "CloudRedirect ready"
+  
+  Without CloudRedirect, Online-Fix games may not
+  appear or work in Steam.
 
 {ul}
-PREREQUISITES
+  3. MILLENIUM (STEAM THEME)
 {ul}
-
-  On first launch the app will guide you through installing
-  these 3 required tools:
-
-  1. Millenium - Steam UI overhaul
-  2. LuaTools - Lua script execution
-  3. CloudRedirect - Required for LuaTools + Online-Fix
-
-
-{ul}
-1. SEARCH & RESULTS
-{ul}
-
-  Type a game name and press Enter. Results display as
-  cards. Each card has: Download, OnlineFix, Unlock.
-
-  Search history is auto-saved (last 50). Click the search
-  bar to see history. Use back/forward arrows (or Alt+Left/
-  Alt+Right) to navigate through search history.
-
+  Millenium is a modern Steam client UI overhaul.
+  
+  Installation:
+  ① Settings > Tools > "Install Millenium"
+  ② PowerShell script runs automatically
+  ③ Steam restarts when done
+  ④ New theme appears in Steam
+  
+  To remove: Delete Millenium files from Steam folder
+  or reinstall the latest version.
 
 {ul}
-1a. DOWNLOAD / 1b. ONLINEFIX / 1c. UNLOCK
+  4. LUATOOLS
 {ul}
-
-  Download: Integrates game files into Steam.
-  OnlineFix: Downloads & extracts from online-fix.me to
-    save_path/Online Fixes/ (NOT auto-injected).
-  Unlock: Downloads .manifest files for SteamTools.
-
-
-{ul}
-2. HEADER BUTTONS
-{ul}
-
-  2a. INJECT ALL - Extracts all .zip from "1 New Games"
-  2b. ? - This guide
-  2c. SETTINGS - All app settings
-
+  LuaTools enables Lua-based plugins in Steam.
+  
+  Installation:
+  ① Settings > Tools > "LuaTools Installer"
+  ② Latest version downloaded via PowerShell
+  ③ Plugin is placed in Steam/plugins/ folder
+  ④ After Steam restart, LuaTools is active
+  
+  LuaTools adds custom features, game info display,
+  and various automations to Steam.
 
 {ul}
-3. SETTINGS > TOOLS
+  5. ACHIEVEMENTS
 {ul}
+  Steam achievement unlocker tool.
+  
+  Usage:
+  ① Settings > Tools > "Achievements" button
+  ② SAM.Picker.exe auto-downloads and launches
+  ③ Select a game from the list
+  ④ Check achievements you want to unlock
+  ⑤ Click "Unlock"
+  
+  Warning: Unlocking achievements may not be
+  allowed by VAC or game developers. Use at your
+  own risk.
+  
+  SAM.Picker.exe downloads from:
+  github.com/tttaaahhhaaa/SteamToolsLua/main/bypass/""",
 
-  Install Millenium, LuaTools, open SteamTools, restart
-  Steam. Each via PowerShell or direct execution.
-
-
+            'es': f"""{ul}  1. API KEY DE GROQ (GRATIS)
 {ul}
-4. SETTINGS > FOLDERS
-{ul}
-
-  Quick-access buttons below save path:
-  - Setups: For CloudRedirect and setup files
-  - Online Fixes: Downloaded Online-Fix files
-  - Game Files: Main save_path folder
-
-
-{ul}
-5. AI PROVIDERS
-{ul}
-
-  7 providers: Groq, OpenAI, Anthropic, Google, OpenRouter,
-  DeepSeek, Ollama (local). Enter API Key + Model per
-  provider. "Auto Chain" falls through on error.
-
+  Pasos: console.groq.com → API Keys → Create API Key
+  Copie la clave (gsk_) y peguela en Ajustes > Groq API Key.
 
 {ul}
-6. AUTO UPDATE
+  2. CLOUDREDIRECT
 {ul}
-
-  1.5s after launch, checks GitHub for new releases.
-  Popup notifies when update is available. Click "Update"
-  to download, auto-replace, and restart - all without
-  opening a browser.
-
+  Necesario para juegos Online-Fix en Steam.
+  Ajustes > Tools > CloudRedirect para instalar.
 
 {ul}
-7. STEAMDB BROWSER
+  3. MILLENIUM
 {ul}
+  Tema moderno para Steam.
+  Ajustes > Tools > "Instalar Millenium".
 
-  Built-in game browser. 12 cards per page, 5000+ games.
-  Uses cache on first load; Refresh fetches from SteamSpy.
+{ul}
+  4. LUATOOLS
+{ul}
+  Plugins Lua para Steam.
+  Ajustes > Tools > "Instalador LuaTools".
 
-"""
+{ul}
+  5. LOGROS (ACHIEVEMENTS)
+{ul}
+  Administre logros de Steam con SAM.Picker.
+  Ajustes > Tools > "Achievements".""",
 
-        other_langs = {
-            'es': {'title': 'GUIA COMPLETA', 'content': f'''{ul}  GUIA COMPLETA{ul}
+            'fr': f"""{ul}  1. CLE API GROQ (GRATUITE)
+{ul}
+  Etapes: console.groq.com → API Keys → Create API Key
+  Copiez la cle (gsk_) et collez dans Parametres.
 
-Presione "?" en Ajustes > Tools para la guia completa en varios idiomas.
+{ul}
+  2. CLOUDREDIRECT
+{ul}
+  Requis pour les jeux Online-Fix dans Steam.
+  Parametres > Tools > CloudRedirect.
 
-Funciones principales: busqueda de juegos, descarga de manifests con Unlock Download, inyeccion de zips, integracion con IA.
+{ul}
+  3. MILLENIUM
+{ul}
+  Theme moderne pour Steam.
+  Parametres > Tools > "Installer Millenium".
 
-Botones en tarjetas de juego:
-- Download: Copia .lua a stplug-in o descarga manifests
-- OnlineFix: Abre pagina en online-fix.me
-- Unlock Download: Ejecuta manifests.ps1 para descargar manifests
+{ul}
+  4. LUATOOLS
+{ul}
+  Plugins Lua pour Steam.
+  Parametres > Tools > "Installateur LuaTools".
 
-Proveedores IA: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama.
+{ul}
+  5. SUCCES (ACHIEVEMENTS)
+{ul}
+  SAM.Picker pour gerer les succes Steam.
+  Parametres > Tools > "Achievements".""",
 
-Enlaces: Groq API Key -> console.groq.com/keys, OpenAI -> platform.openai.com/api-keys, Anthropic -> console.anthropic.com, Google Cloud -> console.cloud.google.com'''},
-            'fr': {'title': 'GUIDE COMPLET', 'content': f'''{ul}  GUIDE COMPLET{ul}
+            'de': f"""{ul}  1. GROQ API-SCHLUSSEL (KOSTENLOS)
+{ul}
+  Schritte: console.groq.com → API Keys → Create API Key
+  Schlussel kopieren (gsk_) und in Einstellungen einfugen.
 
-Appuyez sur "?" dans Parametres > Tools pour le guide complet multilingue.
+{ul}
+  2. CLOUDREDIRECT
+{ul}
+  Erforderlich fur Online-Fix-Spiele in Steam.
+  Einstellungen > Tools > CloudRedirect.
 
-Fonctionnalites principales: recherche de jeux, telechargement de manifests (Unlock Download), injection de zips, integration IA.
+{ul}
+  3. MILLENIUM
+{ul}
+  Modernes Steam-Design.
+  Einstellungen > Tools > "Millenium Installieren".
 
-Boutons sur les cartes de jeu:
-- Download: Copie .lua dans stplug-in ou telecharge manifests
-- OnlineFix: Ouvre page sur online-fix.me
-- Unlock Download: Execute manifests.ps1 pour telecharger manifests
+{ul}
+  4. LUATOOLS
+{ul}
+  Lua-Plugins fur Steam.
+  Einstellungen > Tools > "LuaTools Installer".
 
-Fournisseurs IA: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama.
+{ul}
+  5. ERFOLGE (ACHIEVEMENTS)
+{ul}
+  SAM.Picker zur Verwaltung von Steam-Erfolgen.
+  Einstellungen > Tools > "Achievements".""",
 
-Liens: Groq API Key -> console.groq.com/keys, OpenAI -> platform.openai.com/api-keys, Anthropic -> console.anthropic.com'''},
-            'de': {'title': 'VOLLSTANDIGE ANLEITUNG', 'content': f'''{ul}  VOLLSTANDIGE ANLEITUNG{ul}
+            'ja': f"""{ul}  1. GROQ APIキー（無料）
+{ul}
+  手順: console.groq.com → API Keys → Create API Key
+  キーをコピー（gsk_）して設定に貼り付け。
 
-Drucken Sie "?" in Einstellungen > Tools fur das vollstandige mehrsprachige Handbuch.
+{ul}
+  2. CLOUDREDIRECT
+{ul}
+  Online-FixゲームをSteamで表示するために必要。
+  設定 > Tools > CloudRedirect。
 
-Hauptfunktionen: Spielsuche, Manifest-Download (Unlock Download), Zip-Injektion, KI-Integration.
+{ul}
+  3. MILLENIUM
+{ul}
+  モダンなSteamテーマ。
+  設定 > Tools > "Milleniumをインストール"。
 
-Schaltflachen auf Spielkarten:
-- Download: Kopiert .lua nach stplug-in oder ladet Manifeste herunter
-- OnlineFix: Offnet Seite auf online-fix.me
-- Unlock Download: Fuhrt manifests.ps1 aus, um Manifeste herunterzuladen
+{ul}
+  4. LUATOOLS
+{ul}
+  Steam用Luaプラグイン。
+  設定 > Tools > "LuaToolsインストーラ"。
 
-KI-Anbieter: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama.
-
-Links: Groq API Key -> console.groq.com/keys, OpenAI -> platform.openai.com/api-keys'''},
-            'ja': {'title': '完全ガイド', 'content': f'''{ul}  完全ガイド{ul}
-
-設定 > Tools の "?" を押すと、多言語の完全ガイドが表示されます。
-
-主な機能: ゲーム検索、マニフェストダウンロード（Unlock Download）、ZIP注入、AI統合。
-
-ゲームカードのボタン:
-- Download: .luaをstplug-inにコピー、またはマニフェストをDL
-- OnlineFix: online-fix.meでページを開く
-- Unlock Download: manifests.ps1を実行してマニフェストをDL
-
-AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Ollama。
-
-リンク: Groq API Key -> console.groq.com/keys'''},
+{ul}
+  5. 実績 (ACHIEVEMENTS)
+{ul}
+  SAM.PickerでSteam実績を管理。
+  設定 > Tools > "Achievements"。""",
         }
-
-        if is_tr:
-            guide_title = 'KAPSAMLI KULLANIM REHBERI'
-            guide_content = tr
-        elif lang == 'en':
-            guide_title = 'COMPREHENSIVE USER GUIDE'
-            guide_content = en
-        elif lang in other_langs:
-            info = other_langs[lang]
-            guide_title = info['title']
-            guide_content = info['content']
-        else:
-            guide_title = 'COMPREHENSIVE USER GUIDE'
-            guide_content = en
-
+        guide = guides.get(lang, guides['en'])
+        guide_title = {'tr': 'KAPSAMLI KULLANIM REHBERI',
+                       'en': 'COMPREHENSIVE USER GUIDE',
+                       'es': 'GUIA COMPLETA',
+                       'fr': 'GUIDE COMPLET',
+                       'de': 'VOLLSTANDIGE ANLEITUNG',
+                       'ja': '完全ガイド'}.get(lang, 'COMPREHENSIVE USER GUIDE')
         win = tk.Toplevel(self.root)
         win.title(guide_title)
         win.geometry('820x680')
         win.configure(bg='#0d1724')
-
+        win.transient(self.root)
         main_frame = tk.Frame(win, bg='#0d1724')
         main_frame.pack(fill=tk.BOTH, expand=True)
-
         title_lbl = tk.Label(main_frame, text=guide_title, fg='#8fd3ff', bg='#0d1724',
                              font=('Segoe UI Semibold', 14))
         title_lbl.pack(pady=(16, 8))
-
         text_frame = tk.Frame(main_frame, bg='#122030')
         text_frame.pack(fill=tk.BOTH, expand=True, padx=16, pady=(0, 8))
-
         text = tk.Text(text_frame, wrap=tk.WORD, font=('Consolas', 10),
                        bg='#122030', fg='#dce7f4', relief=tk.FLAT,
                        padx=16, pady=8, highlightthickness=0, borderwidth=0)
         text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
         scroll = tk.Scrollbar(text_frame, command=text.yview)
         scroll.pack(side=tk.RIGHT, fill=tk.Y)
         text.configure(yscrollcommand=scroll.set)
-
-        text.insert('1.0', guide_content)
-
-        # Configure tags
-        text.tag_config('section', foreground='#8fd3ff', font=('Segoe UI Semibold', 11))
-        text.tag_config('subsection', foreground='#66c0f4', font=('Segoe UI Semibold', 10))
+        text.insert('1.0', guide)
+        text.tag_config('section', foreground='#8fd3ff', font=('Consolas', 11, 'bold'))
         text.tag_config('bullet', foreground='#48bb78')
-        text.tag_config('link', foreground='#63b3ed', underline=True)
-        text.tag_config('warn', foreground='#f6ad55')
-        text.tag_config('code', foreground='#9f7aea')
-
-        # Make URLs clickable
-        import re as _re
-        url_pattern = r'https?://[^\s\n]+'
-        for match in _re.finditer(url_pattern, guide_content):
-            start = f'1.0 + {match.start()} chars'
-            end = f'1.0 + {match.end()} chars'
-            url = match.group(0)
-            text.tag_add(url, start, end)
-            text.tag_config(url, foreground='#63b3ed', underline=True)
-            text.tag_bind(url, '<Button-1>', lambda e, u=url: webbrowser.open(u))
-            text.tag_bind(url, '<Enter>', lambda e: text.config(cursor='hand2'))
-            text.tag_bind(url, '<Leave>', lambda e: text.config(cursor=''))
-
-        # Find section headers (lines starting with digit+.)
-        for i, line in enumerate(guide_content.split('\n')):
-            if _re.match(r'^\d[a-z]?\.', line.strip()):
-                start = f'1.0 + {sum(len(l)+1 for l in guide_content.split(chr(10))[:i])} chars'
-                try:
-                    text.tag_add('section', start, f'{start} + {len(line)} chars')
-                except:
-                    pass
-            elif _re.match(r'^\d[a-z]?\.', line.strip()):
-                try:
-                    text.tag_add('subsection', start, f'{start} + {len(line)} chars')
-                except:
-                    pass
-
+        text.tag_config('warn', foreground='#f56565')
+        for i, line in enumerate(guide.split('\n')):
+            stripped = line.strip()
+            idx = f'{i+1}.0'
+            if stripped.startswith('{ul}') or stripped.startswith('1.') or stripped.startswith('2.') or stripped.startswith('3.') or stripped.startswith('4.') or stripped.startswith('5.'):
+                text.tag_add('section', idx, f'{i+1}.end')
+            if stripped.startswith('①') or stripped.startswith('Uyar') or stripped.startswith('Warning'):
+                text.tag_add('warn', idx, f'{i+1}.end')
         text.config(state=tk.DISABLED)
-
         btn_frame = tk.Frame(win, bg='#0d1724')
         btn_frame.pack(fill=tk.X, padx=16, pady=(0, 12))
         AB = g.get('AnimatedButton', AnimatedButton)
-        close_text = 'Kapat' if is_tr else 'Close'
+        close_text = 'Kapat' if lang == 'tr' else 'Close'
         AB(btn_frame, close_text, win.destroy, 100, 32,
            '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
            ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT)
@@ -4051,865 +4062,9 @@ AIプロバイダー: Groq, OpenAI, Anthropic, Google, OpenRouter, DeepSeek, Oll
         AB = g.get('AnimatedButton', AnimatedButton)
 
         # ? Guide button
-        def _open_guide():
-            lang = self.settings.get('language', 'tr')
-            guides = {
-                'tr': {
-                    'title': 'KAPSAMLI KULLANIM REHBERİ',
-                    'content': """╔══════════════════════════════════════════╗
-║        KAPSAMLI KULLANIM REHBERİ       ║
-╚══════════════════════════════════════════╝
-
-📌 BU UYGULAMA NE İŞE YARAR?
-─────────────────────────────────────────────
-SteamToolsLua, Steam oyun kütüphanenizi yönetmek,
-yeni oyun dosyalarını (.zip) Steam'e entegre etmek,
-ve SteamTools / Millennium / LuaTools gibi
-araçları kurup yönetmek için geliştirilmiş bir
-araçtır. Yapay zeka destekli çeviri, oyun
-bilgisi görüntüleme ve toplu inject özellikleri
-sunar.
-
-─────────────────────────────────────────────
-
-🔰 1. ADIM: API KEY ALMA
-─────────────────────────────────────────────
-Uygulamanın yapay zeka özelliklerini
-kullanmak için bir API anahtarı
-almanız gerekir. Desteklenen sağlayıcılar:
-Groq (ücretsiz), OpenAI, Anthropic, Google, OpenRouter.
-
-① İlgili sağlayıcının web sitesine gidin
-② API Key bölümünden yeni bir anahtar oluşturun
-③ Oluşan anahtarı kopyalayın
-④ Uygulamada Ayarlar → ilgili sağlayıcı satırındaki
-   API Key alanına yapıştırın ve Kaydet butonuna basın
-
-⚠ NOT: Groq ücretsizdir (gsk_ ile başlar).
-  console.groq.com adresinden alabilirsiniz.
-
-─────────────────────────────────────────────
-
-📂 2. ADIM: 1 NEW GAMES KLASÖRÜ
-─────────────────────────────────────────────
-İnternetten indirdiğiniz oyun .zip dosyalarını
-atacağınız ana klasördür.
-
-① Masaüstünde "1 New Games" klasörü oluşturun
-   (veya var olanı kullanın)
-② Ayarlar → save_path kısmına klasörün tam yolunu
-   yazın (ör: C:\\Users\\Kullanici\\Desktop\\1 New Games)
-③ Oyun .zip dosyalarını bu klasörün İÇİNE atın
-
-⚠ ÖNEMLİ: Zip'lerin içinde manifest (.manifest)
-  dosyaları ve plugin (.st / .lua) dosyaları
-  olmalıdır.
-
-─────────────────────────────────────────────
-
-🚀 3. ADIM: INJECT ALL KULLANIMI
-─────────────────────────────────────────────
-"Inject All" butonu 1 New Games klasöründeki
-tüm .zip dosyalarını otomatik olarak işler.
-
-Butona bastığınızda:
-① Zip'ler taranır ve sayılır
-② Her zip açılır, dosyalar ilgili klasörlere
-   ayıklanır
-③ İşlenen zip'ler arşivlenir
-④ "Steam restart edilsin mi?" sorusu gelir
-⑤ Evet derseniz → Steam kapatılır, 5sn beklenir,
-   tekrar açılır
-
-⚠ NOT: SteamTools bilgisayarınızda yüklü olmalıdır.
-
-─────────────────────────────────────────────
-
-🛠 4. ADIM: TOOLS (ARAÇLAR)
-─────────────────────────────────────────────
-Ayarlar penceresindeki "Tools" bölümü:
-
-☆ Install Millenium
-   - Steam için modern bir arayüz teması kurar
-   - Tek tıkla çalışır
-
-☆ LuaTools Installer
-   - Lua tabanlı Steam eklentilerini kurar
-
-☆ Launch SteamTools
-   - SteamTools.exe'yi başlatır
-
-☆ Restart Steam
-   - Steam'i kapatır, bekler ve tekrar başlatır
-
-☆ ? (Bu Rehber)
-   - Kapsamlı kullanım rehberini açar
-
-─────────────────────────────────────────────
-
-🃏 5. ADIM: OYUN KARTLARI
-─────────────────────────────────────────────
-
-Her arama sonucu bir oyun kartı olarak gösterilir.
-Kart üzerindeki butonlar:
-
-☆ Download
-   - Oyunun .lua dosyasını stplug-in klasörüne kopyalar
-
-☆ OnlineFix
-   - online-fix.me'de oyun sayfasını açar
-
-☆ Unlock Download
-   - manifests.ps1 PowerShell betiğini çalıştırır
-
-─────────────────────────────────────────────
-
-⚙ AYARLAR
-─────────────────────────────────────────────
-
-◇ Route: Yapay zeka sağlayıcı sırasını belirler.
-◇ Language: 6 dil desteği.
-◇ AI Toggle: Arama çubuğu yanındaki buton.
-  Aktifken AI arama isimlerini otomatik düzeltir.
-◇ Card Width / Spacing: Kart görünüm ayarları.
-
-─────────────────────────────────────────────
-
-🔄 SIKÇA SORULAN SORULAR
-─────────────────────────────────────────────
-
-S: SteamTools kurulu değil, ne yapmalıyım?
-C: SteamTools'u resmi sitesinden indirip kurun.
-
-S: Inject All çalışmıyor?
-C: Zip dosyalarının doğru formatta olduğundan
-   emin olun.
-
-S: Unlock Download hata veriyor?
-C: .lua dosyasının stplug-in klasöründe olduğundan
-   emin olun. İnternet bağlantınızı kontrol edin.
-
-─────────────────────────────────────────────
-
-📞 DESTEK & İLETİŞİM
-─────────────────────────────────────────────
-Uygulama hakkında sorun yaşarsanız:
-• GitHub: github.com/anomalyco/opencode
-• SteamTools: steamtools.net
-
-© 2026 SteamToolsLua - Tüm hakları saklıdır."""
-                },
-                'en': {
-                    'title': 'COMPREHENSIVE USER GUIDE',
-                    'content': """╔══════════════════════════════════════════╗
-║        COMPREHENSIVE USER GUIDE          ║
-╚══════════════════════════════════════════╝
-
-📌 WHAT IS THIS APP?
-─────────────────────────────────────────────
-SteamToolsLua is a tool for managing your Steam
-game library, integrating new game files (.zip)
-into Steam, and installing/managing SteamTools,
-Millennium, and LuaTools. It offers AI-powered
-translation, game info display, and batch inject
-features.
-
-─────────────────────────────────────────────
-
-🔰 STEP 1: GET A GROQ API KEY (REQUIRED)
-─────────────────────────────────────────────
-To use AI translation features, you need a free
-Groq API key.
-
-① Go to console.groq.com
-② Click "Sign Up" (Google sign-in works)
-③ From the left menu select "API Keys"
-④ Click "Create API Key"
-⑤ Give it a name (e.g. "SteamTools")
-⑥ Copy the generated key (starts with "gsk_")
-⑦ In Settings, paste it into the Groq API Key
-   field and click Save
-
-⚠ NOTE: You may need to close and reopen
-  settings after saving your API key.
-
-─────────────────────────────────────────────
-
-📂 STEP 2: 1 NEW GAMES FOLDER
-─────────────────────────────────────────────
-This is the main folder where you place game
-.zip files downloaded from the internet.
-
-① Create a "1 New Games" folder on your desktop
-   (or use an existing one)
-② In Settings → save_path, set the full path
-   (e.g. C:\\Users\\Taha\\Desktop\\1 New Games)
-③ Place game .zip files INSIDE this folder
-
-⚠ IMPORTANT: Zips must contain .manifest and
-  .st/.lua files. Properly formatted zips are
-  automatically classified and injected.
-
-─────────────────────────────────────────────
-
-🚀 STEP 3: USING INJECT ALL
-─────────────────────────────────────────────
-The "Inject All" button in the header processes
-all .zip files from 1 New Games automatically.
-
-When pressed:
-① Zips are scanned and counted
-② Each zip is opened, manifest files go to
-   depotcache, other files (.st, .lua) go to
-   stplug-in folder
-③ Processed zips are moved to used/ archive
-④ You're asked "Restart Steam?"
-⑤ If Yes → Steam is killed, 5s wait, relaunched
-⑥ On restart, SteamTools auto-detects the games
-
-⚠ NOTE: SteamTools must already be installed
-  on your computer.
-
-─────────────────────────────────────────────
-
-🛠 STEP 4: TOOLS SECTION
-─────────────────────────────────────────────
-Located in the Settings window under "Tools":
-
-☆ Install Millenium
-   - Installs a modern Steam UI theme
-   - One-click PowerShell installer
-
-☆ LuaTools Installer
-   - Installs Lua-based Steam plugins
-   - Auto-moves plugin to plugins/ folder
-
-☆ Launch SteamTools
-   - Launches SteamTools.exe
-   - Searches in C:\\Program Files\\SteamTools\\
-
-☆ Restart Steam
-   - Kills Steam (taskkill)
-   - Waits 5 seconds
-   - Restarts Steam
-
-☆ ? (This Guide)
-   - Opens the comprehensive user guide
-
-─────────────────────────────────────────────
-
-🃏 STEP 5: GAME CARDS & UNLOCK DOWNLOAD
-─────────────────────────────────────────────
-
-Each search result is shown as a game card.
-Card buttons:
-
-☆ Download
-   - Copies the .lua file to stplug-in folder
-   - If game is installed, launches it in Steam
-   - Otherwise downloads manifest files
-
-☆ OnlineFix
-   - Opens game page on online-fix.me
-   - Used to find game files and crack info
-
-☆ Unlock Download
-   - Runs manifests.ps1 PowerShell script
-   - Downloads depot manifest files via GitHub Mirror
-   - Lets Steam recognize the game
-   - Note: .lua file must be in stplug-in folder
-
-─────────────────────────────────────────────
-
-⚙ SETTINGS EXPLAINED
-─────────────────────────────────────────────
-
-◇ Route:
-  Determines the order of AI providers. In "Auto"
-  mode, falls back to the next provider on error.
-
-◇ Language:
-  6 languages: Türkçe, English, Español,
-  Français, Deutsch, 日本語
-
-◇ Card Width / Spacing:
-  Adjusts game card width and spacing.
-
-◇ Provider Table:
-  For each AI provider:
-  • API Key: The key from the provider
-  • Model: Model to use (empty = default)
-  • Guide: Provider-specific guide
-  • Limit: Remaining requests/tokens
-
-─────────────────────────────────────────────
-
-🔄 FAQ
-─────────────────────────────────────────────
-
-Q: SteamTools is not installed, what do I do?
-A: Settings → Tools → Launch SteamTools. If
-   it fails, download from steamtools.net.
-
-Q: Inject All doesn't work / zip not processed?
-A: Make sure zips are in the correct format
-   (.manifest + .st/.lua files inside).
-
-Q: Guide shows in English?
-A: Change language in Settings and save.
-
-Q: Unlock Download error?
-A: Ensure the .lua file is in stplug-in folder. Check
-   your internet connection. The manifest may not exist
-   on the GitHub Mirror.
-
-─────────────────────────────────────────────
-
-📞 SUPPORT & CONTACT
-─────────────────────────────────────────────
-• GitHub: github.com/anomalyco/opencode
-• SteamTools: steamtools.net
-
-© 2026 SteamToolsLua - All rights reserved."""
-                },
-                'es': {
-                    'title': 'GUÍA COMPLETA DE USUARIO',
-                    'content': """╔══════════════════════════════════════════╗
-║         GUIA COMPLETA DE USUARIO         ║
-╚══════════════════════════════════════════╝
-
-📌 ¿QUÉ ES ESTA APLICACIÓN?
-─────────────────────────────────────────────
-SteamToolsLua es una herramienta para gestionar
-tu biblioteca de Steam, integrar archivos .zip
-de juegos en Steam, e instalar/adminstrar
-SteamTools, Millennium y LuaTools. Ofrece
-traducción por IA, información de juegos y
-inyección por lotes.
-
-─────────────────────────────────────────────
-
-🔰 PASO 1: OBTENER API KEY DE GROQ
-─────────────────────────────────────────────
-Para usar la traducción por IA necesitas una
-clave API gratuita de Groq.
-
-① Ve a console.groq.com
-② Registrate (funciona con Google)
-③ En el menú izquierdo selecciona "API Keys"
-④ Haz clic en "Create API Key"
-⑤ Ponle un nombre (ej: "SteamTools")
-⑥ Copia la clave generada (empieza con "gsk_")
-⑦ En Ajustes, pégala en Groq API Key y guarda
-
-⚠ NOTA: Puede que tengas que cerrar y reabrir
-  ajustes después de guardar la clave.
-
-─────────────────────────────────────────────
-
-📂 PASO 2: CARPETA 1 NEW GAMES
-─────────────────────────────────────────────
-Carpeta principal donde pones los archivos .zip
-de juegos descargados de internet.
-
-① Crea una carpeta "1 New Games" en el escritorio
-② En Ajustes → save_path, pon la ruta completa
-   (ej: C:\\Users\\TuUsuario\\Desktop\\1 New Games)
-③ Pon los .zip de juegos DENTRO de esta carpeta
-
-⚠ IMPORTANTE: Los .zip deben contener archivos
-  .manifest y .st/.lua para ser procesados.
-
-─────────────────────────────────────────────
-
-🚀 PASO 3: USAR INJECT ALL
-─────────────────────────────────────────────
-El botón "Inject All" en el encabezado procesa
-todos los .zip de 1 New Games automáticamente.
-
-① Los zips se escanean y cuentan
-② Cada zip se abre: manifiestos → depotcache,
-   otros archivos → stplug-in
-③ Los zips procesados se archivan en used/
-④ Se pregunta "¿Reiniciar Steam?"
-⑤ Si sí → Steam se cierra, espera 5s, se abre
-
-─────────────────────────────────────────────
-
-🛠 PASO 4: SECCIÓN DE HERRAMIENTAS
-─────────────────────────────────────────────
-
-☆ Install Millenium - Tema moderno para Steam
-☆ LuaTools Installer - Plugins Lua para Steam
-☆ Launch SteamTools - Abre SteamTools.exe
-☆ Restart Steam - Reinicia Steam
-☆ ? (Esta Guía) - Abre la guía de usuario
-
-─────────────────────────────────────────────
-
-🃏 PASO 5: TARJETAS DE JUEGO Y UNLOCK DOWNLOAD
-─────────────────────────────────────────────
-
-Cada resultado es una tarjeta de juego. Botones:
-
-☆ Download
-   - Copia el .lua a stplug-in
-   - Si instalado, abre en Steam
-   - Sino, descarga manifests
-
-☆ OnlineFix
-   - Abre página en online-fix.me
-   - Para archivos de juego y cracks
-
-☆ Unlock Download
-   - Ejecuta manifests.ps1 (PowerShell)
-   - Descarga manifests vía GitHub Mirror
-   - Permite que Steam reconozca el juego
-   - Nota: el .lua debe estar en stplug-in
-
-─────────────────────────────────────────────
-
-⚙ AJUSTES DETALLADOS
-─────────────────────────────────────────────
-
-◇ Route: Orden de proveedores de IA
-◇ Language: 6 idiomas disponibles
-◇ Card Width: Ancho de tarjetas de juego
-◇ Tabla de Proveedores: API Keys y modelos
-
-─────────────────────────────────────────────
-
-🔄 PREGUNTAS FRECUENTES
-─────────────────────────────────────────────
-
-P: ¿SteamTools no está instalado?
-R: Ajustes → Tools → Launch SteamTools
-
-P: ¿Inject All no funciona?
-R: Verifica que los .zip tengan .manifest y .st/.lua
-
-P: ¿Unlock Download da error?
-R: Asegúrate de que el .lua esté en stplug-in.
-   Revisa tu conexión. El manifest puede no
-   estar en GitHub Mirror.
-
-─────────────────────────────────────────────
-
-📞 SOPORTE Y CONTACTO
-─────────────────────────────────────────────
-• GitHub: github.com/anomalyco/opencode
-• SteamTools: steamtools.net
-
-© 2026 SteamToolsLua - Todos los derechos reservados."""
-                },
-                'fr': {
-                    'title': 'GUIDE UTILISATEUR COMPLET',
-                    'content': """╔══════════════════════════════════════════╗
-║      GUIDE UTILISATEUR COMPLET           ║
-╚══════════════════════════════════════════╝
-
-📌 QU'EST-CE QUE CETTE APPLICATION ?
-─────────────────────────────────────────────
-SteamToolsLua est un outil pour gérer votre
-bibliothèque Steam, intégrer des fichiers .zip
-de jeux dans Steam, et installer/gérer
-SteamTools, Millennium et LuaTools. Il offre
-traduction par IA, affichage d'infos et
-injection par lots.
-
-─────────────────────────────────────────────
-
-🔰 ÉTAPE 1: OBTENIR UNE CLÉ API GROQ
-─────────────────────────────────────────────
-Pour utiliser la traduction IA, vous avez
-besoin d'une clé API Groq gratuite.
-
-① Allez sur console.groq.com
-② Inscrivez-vous (Google fonctionne)
-③ Menu gauche → "API Keys"
-④ Cliquez "Create API Key"
-⑤ Donnez un nom (ex: "SteamTools")
-⑥ Copiez la clé (commence par "gsk_")
-⑦ Dans Paramètres, collez-la dans Groq API Key
-
-─────────────────────────────────────────────
-
-📂 ÉTAPE 2: DOSSIER 1 NEW GAMES
-─────────────────────────────────────────────
-Dossier principal pour vos fichiers .zip.
-
-① Créez "1 New Games" sur le bureau
-② Paramètres → save_path → chemin complet
-③ Mettez les .zip DANS ce dossier
-
-─────────────────────────────────────────────
-
-🚀 ÉTAPE 3: UTILISER INJECT ALL
-─────────────────────────────────────────────
-Le bouton "Inject All" traite tous les .zip
-automatiquement.
-
-① Les zips sont scannés
-② Manifests → depotcache, autres → stplug-in
-③ Les zips traités vont dans used/
-④ Redémarrage Steam proposé
-
-─────────────────────────────────────────────
-
-🛠 ÉTAPE 4: OUTILS
-─────────────────────────────────────────────
-☆ Install Millenium - Thème Steam moderne
-☆ LuaTools Installer - Plugins Lua
-☆ Launch SteamTools - Lance SteamTools.exe
-☆ Restart Steam - Redémarre Steam
-☆ ? (Ce Guide) - Guide utilisateur
-
-─────────────────────────────────────────────
-
-🃏 ÉTAPE 5: CARTES DE JEU ET UNLOCK DOWNLOAD
-─────────────────────────────────────────────
-
-Chaque résultat est affiché en carte. Boutons :
-
-☆ Download
-   - Copie le .lua dans stplug-in
-   - Si installé, lance dans Steam
-   - Sinon, télécharge les manifests
-
-☆ OnlineFix
-   - Ouvre la page sur online-fix.me
-   - Pour fichiers de jeu et cracks
-
-☆ Unlock Download
-   - Exécute manifests.ps1 (PowerShell)
-   - Télécharge les manifests via GitHub Mirror
-   - Permet à Steam de reconnaître le jeu
-   - Note : le .lua doit être dans stplug-in
-
-─────────────────────────────────────────────
-
-⚙ PARAMÈTRES DÉTAILLÉS
-─────────────────────────────────────────────
-◇ Route: Ordre des fournisseurs IA
-◇ Language: 6 langues disponibles
-◇ Card Width: Largeur des cartes jeu
-
-─────────────────────────────────────────────
-
-🔄 FAQ
-─────────────────────────────────────────────
-
-Q: SteamTools non installé ?
-R: Paramètres → Tools → Launch SteamTools
-
-Q: Inject All ne fonctionne pas ?
-R: Vérifiez le format des .zip
-
-Q: Unlock Download ne marche pas ?
-R: Vérifiez que le .lua est dans stplug-in.
-   Votre connexion Internet. Le manifest peut
-   être absent du GitHub Mirror.
-
-─────────────────────────────────────────────
-
-📞 SUPPORT & CONTACT
-─────────────────────────────────────────────
-© 2026 SteamToolsLua - Tous droits réservés."""
-                },
-                'de': {
-                    'title': 'UMFASSENDES BENUTZERHANDBUCH',
-                    'content': """╔══════════════════════════════════════════╗
-║        UMFASSENDES BENUTZERHANDBUCH      ║
-╚══════════════════════════════════════════╝
-
-📌 WAS IST DIESE ANWENDUNG?
-─────────────────────────────────────────────
-SteamToolsLua ist ein Werkzeug zur Verwaltung
-Ihrer Steam-Bibliothek, zum Integrieren von
-.zip-Dateien in Steam und zum Installieren/
-Verwalten von SteamTools, Millennium und
-LuaTools. Bietet KI-Übersetzung, Spielinfo-
-Anzeige und Batch-Injektion.
-
-─────────────────────────────────────────────
-
-🔰 SCHRITT 1: GROQ API-SCHLÜSSEL
-─────────────────────────────────────────────
-Für die KI-Übersetzung benötigen Sie einen
-kostenlosen Groq API-Schlüssel.
-
-① Gehen Sie zu console.groq.com
-② Registrieren Sie sich (Google geht auch)
-③ Wählen Sie "API Keys" im linken Menü
-④ Klicken Sie "Create API Key"
-⑤ Geben Sie einen Namen (z.B. "SteamTools")
-⑥ Kopieren Sie den Schlüssel (beginnt mit "gsk_")
-⑦ In Einstellungen → Groq API Key einfügen
-
-─────────────────────────────────────────────
-
-📂 SCHRITT 2: 1 NEW GAMES ORDNER
-─────────────────────────────────────────────
-Hauptordner für Ihre Spiel-.zip-Dateien.
-
-① Erstellen Sie "1 New Games" auf dem Desktop
-② Einstellungen → save_path → voller Pfad
-③ Legen Sie die .zip-Dateien in diesen Ordner
-
-─────────────────────────────────────────────
-
-🚀 SCHRITT 3: INJECT ALL VERWENDEN
-─────────────────────────────────────────────
-"Inject All" verarbeitet alle .zip-Dateien
-automatisch.
-
-① Zips werden gescannt
-② Manifeste → depotcache, andere → stplug-in
-③ Verarbeitete Zips werden in used/ archiviert
-④ Steam-Neustart wird angeboten
-
-─────────────────────────────────────────────
-
-🛠 SCHRITT 4: WERKZEUGE
-─────────────────────────────────────────────
-☆ Install Millenium - Modernes Steam-Design
-☆ LuaTools Installer - Lua-Plugins
-☆ Launch SteamTools - Startet SteamTools.exe
-☆ Restart Steam - Startet Steam neu
-☆ ? (Dieses Handbuch) - Benutzerhandbuch
-
-─────────────────────────────────────────────
-
-🃏 SCHRITT 5: SPIELKARTEN & UNLOCK DOWNLOAD
-─────────────────────────────────────────────
-
-Jedes Suchergebnis wird als Karte angezeigt:
-
-☆ Download
-   - Kopiert .lua nach stplug-in
-   - Wenn installiert, startet in Steam
-   - Sonst lädt es Manifeste herunter
-
-☆ OnlineFix
-   - Öffnet Seite auf online-fix.me
-   - Für Spieldateien und Crack-Infos
-
-☆ Unlock Download
-   - Führt manifests.ps1 (PowerShell) aus
-   - Lädt Manifeste via GitHub Mirror
-   - Lässt Steam das Spiel erkennen
-   - Hinweis: .lua muss in stplug-in sein
-
-─────────────────────────────────────────────
-
-⚙ EINSTELLUNGEN ERKLÄRT
-─────────────────────────────────────────────
-◇ Route: Reihenfolge der KI-Anbieter
-◇ Language: 6 Sprachen verfügbar
-◇ Card Width: Breite der Spielkarten
-
-─────────────────────────────────────────────
-
-🔄 FAQ
-─────────────────────────────────────────────
-
-F: SteamTools nicht installiert?
-A: Einstellungen → Tools → Launch SteamTools
-
-F: Inject All funktioniert nicht?
-A: Prüfen Sie das .zip-Format (.manifest + .st/.lua)
-
-F: Unlock Download Fehler?
-A: Stellen Sie sicher, dass .lua in stplug-in ist.
-   Prüfen Sie Ihre Internetverbindung. Das Manifest
-   ist möglicherweise nicht im GitHub Mirror.
-
-─────────────────────────────────────────────
-
-📞 SUPPORT & KONTAKT
-─────────────────────────────────────────────
-© 2026 SteamToolsLua - Alle Rechte vorbehalten."""
-                },
-                'ja': {
-                    'title': '包括的なユーザーガイド',
-                    'content': """╔══════════════════════════════════════════╗
-║         包括的なユーザーガイド             ║
-╚══════════════════════════════════════════╝
-
-📌 このアプリについて
-─────────────────────────────────────────────
-SteamToolsLuaは、Steamゲームライブラリの管理、
-.zipファイルのSteamへの統合、SteamTools/
-Millennium/LuaToolsのインストールと管理を行う
-ツールです。AI翻訳、ゲーム情報表示、一括イン
-ジェクト機能を提供します。
-
-─────────────────────────────────────────────
-
-🔰 ステップ1: Groq APIキーを取得
-─────────────────────────────────────────────
-AI翻訳機能を使用するには無料のGroq APIキー
-が必要です。
-
-① console.groq.comにアクセス
-② サインアップ（Googleログイン可）
-③ 左メニューから「API Keys」を選択
-④ 「Create API Key」をクリック
-⑤ 名前を入力（例：「SteamTools」）
-⑥ キーをコピー（「gsk_」で始まります）
-⑦ 設定→Groq API Keyに貼り付けて保存
-
-─────────────────────────────────────────────
-
-📂 ステップ2: 1 New Gamesフォルダ
-─────────────────────────────────────────────
-ゲームの.zipファイルを置くメインフォルダです。
-
-① デスクトップに「1 New Games」フォルダを作成
-② 設定→save_pathにパスを設定
-③ .zipファイルをこのフォルダに入れる
-
-─────────────────────────────────────────────
-
-🚀 ステップ3: Inject Allを使用
-─────────────────────────────────────────────
-「Inject All」ボタンですべての.zipを自動処理。
-
-① ZIPをスキャン
-② マニフェスト→depotcache、他→stplug-in
-③ 処理済みZIPはused/にアーカイブ
-④ Steam再起動を確認
-
-─────────────────────────────────────────────
-
-🛠 ステップ4: ツール
-─────────────────────────────────────────────
-☆ Install Millenium - モダンなSteamテーマ
-☆ LuaTools Installer - Luaプラグイン
-☆ Launch SteamTools - SteamTools.exe起動
-☆ Restart Steam - Steam再起動
-☆ ? (このガイド) - ユーザーガイド
-
-─────────────────────────────────────────────
-
-🃏 ステップ5: ゲームカードとアンロックダウンロード
-─────────────────────────────────────────────
-
-各検索結果はゲームカードとして表示されます。
-
-☆ Download
-   - .luaファイルをstplug-inにコピー
-   - インストール済みならSteamで起動
-   - 未インストールならmanifestをDL
-
-☆ OnlineFix
-   - online-fix.meでページを開く
-   - ゲームファイルやクラック情報を検索
-
-☆ Unlock Download
-   - manifests.ps1（PowerShell）を実行
-   - GitHub Mirror経由でmanifestをDL
-   - Steamがゲームを認識できるようにする
-   - 注意: .luaがstplug-inにある必要があります
-
-─────────────────────────────────────────────
-
-⚙ 設定の説明
-─────────────────────────────────────────────
-◇ Route: AIプロバイダーの順序
-◇ Language: 6言語対応
-◇ Card Width: ゲームカードの幅
-
-─────────────────────────────────────────────
-
-🔄 よくある質問
-─────────────────────────────────────────────
-
-Q: SteamToolsがインストールされていません
-A: 設定→Tools→Launch SteamTools
-
-Q: Inject Allが動作しません
-A: .zipファイルの形式を確認してください
-
-Q: Unlock Downloadでエラーが発生します
-A: .luaファイルがstplug-inフォルダにあることを
-   確認してください。インターネット接続を確認。
-   manifestがGitHub Mirrorにない可能性があります。
-
-─────────────────────────────────────────────
-
-📞 サポート＆お問い合わせ
-─────────────────────────────────────────────
-© 2026 SteamToolsLua - All rights reserved."""
-                },
-            }
-
-            guide = guides.get(lang, guides['en'])
-            title = guide['title']
-            text = guide['content']
-
-            win = tk.Toplevel(self.root)
-            win.title(title)
-            win.geometry('820x700')
-            win.configure(bg='#0d1724')
-            win.transient(self.root)
-
-            header = tk.Frame(win, bg='#0d1724')
-            header.pack(fill=tk.X, padx=20, pady=(20, 4))
-            tk.Label(header, text=title, fg='#8fd3ff', bg='#0d1724',
-                     font=('Bahnschrift SemiBold', 18)).pack(anchor='w')
-            tk.Label(header, text='© 2026 SteamToolsLua', fg='#4a637a', bg='#0d1724',
-                     font=('Segoe UI', 9)).pack(anchor='w')
-
-            text_frame = tk.Frame(win, bg='#0f1b2a')
-            text_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(8, 20))
-            text_widget = tk.Text(text_frame, wrap=tk.WORD, bg='#0f1b2a', fg='#dce7f4',
-                                  font=('Consolas', 10), relief=tk.FLAT, bd=0,
-                                  padx=16, pady=16, insertwidth=0,
-                                  highlightthickness=0, spacing1=0, spacing2=2, spacing3=4)
-            scrollbar = tk.Scrollbar(text_frame, command=text_widget.yview, bg='#1f3348',
-                                      troughcolor='#0d1724', bd=0)
-            text_widget.configure(yscrollcommand=scrollbar.set)
-            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-            text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-            # Insert text with basic coloring
-            text_widget.insert(tk.END, text)
-
-            # Add tags for header lines
-            text_widget.tag_configure('header1', foreground='#8fd3ff', font=('Consolas', 11, 'bold'))
-            text_widget.tag_configure('header2', foreground='#f6ad55', font=('Consolas', 10, 'bold'))
-            text_widget.tag_configure('bullet', foreground='#48bb78')
-            text_widget.tag_configure('warn', foreground='#f56565')
-            text_widget.tag_configure('note', foreground='#97afc6')
-
-            # Apply tags to lines starting with special chars
-            lines = text.split('\n')
-            for i, line in enumerate(lines):
-                idx = f'{i+1}.0'
-                stripped = line.strip()
-                if stripped.startswith('╔') or stripped.startswith('║') or stripped.startswith('╚'):
-                    text_widget.tag_add('header1', idx, f'{i+1}.end')
-                elif stripped.startswith('🔰') or stripped.startswith('📂') or stripped.startswith('🚀') or stripped.startswith('🛠') or stripped.startswith('⚙') or stripped.startswith('🔄') or stripped.startswith('📞') or stripped.startswith('🔊') or stripped.startswith('📌'):
-                    text_widget.tag_add('header2', idx, f'{i+1}.end')
-                elif stripped.startswith('⚠') or stripped.startswith('☆'):
-                    text_widget.tag_add('warn', idx, f'{i+1}.end')
-                elif stripped.startswith('①') or stripped.startswith('②') or stripped.startswith('③') or stripped.startswith('④') or stripped.startswith('⑤') or stripped.startswith('⑥') or stripped.startswith('⑦'):
-                    text_widget.tag_add('bullet', idx, f'{i+1}.end')
-                elif stripped.startswith('S:') or stripped.startswith('C:') or stripped.startswith('Q:') or stripped.startswith('A:'):
-                    text_widget.tag_add('note', idx, f'{i+1}.end')
-
-            text_widget.configure(state=tk.DISABLED)
-
-            # Bottom close button
-            btn_frame = tk.Frame(win, bg='#0d1724')
-            btn_frame.pack(fill=tk.X, padx=20, pady=(0, 16))
-            def _close_guide():
-                win.destroy()
-            AB = g.get('AnimatedButton', AnimatedButton)
-            AB(btn_frame, self.tr('button.close'), _close_guide,
-               110, 32, '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
-               ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT)
+        AB(tools_row, '?', lambda: _open_guide(self), 36, 30,
+           '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 11)).pack(side=tk.LEFT, padx=(0, 4))
 
         # Install Millenium
         _mill_light = tk.Label(tools_row, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 14))
