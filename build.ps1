@@ -1,7 +1,7 @@
 $Python311 = "C:\Users\Taha\AppData\Local\Programs\Python\Python314\python.exe"
 $PyInstaller = "C:\Users\Taha\AppData\Local\Programs\Python\Python314\Scripts\pyinstaller.exe"
-$Source = "bypass\SteamToolsLua.py"
-$Output = "C:\Users\Taha\Desktop\SteamToolsLua_v2.8.0.exe"
+$Source = "MAIN_PROJECT.py"
+$Output = "C:\Users\Taha\Desktop\SteamToolsLua_v2.9.0.exe"
 
 $HiddenImports = @(
     "--hidden-import=html", "--hidden-import=html.parser", "--hidden-import=html.entities"
@@ -22,7 +22,7 @@ $HiddenImports = @(
 
 Remove-Item -LiteralPath "build_temp" -Recurse -Force -ErrorAction SilentlyContinue
 
-$AbsIcon = (Resolve-Path -LiteralPath "bypass\icon.ico").Path
+$AbsIcon = (Resolve-Path -LiteralPath "icon.ico").Path
 & $PyInstaller --onefile --noconsole --icon="$AbsIcon" --name=SteamToolsLua `
     @HiddenImports `
     --distpath="C:\Users\Taha\Desktop" `
