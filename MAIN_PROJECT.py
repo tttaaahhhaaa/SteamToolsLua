@@ -844,8 +844,8 @@ def install_ui_fixes(g):
 
     # ---- Multilingual ui text data ----
     extra_text = {
-        'tr': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': '\u00c7al\u0131\u015f\u0131yor...', 'button.inject_all': 'T\u00fcm\u00fcn\u00fc Enjekte Et', 'button.install_millenium': 'Millenium Kur', 'button.luatools_installer': 'LuaTools Kur', 'button.launch_steamtools': 'SteamTools A\u00e7', 'button.restart_steam': 'Steam\u2019i Yeniden Ba\u015flat', 'button.update_check': 'G\u00fcncelle', 'button.snapshot': 'Karars\u0131z', 'button.youtube': 'YouTube', 'button.luatools': 'LuaTools', 'button.toplu_indir': 'Toplu \u0130ndir', 'button.hide_added': 'Kullan\u0131lan\u0131 Gizle', 'button.library_open': 'K\u00fct\u00fcphane', 'button.installed_open': 'Y\u00fckl\u00fc', 'button.del_old': 'Eskiyi Sil', 'button.ara': 'Ara', 'button.zipsirala_az': 'A-Z', 'button.zipsirala_za': 'Z-A', 'button.install_lib': '\u2b07 Y\u00fckle', 'library.title': 'Library', 'library.open': 'Library A\u00e7', 'library.desc': '(enjekte ar\u015fivi)', 'library.name_az': '\u0130sim A-Z', 'library.date_new': 'Tarih \u25bc', 'library.date_old': 'Tarih \u25b2', 'library.open_folder': 'Klas\u00f6r A\u00e7', 'library.win_title': 'Library - Enjekte Edilen Oyunlar', 'library.col_date': 'Tarih', 'library.col_game': 'Oyun Ad\u0131', 'settings.installed_games': 'Y\u00fckl\u00fc Oyunlar', 'settings.steam_not_found': 'Steam bulunamad\u0131!', 'settings.file_location': 'Dosya Konumu', 'inject.err_title': 'Hata', 'inject.err_create': '1 New Games klas\u00f6r\u00fc olu\u015fturulamad\u0131!', 'inject.info_title': 'Bilgi', 'inject.no_zips_msg': '\u0130\u015flenecek .zip dosyas\u0131 bulunamad\u0131.', 'inject.done_title': '\u0130\u015flem Tamam', 'inject.ask_restart': '{count} zip inject edildi. Steam restart edilsin?', 'inject.select_title': 'Inject Edilecek Oyunlar', 'inject.select_all': 'T\u00fcm\u00fcn\u00fc Se\u00e7', 'inject.select_inject': 'Se\u00e7ilenleri Injectle', 'indicator.scanning': "Zip'ler taran\u0131yor...", 'indicator.no_zips': 'Zip bulunamad\u0131', 'indicator.done': '\u0130\u015flem tamam', 'indicator.steam_stop': 'Steam kapat\u0131l\u0131yor...', 'indicator.steam_start': 'Steam ba\u015flat\u0131l\u0131yor...', 'indicator.no_appid': 'AppID yok', 'indicator.manifest_dl': 'Manifest indiriliyor...', 'indicator.manifest_ok': 'Manifest tamam', 'indicator.manifest_timeout': 'Manifest zaman a\u015f\u0131m\u0131', 'indicator.manifest_err': 'Manifest hata', 'indicator.working': '\u00e7al\u0131\u015f\u0131yor...', 'indicator.fail': 'ba\u015far\u0131s\u0131z', 'indicator.timeout': 'zaman a\u015f\u0131m\u0131', 'indicator.err': 'hata', 'indicator.extracting': 'Ay\u0131klan\u0131yor', 'update.new_found': 'Yeni s\u00fcr\u00fcm {v} mevcut. Ge\u00e7mek ister misiniz?', 'update.downloading': 'G\u00fcncelleme indiriliyor...', 'update.done': 'G\u00fcncelleme indirildi. Uygulamak i\u00e7in yeniden ba\u015flat\u0131n.', 'update.error': 'G\u00fcncelleme kontrol\u00fc ba\u015far\u0131s\u0131z.', 'update.up_to_date': 'Zaten g\u00fcncelsiniz!', 'update.no_new_snapshot': 'Yeni snapshot s\u00fcr\u00fcm\u00fc yok. Zaten g\u00fcncelsiniz.', 'snapshot.warning': 'Snapshot s\u00fcr\u00fcmleri karars\u0131zd\u0131r ve hatalar i\u00e7erebilir. Devam etmek istiyor musunuz?', 'snapshot.switched': 'Snapshot kanal\u0131na ge\u00e7ildi. G\u00fcncelleme butonunu kullanarak kontrol edebilirsiniz.', 'snapshot.stable_switched': 'Kararl\u0131 kanala ge\u00e7ildi.', 'button.inject_onlinefixes': 'OnlineFix Enjekte Et', 'button.inject_all_onlinefixes': 'Experimental OF İnj'},
-        'en': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'Running...', 'button.inject_all': 'Inject All', 'button.install_millenium': 'Install Millenium', 'button.luatools_installer': 'LuaTools Installer', 'button.launch_steamtools': 'Launch SteamTools', 'button.restart_steam': 'Restart Steam', 'button.update_check': 'Update', 'button.snapshot': 'Snapshot', 'button.youtube': 'YouTube', 'button.luatools': 'LuaTools', 'button.toplu_indir': 'Batch Download', 'button.hide_added': 'Hide Used', 'button.library_open': 'Library', 'button.installed_open': 'Installed', 'button.del_old': 'Del Old', 'button.ara': 'Search', 'button.zipsirala_az': 'A-Z', 'button.zipsirala_za': 'Z-A', 'button.install_lib': '\u2b07 Install', 'library.title': 'Library', 'library.open': 'Open Library', 'library.desc': '(injected games archive)', 'library.name_az': 'Name A-Z', 'library.date_new': 'Date \u25bc', 'library.date_old': 'Date \u25b2', 'library.open_folder': 'Open Folder', 'library.win_title': 'Library - Injected Games', 'library.col_date': 'Date', 'library.col_game': 'Game Name', 'settings.installed_games': 'Installed Games', 'settings.steam_not_found': 'Steam not found!', 'settings.file_location': 'File Location', 'inject.err_title': 'Error', 'inject.err_create': 'Could not create 1 New Games folder!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'No .zip files to process.', 'inject.done_title': 'Done', 'inject.ask_restart': '{count} zip(s) injected. Restart Steam?', 'inject.select_title': 'Select Games to Inject', 'inject.select_all': 'Select All', 'inject.select_inject': 'Inject Selected', 'indicator.scanning': 'Scanning zips...', 'indicator.no_zips': 'No zips found', 'indicator.done': 'Done', 'indicator.steam_stop': 'Stopping Steam...', 'indicator.steam_start': 'Starting Steam...', 'indicator.no_appid': 'No AppID', 'indicator.manifest_dl': 'Downloading manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest timeout', 'indicator.manifest_err': 'Manifest error', 'indicator.working': 'working...', 'indicator.fail': 'failed', 'indicator.timeout': 'timeout', 'indicator.err': 'error', 'indicator.extracting': 'Extracting', 'update.new_found': 'New version {v} available. Switch to it?', 'update.downloading': 'Downloading update...', 'update.done': 'Update downloaded. Restart to apply.', 'update.error': 'Update check failed.', 'update.up_to_date': 'You are up to date!', 'update.no_new_snapshot': 'No new snapshot version. Already up to date.', 'snapshot.warning': 'Snapshot versions are unstable and may contain bugs. Do you want to continue?', 'snapshot.switched': 'Switched to snapshot channel. Use Update button to check.', 'snapshot.stable_switched': 'Switched to stable channel.', 'button.inject_onlinefixes': 'Inject OF', 'button.inject_all_onlinefixes': 'Inject All OF'},
+        'tr': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': '\u00c7al\u0131\u015f\u0131yor...', 'button.inject_all': 'T\u00fcm\u00fcn\u00fc Enjekte Et', 'button.install_millenium': 'Millenium Kur', 'button.luatools_installer': 'LuaTools Kur', 'button.launch_steamtools': 'SteamTools A\u00e7', 'button.restart_steam': 'Steam\u2019i Yeniden Ba\u015flat', 'button.update_check': 'G\u00fcncelle', 'button.snapshot': 'Karars\u0131z', 'button.youtube': 'YouTube', 'button.luatools': 'LuaTools', 'button.toplu_indir': 'Toplu \u0130ndir', 'button.hide_added': 'Kullan\u0131lan\u0131 Gizle', 'button.library_open': 'K\u00fct\u00fcphane', 'button.installed_open': 'Y\u00fckl\u00fc', 'button.del_old': 'Eskiyi Sil', 'button.ara': 'Ara', 'button.zipsirala_az': 'A-Z', 'button.zipsirala_za': 'Z-A', 'button.install_lib': '\u2b07 Y\u00fckle', 'library.title': 'Library', 'library.open': 'Library A\u00e7', 'library.desc': '(enjekte ar\u015fivi)', 'library.name_az': '\u0130sim A-Z', 'library.date_new': 'Tarih \u25bc', 'library.date_old': 'Tarih \u25b2', 'library.open_folder': 'Klas\u00f6r A\u00e7', 'library.win_title': 'Library - Enjekte Edilen Oyunlar', 'library.col_date': 'Tarih', 'library.col_game': 'Oyun Ad\u0131', 'settings.installed_games': 'Y\u00fckl\u00fc Oyunlar', 'settings.steam_not_found': 'Steam bulunamad\u0131!', 'settings.file_location': 'Dosya Konumu', 'settings.ai_key_note': 'AI ceviri icin API anahtarlar\u0131n\u0131z\u0131 girin (Groq \u00fccretsiz)', 'inject.err_title': 'Hata', 'inject.err_create': '1 New Games klas\u00f6r\u00fc olu\u015fturulamad\u0131!', 'inject.info_title': 'Bilgi', 'inject.no_zips_msg': '\u0130\u015flenecek .zip dosyas\u0131 bulunamad\u0131.', 'inject.done_title': '\u0130\u015flem Tamam', 'inject.ask_restart': '{count} zip inject edildi. Steam restart edilsin?', 'inject.select_title': 'Inject Edilecek Oyunlar', 'inject.select_all': 'T\u00fcm\u00fcn\u00fc Se\u00e7', 'inject.select_inject': 'Se\u00e7ilenleri Injectle', 'indicator.scanning': "Zip'ler taran\u0131yor...", 'indicator.no_zips': 'Zip bulunamad\u0131', 'indicator.done': '\u0130\u015flem tamam', 'indicator.steam_stop': 'Steam kapat\u0131l\u0131yor...', 'indicator.steam_start': 'Steam ba\u015flat\u0131l\u0131yor...', 'indicator.no_appid': 'AppID yok', 'indicator.manifest_dl': 'Manifest indiriliyor...', 'indicator.manifest_ok': 'Manifest tamam', 'indicator.manifest_timeout': 'Manifest zaman a\u015f\u0131m\u0131', 'indicator.manifest_err': 'Manifest hata', 'indicator.working': '\u00e7al\u0131\u015f\u0131yor...', 'indicator.fail': 'ba\u015far\u0131s\u0131z', 'indicator.timeout': 'zaman a\u015f\u0131m\u0131', 'indicator.err': 'hata', 'indicator.extracting': 'Ay\u0131klan\u0131yor', 'update.new_found': 'Yeni s\u00fcr\u00fcm {v} mevcut. Ge\u00e7mek ister misiniz?', 'update.downloading': 'G\u00fcncelleme indiriliyor...', 'update.done': 'G\u00fcncelleme indirildi. Uygulamak i\u00e7in yeniden ba\u015flat\u0131n.', 'update.error': 'G\u00fcncelleme kontrol\u00fc ba\u015far\u0131s\u0131z.', 'update.up_to_date': 'Zaten g\u00fcncelsiniz!', 'update.no_new_snapshot': 'Yeni snapshot s\u00fcr\u00fcm\u00fc yok. Zaten g\u00fcncelsiniz.', 'snapshot.warning': 'Snapshot s\u00fcr\u00fcmleri karars\u0131zd\u0131r ve hatalar i\u00e7erebilir. Devam etmek istiyor musunuz?', 'snapshot.switched': 'Snapshot kanal\u0131na ge\u00e7ildi. G\u00fcncelleme butonunu kullanarak kontrol edebilirsiniz.', 'snapshot.stable_switched': 'Kararl\u0131 kanala ge\u00e7ildi.', 'button.inject_onlinefixes': 'OnlineFix Enjekte Et', 'button.inject_all_onlinefixes': 'Experimental OF İnj'},
+        'en': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'Running...', 'button.inject_all': 'Inject All', 'button.install_millenium': 'Install Millenium', 'button.luatools_installer': 'LuaTools Installer', 'button.launch_steamtools': 'Launch SteamTools', 'button.restart_steam': 'Restart Steam', 'button.update_check': 'Update', 'button.snapshot': 'Snapshot', 'button.youtube': 'YouTube', 'button.luatools': 'LuaTools', 'button.toplu_indir': 'Batch Download', 'button.hide_added': 'Hide Used', 'button.library_open': 'Library', 'button.installed_open': 'Installed', 'button.del_old': 'Del Old', 'button.ara': 'Search', 'button.zipsirala_az': 'A-Z', 'button.zipsirala_za': 'Z-A', 'button.install_lib': '\u2b07 Install', 'library.title': 'Library', 'library.open': 'Open Library', 'library.desc': '(injected games archive)', 'library.name_az': 'Name A-Z', 'library.date_new': 'Date \u25bc', 'library.date_old': 'Date \u25b2', 'library.open_folder': 'Open Folder', 'library.win_title': 'Library - Injected Games', 'library.col_date': 'Date', 'library.col_game': 'Game Name', 'settings.installed_games': 'Installed Games', 'settings.steam_not_found': 'Steam not found!', 'settings.file_location': 'File Location', 'settings.ai_key_note': 'Enter API keys for AI translation (Groq is free)', 'inject.err_title': 'Error', 'inject.err_create': 'Could not create 1 New Games folder!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'No .zip files to process.', 'inject.done_title': 'Done', 'inject.ask_restart': '{count} zip(s) injected. Restart Steam?', 'inject.select_title': 'Select Games to Inject', 'inject.select_all': 'Select All', 'inject.select_inject': 'Inject Selected', 'indicator.scanning': 'Scanning zips...', 'indicator.no_zips': 'No zips found', 'indicator.done': 'Done', 'indicator.steam_stop': 'Stopping Steam...', 'indicator.steam_start': 'Starting Steam...', 'indicator.no_appid': 'No AppID', 'indicator.manifest_dl': 'Downloading manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest timeout', 'indicator.manifest_err': 'Manifest error', 'indicator.working': 'working...', 'indicator.fail': 'failed', 'indicator.timeout': 'timeout', 'indicator.err': 'error', 'indicator.extracting': 'Extracting', 'update.new_found': 'New version {v} available. Switch to it?', 'update.downloading': 'Downloading update...', 'update.done': 'Update downloaded. Restart to apply.', 'update.error': 'Update check failed.', 'update.up_to_date': 'You are up to date!', 'update.no_new_snapshot': 'No new snapshot version. Already up to date.', 'snapshot.warning': 'Snapshot versions are unstable and may contain bugs. Do you want to continue?', 'snapshot.switched': 'Switched to snapshot channel. Use Update button to check.', 'snapshot.stable_switched': 'Switched to stable channel.', 'button.inject_onlinefixes': 'Inject OF', 'button.inject_all_onlinefixes': 'Inject All OF'},
         'es': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'En curso...', 'button.inject_all': 'Inyectar Todo', 'button.install_millenium': 'Instalar Millenium', 'button.luatools_installer': 'Instalador LuaTools', 'button.launch_steamtools': 'Iniciar SteamTools', 'button.restart_steam': 'Reiniciar Steam', 'button.update_check': 'Actualizar', 'button.snapshot': 'Inestable', 'button.youtube': 'YouTube', 'button.luatools': 'LuaTools', 'button.toplu_indir': 'Descarga por Lotes', 'button.hide_added': 'Ocultar Usados', 'button.library_open': 'Biblioteca', 'button.installed_open': 'Instalados', 'button.del_old': 'Eliminar Antiguo', 'button.ara': 'Buscar', 'button.zipsirala_az': 'A-Z', 'button.zipsirala_za': 'Z-A', 'button.install_lib': '\u2b07 Instalar', 'library.title': 'Biblioteca', 'library.open': 'Abrir Biblioteca', 'library.desc': '(archivo de juegos inyectados)', 'library.name_az': 'Nombre A-Z', 'library.date_new': 'Fecha \u25bc', 'library.date_old': 'Fecha \u25b2', 'library.open_folder': 'Abrir Carpeta', 'library.win_title': 'Biblioteca - Juegos Inyectados', 'library.col_date': 'Fecha', 'library.col_game': 'Nombre', 'settings.installed_games': 'Juegos Instalados', 'settings.steam_not_found': '\u00a1Steam no encontrado!', 'settings.file_location': 'Ubicaci\u00f3n', 'inject.err_title': 'Error', 'inject.err_create': 'No se pudo crear la carpeta 1 New Games!', 'inject.info_title': 'Informaci\u00f3n', 'inject.no_zips_msg': 'No hay archivos .zip para procesar.', 'inject.done_title': 'Hecho', 'inject.ask_restart': '{count} zip(s) inyectados. \u00bfReiniciar Steam?', 'inject.select_title': 'Seleccionar Juegos a Inyectar', 'inject.select_all': 'Seleccionar Todo', 'inject.select_inject': 'Inyectar Seleccionados', 'indicator.scanning': 'Escaneando zips...', 'indicator.no_zips': 'Sin zips', 'indicator.done': 'Hecho', 'indicator.steam_stop': 'Deteniendo Steam...', 'indicator.steam_start': 'Iniciando Steam...', 'indicator.no_appid': 'Sin AppID', 'indicator.manifest_dl': 'Descargando manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest tiempo de espera', 'indicator.manifest_err': 'Error manifest', 'indicator.working': 'en curso...', 'indicator.fail': 'fall\u00f3', 'indicator.timeout': 'tiempo de espera', 'indicator.err': 'error', 'indicator.extracting': 'Extrayendo', 'update.new_found': '\u00a1Nueva versi\u00f3n {v} disponible! \u00bfDescargar?', 'update.downloading': 'Descargando actualizaci\u00f3n...', 'update.done': 'Actualizaci\u00f3n descargada. Reinicie para aplicar.', 'update.error': 'Error al buscar actualizaci\u00f3n.', 'update.up_to_date': '\u00a1Ya est\u00e1 actualizado!', 'snapshot.warning': 'Las versiones inestables pueden ser inestables. \u00bfContinuar?', 'snapshot.switched': 'Cambiado al canal inestable.', 'snapshot.stable_switched': 'Cambiado al canal estable.', 'button.inject_onlinefixes': 'Inyectar OF', 'button.inject_all_onlinefixes': 'Inyectar Todo OF'},
         'fr': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'En cours...', 'button.inject_all': 'Tout Injecter', 'button.install_millenium': 'Installer Millenium', 'button.luatools_installer': 'Installateur LuaTools', 'button.launch_steamtools': 'Lancer SteamTools', 'button.restart_steam': 'Red\u00e9marrer Steam', 'button.update_check': 'Mettre \u00e0 jour', 'button.snapshot': 'Instable', 'button.youtube': 'YouTube', 'library.title': 'Biblioth\u00e8que', 'library.open': 'Ouvrir Biblioth\u00e8que', 'library.desc': '(archive des jeux inject\u00e9s)', 'library.name_az': 'Nom A-Z', 'library.date_new': 'Date \u25bc', 'library.date_old': 'Date \u25b2', 'library.open_folder': 'Ouvrir Dossier', 'library.win_title': 'Biblioth\u00e8que - Jeux Inject\u00e9s', 'library.col_date': 'Date', 'library.col_game': 'Nom', 'inject.err_title': 'Erreur', 'inject.err_create': 'Impossible de cr\u00e9er le dossier 1 New Games!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'Aucun fichier .zip \u00e0 traiter.', 'inject.done_title': 'Termin\u00e9', 'inject.ask_restart': '{count} zip(s) inject\u00e9s. Red\u00e9marrer Steam?', 'inject.select_title': 'S\u00e9lectionner les jeux \u00e0 injecter', 'inject.select_all': 'Tout S\u00e9lectionner', 'inject.select_inject': 'Injecter la S\u00e9lection', 'indicator.scanning': 'Analyse des zips...', 'indicator.no_zips': 'Aucun zip', 'indicator.done': 'Termin\u00e9', 'indicator.steam_stop': 'Arr\u00eat de Steam...', 'indicator.steam_start': 'D\u00e9marrage de Steam...', 'indicator.no_appid': 'Pas d\'AppID', 'indicator.manifest_dl': 'T\u00e9l\u00e9chargement manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest d\u00e9lai d\u00e9pass\u00e9', 'indicator.manifest_err': 'Erreur manifest', 'indicator.working': 'en cours...', 'indicator.fail': '\u00e9chou\u00e9', 'indicator.timeout': 'd\u00e9lai d\u00e9pass\u00e9', 'indicator.err': 'erreur', 'indicator.extracting': 'Extraction', 'update.new_found': 'Nouvelle version {v} disponible. T\u00e9l\u00e9charger?', 'update.downloading': 'T\u00e9l\u00e9chargement de la mise \u00e0 jour...', 'update.done': 'Mise \u00e0 jour t\u00e9l\u00e9charg\u00e9e. Red\u00e9marrez pour appliquer.', 'update.error': '\u00c9chec de la v\u00e9rification de mise \u00e0 jour.', 'update.up_to_date': 'Vous \u00eates \u00e0 jour!', 'snapshot.warning': 'Les versions instables sont instables. Continuer?', 'snapshot.switched': 'Pass\u00e9 au canal instable.', 'snapshot.stable_switched': 'Pass\u00e9 au canal stable.', 'button.inject_onlinefixes': 'Injecter OF', 'button.inject_all_onlinefixes': 'Tout Injecter OF'},
         'de': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'L\u00e4uft...', 'button.inject_all': 'Alle Injizieren', 'button.install_millenium': 'Millenium Installieren', 'button.luatools_installer': 'LuaTools Installer', 'button.launch_steamtools': 'SteamTools Starten', 'button.restart_steam': 'Steam Neustarten', 'button.update_check': 'Aktualisieren', 'button.snapshot': 'Instabil', 'button.youtube': 'YouTube', 'library.title': 'Bibliothek', 'library.open': 'Bibliothek \u00d6ffnen', 'library.desc': '(Archiv injizierter Spiele)', 'library.name_az': 'Name A-Z', 'library.date_new': 'Datum \u25bc', 'library.date_old': 'Datum \u25b2', 'library.open_folder': 'Ordner \u00d6ffnen', 'library.win_title': 'Bibliothek - Injizierte Spiele', 'library.col_date': 'Datum', 'library.col_game': 'Spielname', 'inject.err_title': 'Fehler', 'inject.err_create': '1 New Games Ordner konnte nicht erstellt werden!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'Keine .zip-Dateien zu verarbeiten.', 'inject.done_title': 'Erledigt', 'inject.ask_restart': '{count} zip(s) injiziert. Steam neustarten?', 'inject.select_title': 'Spiele zum Injizieren ausw\u00e4hlen', 'inject.select_all': 'Alle Ausw\u00e4hlen', 'inject.select_inject': 'Ausgew\u00e4hlte Injizieren', 'indicator.scanning': 'Scanne Zips...', 'indicator.no_zips': 'Keine Zips', 'indicator.done': 'Erledigt', 'indicator.steam_stop': 'Stoppe Steam...', 'indicator.steam_start': 'Starte Steam...', 'indicator.no_appid': 'Keine AppID', 'indicator.manifest_dl': 'Lade Manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest Zeit\u00fcberschreitung', 'indicator.manifest_err': 'Manifest Fehler', 'indicator.working': 'l\u00e4uft...', 'indicator.fail': 'fehlgeschlagen', 'indicator.timeout': 'Zeit\u00fcberschreitung', 'indicator.err': 'Fehler', 'indicator.extracting': 'Extrahiere', 'update.new_found': 'Neue Version {v} verf\u00fcgbar. Herunterladen?', 'update.downloading': 'Lade Update herunter...', 'update.done': 'Update heruntergeladen. Zum Anwenden neu starten.', 'update.error': 'Update-Pr\u00fcfung fehlgeschlagen.', 'update.up_to_date': 'Sie sind auf dem neuesten Stand!', 'update.no_new_snapshot': 'Keine neue Snapshot-Version. Bereits auf dem neuesten Stand.', 'snapshot.warning': 'Snapshot-Versionen sind instabil und können Fehler enthalten. Möchten Sie fortfahren?', 'snapshot.switched': 'Zu Snapshot-Kanal gewechselt. Verwenden Sie Update zum Prüfen.', 'snapshot.stable_switched': 'Zu stabilem Kanal gewechselt.', 'button.inject_onlinefixes': 'OF Injizieren', 'button.inject_all_onlinefixes': 'Alle OF Injizieren'},
@@ -3911,38 +3911,8 @@ def install_ui_fixes(g):
                  font=('Segoe UI', 10), fg='#97afc6', bg='#0d1724',
                  anchor='w', wraplength=700, justify='left').pack(fill=tk.X, padx=16, pady=(0, 8))
 
-        # ---- Tab bar (window level) ----
-        _tab_bar = tk.Frame(window, bg='#0d1724')
-        _tab_bar.pack(fill=tk.X, padx=16, pady=(0, 2))
-
         _settings_page = tk.Frame(window, bg='#0d1724')
-        _license_page = tk.Frame(window, bg='#0d1724')
         _settings_page.pack(fill=tk.BOTH, expand=True)
-
-        _current_tab = ['settings']
-
-        _tab_lbl_s = tk.Label(_tab_bar, text='  Ayarlar  ', bg='#1a2a40', fg='#f7fafc',
-                               font=('Segoe UI Semibold', 10), cursor='hand2')
-        _tab_lbl_l = tk.Label(_tab_bar, text='  Lisans Yoneticisi  ', bg='#0d1724', fg='#686880',
-                               font=('Segoe UI Semibold', 10), cursor='hand2')
-
-        def _show_tab(name):
-            if name == _current_tab[0]: return
-            _settings_page.pack_forget(); _license_page.pack_forget()
-            if name == 'settings':
-                _tab_lbl_s.configure(bg='#1a2a40', fg='#f7fafc')
-                _tab_lbl_l.configure(bg='#0d1724', fg='#686880')
-                _settings_page.pack(fill=tk.BOTH, expand=True)
-            else:
-                _tab_lbl_s.configure(bg='#0d1724', fg='#686880')
-                _tab_lbl_l.configure(bg='#1a2a40', fg='#f7fafc')
-                _license_page.pack(fill=tk.BOTH, expand=True)
-            _current_tab[0] = name
-
-        _tab_lbl_s.pack(side=tk.LEFT, padx=(0, 2))
-        _tab_lbl_s.bind('<Button-1>', lambda e: _show_tab('settings'))
-        _tab_lbl_l.pack(side=tk.LEFT)
-        _tab_lbl_l.bind('<Button-1>', lambda e: _show_tab('license'))
 
         # Settings content (no scroll, direct frame)
         _p = _settings_page
@@ -4186,6 +4156,47 @@ def install_ui_fixes(g):
         AB(tools_row, _tr(self, 'button.inject_of'), self._inject_of_browser,
             120, 30, '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
+
+        # ---- AI API Keys section ----
+        row_vars = {}
+        if PROVIDER_ORDER:
+            _ai_frame = tk.Frame(_p, bg='#0d1724')
+            _ai_frame.pack(fill=tk.X, padx=16, pady=(4, 1))
+            tk.Label(_ai_frame, text='AI API Keys', fg='#8fd3ff', bg='#0d1724',
+                     font=('Segoe UI Semibold', 11)).pack(anchor='w')
+            _ai_note = tk.Frame(_p, bg='#0d1724')
+            _ai_note.pack(fill=tk.X, padx=16, pady=(0, 4))
+            tk.Label(_ai_note, text=_tr(self, 'settings.ai_key_note'),
+                     fg='#97afc6', bg='#0d1724', font=('Segoe UI', 8)).pack(anchor='w')
+            for _pname in PROVIDER_ORDER:
+                _plabel = PROVIDER_LABELS.get(_pname, _pname)
+                _pdata = self.settings.get('providers', {}).get(_pname, PROVIDER_DEFAULTS.get(_pname, {}))
+                _pk_var = tk.StringVar(value=_pdata.get('api_key', ''))
+                _pm_var = tk.StringVar(value=_pdata.get('model', ''))
+                row_vars[_pname] = (_pk_var, _pm_var)
+                _pr = tk.Frame(_p, bg='#0d1724')
+                _pr.pack(fill=tk.X, padx=16, pady=2)
+                _has_key = bool(_pk_var.get().strip())
+                _dot = tk.Label(_pr, text='●', fg='#48bb78' if _has_key else '#666666',
+                                bg='#0d1724', font=('Segoe UI', 14))
+                _dot.pack(side=tk.LEFT, padx=(0, 4))
+                tk.Label(_pr, text=_plabel, fg='#dce7f4', bg='#0d1724',
+                         font=('Segoe UI', 10)).pack(side=tk.LEFT)
+                tk.Entry(_pr, textvariable=_pk_var, width=36, relief=tk.FLAT,
+                         bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
+                         font=('Segoe UI', 9), show='*').pack(side=tk.LEFT, padx=4)
+                tk.Label(_pr, text='Model:', fg='#97afc6', bg='#0d1724',
+                         font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=(4, 2))
+                tk.Entry(_pr, textvariable=_pm_var, width=14, relief=tk.FLAT,
+                         bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
+                         font=('Segoe UI', 9)).pack(side=tk.LEFT)
+                if _pname == 'groq':
+                    def _get_groq_key():
+                        import webbrowser
+                        webbrowser.open('https://console.groq.com/keys')
+                    AB(_pr, 'Get Key', _get_groq_key, 60, 24,
+                       '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
+                       ('Segoe UI Semibold', 8)).pack(side=tk.LEFT, padx=4)
 
         # Also add save_path field
         _sv_frame = tk.Frame(_p, bg='#0d1724')
@@ -4439,146 +4450,8 @@ def install_ui_fixes(g):
            '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
         # Remove License tab builder
-        def _build_license_tab():
-            for w in _license_page.winfo_children():
-                w.destroy()
-            _depot = Path("C:\\Program Files (x86)\\Steam\\config\\depotcache")
-            _stplug = Path("C:\\Program Files (x86)\\Steam\\config\\stplug-in")
-            _steam_path = Path("C:\\Program Files (x86)\\Steam")
-            _bd = Path(__file__).resolve().parent
-            _saved = self.settings.get('save_path', '') or self.settings.get('new_games_folder', '')
-            _gd = Path(_saved) if _saved and Path(_saved).exists() else _bd / "1 New Games"
-            _used = _gd / "used"
-            # Show loading indicator
-            _loading_lbl = tk.Label(_license_page, text='Zip taranıyor...',
-                                     fg='#8fd3ff', bg='#0d1724', font=('Segoe UI', 10))
-            _loading_lbl.pack(pady=20)
-            _license_page.update()
-            import threading as _lthr, queue as _lq
-            _result_q = _lq.Queue()
-            def _scan_used():
-                _items = []
-                try:
-                    if _used.exists():
-                        import zipfile as _zf
-                        for _zip_f in sorted(_used.glob('*.zip'), key=lambda f: f.stat().st_mtime, reverse=True):
-                            try:
-                                _gname = _zip_f.stem
-                                _aid = ''
-                                _has_lua_in_zip = False
-                                _has_manifest_in_zip = False
-                                with _zf.ZipFile(str(_zip_f), 'r') as _z:
-                                    for _zn in _z.namelist():
-                                        if _zn.lower().endswith('.lua'):
-                                            _lua_only = _zn.rsplit('/', 1)[-1].rsplit('\\', 1)[-1]
-                                            _base = _lua_only.rsplit('.', 1)[0]
-                                            if _base.isdigit():
-                                                _aid = _base
-                                            _has_lua_in_zip = True
-                                        if _zn.lower().endswith('.manifest'):
-                                            _has_manifest_in_zip = True
-                                # Check Steam config
-                                _lua_installed = _stplug.exists() and any(_stplug.glob(f"{_aid}.lua"))
-                                _manifest_installed = _depot.exists() and any(_depot.glob(f"{_aid}_*.manifest"))
-                                _items.append({
-                                    'aid': _aid, 'name': _gname,
-                                    'has_lua': _lua_installed,
-                                    'has_manifest': _manifest_installed,
-                                    'in_zip_lua': _has_lua_in_zip,
-                                    'in_zip_manifest': _has_manifest_in_zip,
-                                })
-                            except: pass
-                except: pass
-                _result_q.put(_items)
-            _lthr.Thread(target=_scan_used, daemon=True).start()
-            def _on_scan_done():
-                try:
-                    _games = _result_q.get_nowait()
-                except:
-                    _license_page.after(100, _on_scan_done); return
-                _loading_lbl.destroy()
-                if not _games:
-                    tk.Label(_license_page, text='used/ klasorunde zip bulunamadi.',
-                             fg='#686880', bg='#0a0a16', font=('Segoe UI', 10)).pack(pady=20)
-                    _btnf = tk.Frame(_license_page, bg='#08080e')
-                    _btnf.pack(fill=tk.X, padx=16, pady=(0, 8))
-                    AB_rl = g.get('AnimatedButton', AnimatedButton)
-                    AB_rl(_btnf, 'Geri', lambda: _show_tab('settings'), 110, 30,
-                          '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
-                          ('Segoe UI', 9)).pack(side=tk.LEFT)
-                    return
-                # Build UI
-                _top = tk.Frame(_license_page, bg='#08080e')
-                _top.pack(fill=tk.X, padx=14, pady=(10, 4))
-                tk.Label(_top, text='Lisans Yoneticisi', font=('Bahnschrift SemiBold', 18),
-                         fg='#e0e0f0', bg='#08080e').pack(side=tk.LEFT)
-                _sel_vars = {}
-                _cf = tk.Frame(_license_page, bg='#0a0a16')
-                _cf.pack(fill=tk.BOTH, expand=True, padx=14, pady=(4, 8))
-                _canv = tk.Canvas(_cf, bg='#0a0a16', highlightthickness=0, height=280)
-                _scr = ttk.Scrollbar(_cf, orient=tk.VERTICAL, command=_canv.yview)
-                _inner2 = tk.Frame(_canv, bg='#0a0a16')
-                _inner2.bind('<Configure>', lambda e: _canv.configure(scrollregion=_canv.bbox('all')))
-                _canv.create_window((0, 0), window=_inner2, anchor='nw')
-                _canv.configure(yscrollcommand=_scr.set)
-                _canv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-                _scr.pack(side=tk.RIGHT, fill=tk.Y)
-                def _mw(e): _canv.yview('scroll', -e.delta//30, 'units')
-                _canv.bind('<MouseWheel>', _mw)
-                for i, _g in enumerate(_games):
-                    var = tk.BooleanVar(value=False)
-                    _sel_vars[_g['aid']] = var
-                    bg = '#0c0c20' if i % 2 == 0 else '#0a0a16'
-                    row = tk.Frame(_inner2, bg=bg)
-                    row.pack(fill=tk.X, padx=4, pady=1)
-                    tk.Checkbutton(row, variable=var, bg=bg, activebackground='#14142a',
-                                   selectcolor='#7c6fff').pack(side=tk.LEFT)
-                    tk.Label(row, text=_g['name'], bg=bg, fg='#d0d0e8',
-                             font=('Segoe UI', 10), anchor='w').pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
-                    _status_parts = []
-                    if _g['has_lua']: _status_parts.append('Lua')
-                    if _g['has_manifest']: _status_parts.append('Manifest')
-                    _status = ', '.join(_status_parts) if _status_parts else 'Yok'
-                    _status_fg = '#48bb78' if _status_parts else '#686880'
-                    tk.Label(row, text=_g['aid'], bg=bg, fg='#686880',
-                             font=('Segoe UI', 8), anchor='e', width=8).pack(side=tk.RIGHT, padx=(2, 0))
-                    tk.Label(row, text=_status, bg=bg, fg=_status_fg,
-                             font=('Segoe UI', 8), anchor='e', width=10).pack(side=tk.RIGHT, padx=(2, 4))
-                _btnf = tk.Frame(_license_page, bg='#08080e')
-                _btnf.pack(fill=tk.X, padx=14, pady=(0, 10))
-                def _confirm():
-                    _chosen = [aid for aid, var in _sel_vars.items() if var.get()]
-                    if not _chosen:
-                        _messagebox.showinfo('Remove License', 'Oyun secilmedi.')
-                        return
-                    removed = {'lua': 0, 'manifest': 0}
-                    for _aid in _chosen:
-                        if _stplug.exists():
-                            for _f in _stplug.glob(f"{_aid}.lua"):
-                                try: _f.unlink(); removed['lua'] += 1
-                                except: pass
-                        if _depot.exists():
-                            for _f in _depot.glob(f"{_aid}_*.manifest"):
-                                try: _f.unlink(); removed['manifest'] += 1
-                                except: pass
-                    _messagebox.showinfo('Remove License',
-                        f'{removed["lua"]} .lua, {removed["manifest"]} .manifest silindi.')
-                    self._set_indicator(f'License removed: {len(_chosen)} oyun', 'online')
-                    _build_license_tab()
-                AB_rl = g.get('AnimatedButton', AnimatedButton)
-                AB_rl(_btnf, 'Remove Selected', _confirm, 140, 30,
-                      '#4a2020', '#6a3030', '#f56565', '#f7fafc',
-                      ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(6, 0))
-                AB_rl(_btnf, 'Geri', lambda: _show_tab('settings'), 90, 30,
-                      '#14142a', '#1e1e42', '#7c6fff', '#c0c0e0',
-                      ('Segoe UI', 9)).pack(side=tk.RIGHT)
-            _license_page.after(100, _on_scan_done)
-
-        def _open_license_tab():
-            _build_license_tab()
-            _show_tab('license')
-        AB(lib_row, 'Remove License', _open_license_tab, 120, 30,
-           '#4a2020', '#6a3030', '#f56565', '#f7fafc',
+        AB(lib_row, _tr(self, 'library.open'), _open_library, 100, 30,
+           '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
         tk.Label(lib_row, text=_tr(self, 'library.desc'),
                  fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=8)
@@ -5310,6 +5183,15 @@ def install_ui_fixes(g):
         def _task():
             try:
                 _hw = _get_hwid().lower()
+                # Check local cache first
+                _local_nick_file = _data_dir / '.nickname_cache'
+                if _local_nick_file.exists():
+                    try:
+                        _cached = json.loads(_local_nick_file.read_text('utf-8', errors='ignore'))
+                        if _cached.get('hwid') == _hw and _cached.get('nickname', '').strip():
+                            _MY_NICKNAME['nickname'] = _cached['nickname']
+                            return
+                    except: pass
                 _tk4 = ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
                 _r4 = __import__('requests').get(f'https://api.github.com/gists/{_ADMIN_GIST}',
                     headers={'Authorization': f'token {_tk4}', 'User-Agent': 'SteamToolsLua'}, timeout=8)
@@ -5367,6 +5249,10 @@ def install_ui_fixes(g):
                             json={"files": {"nicknames.json": {"content": json.dumps(_nd5, indent=2, ensure_ascii=False)}}},
                             headers={'Authorization': f'token {_tk4}', 'User-Agent': 'SteamToolsLua'}, timeout=10)
                         _MY_NICKNAME['nickname'] = _nick
+                        _local_nick_file = _data_dir / '.nickname_cache'
+                        try:
+                            _local_nick_file.write_text(json.dumps({'hwid': _hw, 'nickname': _nick}, ensure_ascii=False), encoding='utf-8')
+                        except: pass
                         _ROOT.after(0, _dlg.destroy)
                     except:
                         _ROOT.after(0, lambda: _err_lbl.config(text='Kayit hatasi, tekrar deneyin.'))
@@ -5627,12 +5513,16 @@ def install_ui_fixes(g):
 
     try:
         if _srch_entry:
+            _has_ai_key = any(
+                p.get('api_key', '') and p.get('api_key', '').strip()
+                for p in app.settings.get('providers', {}).values()
+            )
             _orig_build = app.build_candidate_titles
-            def _patched_build(query, limit, _orig=_orig_build, _root=root):
+            def _patched_build(query, limit, _orig=_orig_build, _root=root, _has_key=_has_ai_key):
                 nonlocal _ai_corrected_text
                 try:
                     titles, ai_provider, query_mode = _orig(query, limit)
-                    if titles and titles[0].lower() != query.lower():
+                    if _has_key and titles and titles[0].lower() != query.lower():
                         _ai_corrected_text = titles[0]
                         _root.after(0, lambda t=titles[0]: _show_ai_box(t))
                     else:
