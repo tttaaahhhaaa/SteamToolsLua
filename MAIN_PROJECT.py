@@ -4027,51 +4027,54 @@ def install_ui_fixes(g):
         tools_frame.pack(fill=tk.X, padx=16, pady=(4, 1))
         tk.Label(tools_frame, text="Tools", fg='#8fd3ff', bg='#0d1724',
                  font=('Segoe UI Semibold', 11)).pack(anchor='w')
-        tools_row = tk.Frame(_p, bg='#0d1724')
-        tools_row.pack(fill=tk.X, padx=16, pady=(0, 4))
         AB = g.get('AnimatedButton', AnimatedButton)
 
+        _tr1 = tk.Frame(_p, bg='#0d1724')
+        _tr1.pack(fill=tk.X, padx=16, pady=(0, 2))
+        _tr2 = tk.Frame(_p, bg='#0d1724')
+        _tr2.pack(fill=tk.X, padx=16, pady=(0, 4))
+
         # ? Guide button
-        AB(tools_row, '?', lambda: _open_guide(self), 36, 30,
+        AB(_tr1, '?', lambda: _open_guide(self), 36, 28,
            '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 11)).pack(side=tk.LEFT, padx=(0, 4))
+           ('Segoe UI Semibold', 11)).pack(side=tk.LEFT, padx=(0, 6))
 
         # Install Millenium
-        _mill_light = tk.Label(tools_row, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 14))
-        _mill_light.pack(side=tk.LEFT, padx=(0, 4))
+        _mill_light = tk.Label(_tr1, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
+        _mill_light.pack(side=tk.LEFT, padx=(0, 3))
         def _run_mill():
             self._run_headless_powershell(
                 'iex "& { $(irm \'https://clemdotla.github.io/millennium-installer-ps1/millennium.ps1\') } -NoLog -DontStart"',
                 "Install Millenium", _mill_light
             )
-        AB(tools_row, _tr(self, 'button.install_millenium'), _run_mill,
-           120, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
+        AB(_tr1, _tr(self, 'button.install_millenium'), _run_mill,
+           110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
         # LuaTools Installer
-        _lua_light = tk.Label(tools_row, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 14))
-        _lua_light.pack(side=tk.LEFT, padx=(0, 4))
+        _lua_light = tk.Label(_tr1, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
+        _lua_light.pack(side=tk.LEFT, padx=(0, 3))
         def _run_lua():
             self._run_headless_powershell(
                 'irm "https://luatools.vercel.app/install-plugin.ps1" | iex',
                 "LuaTools Installer", _lua_light
             )
-        AB(tools_row, _tr(self, 'button.luatools_installer'), _run_lua,
-           120, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
+        AB(_tr1, _tr(self, 'button.luatools_installer'), _run_lua,
+           110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
         # Launch SteamTools
-        _launch_light = tk.Label(tools_row, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 14))
-        _launch_light.pack(side=tk.LEFT, padx=(0, 4))
+        _launch_light = tk.Label(_tr1, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
+        _launch_light.pack(side=tk.LEFT, padx=(0, 3))
         def _run_launch():
             self._run_headless_powershell(
                 'if (Test-Path "C:\\Program Files\\SteamTools\\SteamTools.exe") { Start-Process "C:\\Program Files\\SteamTools\\SteamTools.exe" } else { Write-Host "SteamTools.exe not found"; exit 1 }',
                 "Launch SteamTools", _launch_light
             )
-        AB(tools_row, _tr(self, 'button.launch_steamtools'), _run_launch,
-           120, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
+        AB(_tr1, _tr(self, 'button.launch_steamtools'), _run_launch,
+           110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
         # Restart Steam
-        _restart_light = tk.Label(tools_row, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 14))
-        _restart_light.pack(side=tk.LEFT, padx=(0, 4))
+        _restart_light = tk.Label(_tr1, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
+        _restart_light.pack(side=tk.LEFT, padx=(0, 3))
         def _run_restart():
             def _task():
                 try:
@@ -4100,9 +4103,9 @@ def install_ui_fixes(g):
                     _play_sound('error')
             threading.Thread(target=_task, daemon=True).start()
             _play_sound('start')
-        AB(tools_row, _tr(self, 'button.restart_steam'), _run_restart,
-           120, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 4))
+        AB(_tr1, _tr(self, 'button.restart_steam'), _run_restart,
+           110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
         # CloudRedirect (check exist → ask → download → launch, track proc)
         def _track_cr(_p):
             _list = g.get('_cr_procs')
@@ -4149,19 +4152,19 @@ def install_ui_fixes(g):
                 except Exception as _ex:
                     self._set_indicator('CloudRedirect hata: ' + str(_ex), 'offline')
             _cr_thr.Thread(target=_task, daemon=True).start()
-        AB(tools_row, 'CloudRedirect', _run_cloudredirect,
-            120, 30, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
+        AB(_tr2, 'CloudRedirect', _run_cloudredirect,
+            110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
         # Inject OF (browser UI like Inject All)
-        AB(tools_row, _tr(self, 'button.inject_of'), self._inject_of_browser,
-            120, 30, '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
-            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
+        AB(_tr2, _tr(self, 'button.inject_of'), self._inject_of_browser,
+            110, 28, '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
+            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
 
         # ---- AI API Keys section ----
         row_vars = {}
         if PROVIDER_ORDER:
             _ai_frame = tk.Frame(_p, bg='#0d1724')
-            _ai_frame.pack(fill=tk.X, padx=16, pady=(4, 1))
+            _ai_frame.pack(fill=tk.X, padx=16, pady=(4, 0))
             tk.Label(_ai_frame, text='AI API Keys', fg='#8fd3ff', bg='#0d1724',
                      font=('Segoe UI Semibold', 11)).pack(anchor='w')
             _ai_note = tk.Frame(_p, bg='#0d1724')
@@ -4174,29 +4177,44 @@ def install_ui_fixes(g):
                 _pk_var = tk.StringVar(value=_pdata.get('api_key', ''))
                 _pm_var = tk.StringVar(value=_pdata.get('model', ''))
                 row_vars[_pname] = (_pk_var, _pm_var)
-                _pr = tk.Frame(_p, bg='#0d1724')
-                _pr.pack(fill=tk.X, padx=16, pady=2)
+                _pr = tk.Frame(_p, bg='#152238')
+                _pr.pack(fill=tk.X, padx=20, pady=3)
+                _pr.columnconfigure(2, weight=1)
                 _has_key = bool(_pk_var.get().strip())
-                _dot = tk.Label(_pr, text='●', fg='#48bb78' if _has_key else '#666666',
-                                bg='#0d1724', font=('Segoe UI', 14))
-                _dot.pack(side=tk.LEFT, padx=(0, 4))
-                tk.Label(_pr, text=_plabel, fg='#dce7f4', bg='#0d1724',
-                         font=('Segoe UI', 10)).pack(side=tk.LEFT)
-                tk.Entry(_pr, textvariable=_pk_var, width=36, relief=tk.FLAT,
+                _dot = tk.Label(_pr, text='●', fg='#48bb78' if _has_key else '#555555',
+                                bg='#152238', font=('Segoe UI', 12))
+                _dot.grid(row=0, column=0, padx=(8, 4), pady=6, sticky='w')
+                tk.Label(_pr, text=_plabel, fg='#dce7f4', bg='#152238', width=12, anchor='w',
+                         font=('Segoe UI', 10)).grid(row=0, column=1, padx=(0, 6), pady=6, sticky='w')
+                _key_entry = tk.Entry(_pr, textvariable=_pk_var, relief=tk.FLAT, width=30,
                          bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
-                         font=('Segoe UI', 9), show='*').pack(side=tk.LEFT, padx=4)
-                tk.Label(_pr, text='Model:', fg='#97afc6', bg='#0d1724',
-                         font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=(4, 2))
-                tk.Entry(_pr, textvariable=_pm_var, width=14, relief=tk.FLAT,
+                         font=('Segoe UI', 9), show='*')
+                _key_entry.grid(row=0, column=2, padx=2, pady=4, sticky='ew')
+                _eye_btn = tk.Button(_pr, text='👁', relief=tk.FLAT, bd=0,
+                        bg='#152238', fg='#888888', cursor='hand2', font=('Segoe UI', 10),
+                        activebackground='#1e2f4a', activeforeground='#ffffff')
+                _eye_btn.grid(row=0, column=3, padx=(2, 4), pady=4)
+                def _toggle_show(e=None, eb=_key_entry, eb2=_eye_btn):
+                    if eb.cget('show') == '*':
+                        eb.config(show='')
+                        eb2.config(text='👁‍🗨')
+                    else:
+                        eb.config(show='*')
+                        eb2.config(text='👁')
+                _eye_btn.config(command=_toggle_show)
+                tk.Label(_pr, text='Model:', fg='#97afc6', bg='#152238',
+                         font=('Segoe UI', 9)).grid(row=0, column=4, padx=(4, 2), pady=6, sticky='w')
+                tk.Entry(_pr, textvariable=_pm_var, width=10, relief=tk.FLAT,
                          bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
-                         font=('Segoe UI', 9)).pack(side=tk.LEFT)
+                         font=('Segoe UI', 9)).grid(row=0, column=5, padx=(0, 4), pady=4)
                 if _pname == 'groq':
                     def _get_groq_key():
                         import webbrowser
                         webbrowser.open('https://console.groq.com/keys')
-                    AB(_pr, 'Get Key', _get_groq_key, 60, 24,
+                    AB = g.get('AnimatedButton', AnimatedButton)
+                    AB(_pr, 'Get Key', _get_groq_key, 50, 22,
                        '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
-                       ('Segoe UI Semibold', 8)).pack(side=tk.LEFT, padx=4)
+                       ('Segoe UI Semibold', 8)).grid(row=0, column=6, padx=(0, 6), pady=4)
 
         # Also add save_path field
         _sv_frame = tk.Frame(_p, bg='#0d1724')
