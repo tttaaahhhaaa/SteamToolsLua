@@ -471,8 +471,12 @@ def main():
     _th.Thread.run = _safe_thread_run
     # DPI awareness — before any tkinter window
     try:
-        ctypes.windll.user32.SetProcessDPIAware()
-    except: pass
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    except:
+        try:
+            ctypes.windll.user32.SetProcessDPIAware()
+        except:
+            pass
     # --- STARTUP: check for .update_info.txt from a completed update ---
     _update_info_path = None
     try:
@@ -597,6 +601,17 @@ def main():
     root = app_globals.get('root', None)
     if root is None or os.getenv('STEAMTOOLS_SMOKE_TEST') == '1':
         return
+    # DPI scaling — match Windows display scale (125%, 150%, etc.)
+    try:
+        _dpi = ctypes.windll.user32.GetDpiForWindow(root.winfo_id())
+    except:
+        try:
+            _dc = ctypes.windll.user32.GetDC(0)
+            _dpi = ctypes.windll.gdi32.GetDeviceCaps(_dc, 88)  # LOGPIXELSY
+            ctypes.windll.user32.ReleaseDC(0, _dc)
+        except:
+            _dpi = 96
+    root.tk.call('tk', 'scaling', _dpi / 72.0)
     # Fix: ensure window closes properly and returns from taskbar
     _orig_destroy = root.destroy
     def _on_main_close():
