@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "3.0.0"
+VERSION = "3.1.0"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
@@ -3885,6 +3885,9 @@ def install_ui_fixes(g):
         AB2(_btnf, _t('Basarimlar', 'Achievements'), _self._open_game_picker, 120, 30,
             '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=2)
+        AB2(_btnf, '\u26a1 Speedtest', lambda: _open_speedtest_window(_self), 110, 30,
+            '#3b2d5e', '#5a3d8e', '#b088ff', '#ffffff',
+            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=2)
     # ---- open_settings_window_from_pyw (the big one) ----
     def open_settings_window_from_pyw(self):
         existing = getattr(self, 'settings_window', None)
@@ -3894,10 +3897,10 @@ def install_ui_fixes(g):
         window = tk.Toplevel(self.root)
         self.settings_window = window
         window.title(self.tr('settings.window_title'))
-        _sw = min(1040, window.winfo_screenwidth() - 60)
-        _sh = min(900, window.winfo_screenheight() - 80)
+        _sw = min(960, window.winfo_screenwidth() - 80)
+        _sh = min(960, window.winfo_screenheight() - 40)
         window.geometry(f'{_sw}x{_sh}')
-        window.minsize(600, 400)
+        window.minsize(640, 700)
         window.resizable(True, True)
         window.configure(bg='#0d1724')
         window.transient(self.root)
@@ -3913,8 +3916,6 @@ def install_ui_fixes(g):
 
         _settings_page = tk.Frame(window, bg='#0d1724')
         _settings_page.pack(fill=tk.BOTH, expand=True)
-
-        # Settings content (no scroll, direct frame)
         _p = _settings_page
 
         # Route + language row
@@ -3954,78 +3955,66 @@ def install_ui_fixes(g):
                        variable=console_var, bg='#13263a',
                        activebackground='#13263a', selectcolor='#0d1724',
                        fg='#dce7f4', font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=16)
-        auto_shutdown_var = tk.BooleanVar(value=bool(self.settings.get('auto_shutdown', False)))
-        tk.Checkbutton(dev_frame, text=self.tr('settings.auto_shutdown'),
-                       variable=auto_shutdown_var, bg='#13263a',
-                       activebackground='#13263a', selectcolor='#0d1724',
-                       fg='#dce7f4', font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=16)
-
-        # Dev controls
-        dev_row = tk.Frame(_p, bg='#0d1724')
-        dev_row.pack(fill=tk.X, padx=16, pady=4)
-        tk.Label(dev_row, text='Card Width:', fg='#dce7f4', bg='#0d1724',
-                 font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=(0, 4))
-        cw_var = tk.IntVar(value=int(self.settings.get('card_width', 520)))
-        tk.Entry(dev_row, textvariable=cw_var, width=5, relief=tk.FLAT,
-                 bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff').pack(side=tk.LEFT)
-        cs_var = tk.IntVar(value=int(self.settings.get('card_spacing', 28)))
-        tk.Label(dev_row, text='Spacing:', fg='#dce7f4', bg='#0d1724',
-                 font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=(16, 4))
-        tk.Entry(dev_row, textvariable=cs_var, width=5, relief=tk.FLAT,
-                 bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff').pack(side=tk.LEFT)
-        tk.Label(dev_row, text=self.tr('settings.registry_note'),
-                 fg='#8fb8da', bg='#0d1724', wraplength=680).pack(fill=tk.X, expand=True, padx=16)
-
-        # ---- Outside Games injection ----
-        _og_frame = tk.Frame(_p, bg='#0d1724')
-        _og_frame.pack(fill=tk.X, padx=16, pady=4)
-        AB = g.get('AnimatedButton', AnimatedButton)
-        def _og_inject():
-            _th = __import__('threading')
-            _th.Thread(target=_inject_outside_games, daemon=True).start()
-            _messagebox.showinfo('Outside Games',
-                'Inject baslatildi. Depotcache, stplug-in ve oyun klasorlerine kopyalaniyor.')
-        AB(_og_frame, 'Outside Games Inject', _og_inject, 180, 32,
-           '#244363', '#315f8e', '#66c0f4', '#f7fafc',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
-        tk.Label(_og_frame,
-                 text='Game Files / Outside Games klasorlerini ac',
-                 fg='#8fb8da', bg='#0d1724', font=('Segoe UI', 9), cursor='hand2').pack(
-            side=tk.LEFT, padx=8)
-        def _open_gg():
-            try: __import__('os').startfile(str(_get_game_files_dir()))
-            except: pass
-        def _open_og():
-            try: __import__('os').startfile(str(_get_outside_games_dir()))
-            except: pass
-        _gg_lbl = tk.Label(_og_frame, text='[Game Files]', fg='#48bb78', bg='#0d1724',
-                 font=('Segoe UI', 9, 'underline'), cursor='hand2')
-        _gg_lbl.pack(side=tk.LEFT, padx=2)
-        _gg_lbl.bind('<Button-1>', lambda e: _open_gg())
-        tk.Label(_og_frame, text='/', fg='#686880', bg='#0d1724',
-                 font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=2)
-        _og_lbl = tk.Label(_og_frame, text='[Outside Games]', fg='#fbbf24', bg='#0d1724',
-                 font=('Segoe UI', 9, 'underline'), cursor='hand2')
-        _og_lbl.pack(side=tk.LEFT, padx=2)
-        _og_lbl.bind('<Button-1>', lambda e: _open_og())
-
-        # ---- User info section ----
-        _fn = self.settings.get('firstname', '')
-        _ln = self.settings.get('lastname', '')
-        _nn = self.settings.get('nickname', '')
-        if _fn or _ln or _nn:
-            uf = tk.Frame(_p, bg='#0d1724')
-            uf.pack(fill=tk.X, padx=16, pady=(2, 1))
-            tk.Label(uf, text='Kullanici Bilgisi:', fg='#8fd3ff', bg='#0d1724',
-                     font=('Segoe UI Semibold', 10)).pack(anchor='w')
-            _info_text = f"Ad: {_fn}  |  Soyad: {_ln}  |  Nick: {_nn}"
-            tk.Label(uf, text=_info_text, fg='#48bb78', bg='#0d1724',
-                     font=('Segoe UI', 10)).pack(anchor='w', padx=8, pady=2)
+        # ---- AI API Keys section ----
+        row_vars = {}
+        if PROVIDER_ORDER:
+            _ai_frame = tk.Frame(_p, bg='#0d1724')
+            _ai_frame.pack(fill=tk.X, padx=16, pady=(4, 0))
+            tk.Label(_ai_frame, text='AI API Keys', fg='#8fd3ff', bg='#0d1724',
+                     font=('Segoe UI Semibold', 11)).pack(anchor='w')
+            _ai_note = tk.Frame(_p, bg='#0d1724')
+            _ai_note.pack(fill=tk.X, padx=16, pady=(0, 4))
+            tk.Label(_ai_note, text=_tr(self, 'settings.ai_key_note'),
+                     fg='#97afc6', bg='#0d1724', font=('Segoe UI', 8)).pack(anchor='w')
+            _provider_keys = {'groq': 'https://console.groq.com/keys',
+                              'openrouter': 'https://openrouter.ai/keys',
+                              'huggingface': 'https://huggingface.co/settings/tokens'}
+            for _pname in PROVIDER_ORDER:
+                _plabel = PROVIDER_LABELS.get(_pname, _pname)
+                _pdata = self.settings.get('providers', {}).get(_pname, PROVIDER_DEFAULTS.get(_pname, {}))
+                _pk_var = tk.StringVar(value=_pdata.get('api_key', ''))
+                row_vars[_pname] = (_pk_var,)
+                _pr = tk.Frame(_p, bg='#152238')
+                _pr.pack(fill=tk.X, padx=20, pady=3)
+                _pr.columnconfigure(2, weight=1)
+                _has_key = bool(_pk_var.get().strip())
+                _dot = tk.Label(_pr, text='●', fg='#48bb78' if _has_key else '#555555',
+                                bg='#152238', font=('Segoe UI', 12))
+                _dot.grid(row=0, column=0, padx=(8, 4), pady=6, sticky='w')
+                tk.Label(_pr, text=_plabel, fg='#dce7f4', bg='#152238', anchor='w',
+                         width=14, font=('Segoe UI', 10)).grid(row=0, column=1, padx=(0, 6), pady=6, sticky='w')
+                _key_entry = tk.Entry(_pr, textvariable=_pk_var, relief=tk.FLAT, width=15,
+                         bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
+                         font=('Segoe UI', 9), show='*')
+                _key_entry.grid(row=0, column=2, padx=2, pady=4, sticky='ew')
+                _eye_btn = tk.Button(_pr, text='👁', relief=tk.FLAT, bd=0,
+                        bg='#152238', fg='#888888', cursor='hand2', font=('Segoe UI', 10),
+                        activebackground='#1e2f4a', activeforeground='#ffffff')
+                _eye_btn.grid(row=0, column=3, padx=(2, 4), pady=4)
+                def _toggle_show(e=None, eb=_key_entry, eb2=_eye_btn):
+                    if eb.cget('show') == '*':
+                        eb.config(show='')
+                        eb2.config(text='👁‍🗨')
+                    else:
+                        eb.config(show='*')
+                        eb2.config(text='👁')
+                _eye_btn.config(command=_toggle_show)
+                def _open_prov_guide(p=_pname, pl=_plabel):
+                    lang = self.settings.get('language', 'tr')
+                    _open_provider_guide_window(window, p, pl, lang)
+                AB = g.get('AnimatedButton', AnimatedButton)
+                AB(_pr, '?', _open_prov_guide, 22, 22,
+                   '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
+                   ('Segoe UI Semibold', 8)).grid(row=0, column=4, padx=(2, 2), pady=4)
+                AB(_pr, 'Get Key', _open_prov_guide, 50, 22,
+                   '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
+                   ('Segoe UI Semibold', 8)).grid(row=0, column=5, padx=(0, 6), pady=4)
 
         # ---- Tools section ----
         tools_frame = tk.Frame(_p, bg='#0d1724')
         tools_frame.pack(fill=tk.X, padx=16, pady=(4, 1))
-        tk.Label(tools_frame, text="Tools", fg='#8fd3ff', bg='#0d1724',
+        tk.Label(tools_frame, text='Tools',
+                 fg='#8fd3ff', bg='#0d1724',
                  font=('Segoe UI Semibold', 11)).pack(anchor='w')
         AB = g.get('AnimatedButton', AnimatedButton)
 
@@ -4040,7 +4029,7 @@ def install_ui_fixes(g):
            ('Segoe UI Semibold', 11)).pack(side=tk.LEFT, padx=(0, 6))
 
         # Install Millenium
-        _mill_light = tk.Label(_tr1, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
+        _mill_light = tk.Label(_tr1, text="\u25cf", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
         _mill_light.pack(side=tk.LEFT, padx=(0, 3))
         def _run_mill():
             self._run_headless_powershell(
@@ -4051,7 +4040,7 @@ def install_ui_fixes(g):
            110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
         # LuaTools Installer
-        _lua_light = tk.Label(_tr1, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
+        _lua_light = tk.Label(_tr1, text="\u25cf", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
         _lua_light.pack(side=tk.LEFT, padx=(0, 3))
         def _run_lua():
             self._run_headless_powershell(
@@ -4062,7 +4051,7 @@ def install_ui_fixes(g):
            110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
         # Launch SteamTools
-        _launch_light = tk.Label(_tr1, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
+        _launch_light = tk.Label(_tr1, text="\u25cf", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
         _launch_light.pack(side=tk.LEFT, padx=(0, 3))
         def _run_launch():
             self._run_headless_powershell(
@@ -4073,7 +4062,7 @@ def install_ui_fixes(g):
            110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
         # Restart Steam
-        _restart_light = tk.Label(_tr1, text="●", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
+        _restart_light = tk.Label(_tr1, text="\u25cf", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
         _restart_light.pack(side=tk.LEFT, padx=(0, 3))
         def _run_restart():
             def _task():
@@ -4106,7 +4095,9 @@ def install_ui_fixes(g):
         AB(_tr1, _tr(self, 'button.restart_steam'), _run_restart,
            110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
-        # CloudRedirect (check exist → ask → download → launch, track proc)
+
+        # Row 2: CloudRedirect, Inject OF, Outside Games Inject
+        # CloudRedirect (check exist -> ask -> download -> launch, track proc)
         def _track_cr(_p):
             _list = g.get('_cr_procs')
             if _list is None:
@@ -4159,64 +4150,68 @@ def install_ui_fixes(g):
         AB(_tr2, _tr(self, 'button.inject_of'), self._inject_of_browser,
             110, 28, '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
+        # Outside Games Inject
+        def _og_inject():
+            _th = __import__('threading')
+            _th.Thread(target=_inject_outside_games, daemon=True).start()
+            _messagebox.showinfo('Outside Games',
+                'Inject baslatildi. Depotcache, stplug-in ve oyun klasorlerine kopyalaniyor.')
+        AB(_tr2, 'Outside Games Inject', _og_inject, 140, 28,
+           '#244363', '#315f8e', '#66c0f4', '#f7fafc',
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
 
-        # ---- AI API Keys section ----
-        row_vars = {}
-        if PROVIDER_ORDER:
-            _ai_frame = tk.Frame(_p, bg='#0d1724')
-            _ai_frame.pack(fill=tk.X, padx=16, pady=(4, 0))
-            tk.Label(_ai_frame, text='AI API Keys', fg='#8fd3ff', bg='#0d1724',
-                     font=('Segoe UI Semibold', 11)).pack(anchor='w')
-            _ai_note = tk.Frame(_p, bg='#0d1724')
-            _ai_note.pack(fill=tk.X, padx=16, pady=(0, 4))
-            tk.Label(_ai_note, text=_tr(self, 'settings.ai_key_note'),
-                     fg='#97afc6', bg='#0d1724', font=('Segoe UI', 8)).pack(anchor='w')
-            for _pname in PROVIDER_ORDER:
-                _plabel = PROVIDER_LABELS.get(_pname, _pname)
-                _pdata = self.settings.get('providers', {}).get(_pname, PROVIDER_DEFAULTS.get(_pname, {}))
-                _pk_var = tk.StringVar(value=_pdata.get('api_key', ''))
-                _pm_var = tk.StringVar(value=_pdata.get('model', ''))
-                row_vars[_pname] = (_pk_var, _pm_var)
-                _pr = tk.Frame(_p, bg='#152238')
-                _pr.pack(fill=tk.X, padx=20, pady=3)
-                _pr.columnconfigure(2, weight=1)
-                _has_key = bool(_pk_var.get().strip())
-                _dot = tk.Label(_pr, text='●', fg='#48bb78' if _has_key else '#555555',
-                                bg='#152238', font=('Segoe UI', 12))
-                _dot.grid(row=0, column=0, padx=(8, 4), pady=6, sticky='w')
-                tk.Label(_pr, text=_plabel, fg='#dce7f4', bg='#152238', width=12, anchor='w',
-                         font=('Segoe UI', 10)).grid(row=0, column=1, padx=(0, 6), pady=6, sticky='w')
-                _key_entry = tk.Entry(_pr, textvariable=_pk_var, relief=tk.FLAT, width=30,
-                         bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
-                         font=('Segoe UI', 9), show='*')
-                _key_entry.grid(row=0, column=2, padx=2, pady=4, sticky='ew')
-                _eye_btn = tk.Button(_pr, text='👁', relief=tk.FLAT, bd=0,
-                        bg='#152238', fg='#888888', cursor='hand2', font=('Segoe UI', 10),
-                        activebackground='#1e2f4a', activeforeground='#ffffff')
-                _eye_btn.grid(row=0, column=3, padx=(2, 4), pady=4)
-                def _toggle_show(e=None, eb=_key_entry, eb2=_eye_btn):
-                    if eb.cget('show') == '*':
-                        eb.config(show='')
-                        eb2.config(text='👁‍🗨')
-                    else:
-                        eb.config(show='*')
-                        eb2.config(text='👁')
-                _eye_btn.config(command=_toggle_show)
-                tk.Label(_pr, text='Model:', fg='#97afc6', bg='#152238',
-                         font=('Segoe UI', 9)).grid(row=0, column=4, padx=(4, 2), pady=6, sticky='w')
-                tk.Entry(_pr, textvariable=_pm_var, width=10, relief=tk.FLAT,
-                         bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
-                         font=('Segoe UI', 9)).grid(row=0, column=5, padx=(0, 4), pady=4)
-                if _pname == 'groq':
-                    def _get_groq_key():
-                        import webbrowser
-                        webbrowser.open('https://console.groq.com/keys')
-                    AB = g.get('AnimatedButton', AnimatedButton)
-                    AB(_pr, 'Get Key', _get_groq_key, 50, 22,
-                       '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
-                       ('Segoe UI Semibold', 8)).grid(row=0, column=6, padx=(0, 6), pady=4)
+        # Row 3: WEDownloader
+        _tr3 = tk.Frame(_w, bg='#0d1724')
+        _tr3.pack(fill=tk.X, padx=16, pady=(2, 2))
+        def _track_we(_p):
+            _list = g.get('_we_procs')
+            if _list is None:
+                _list = []; g['_we_procs'] = _list
+            _list.append(_p)
+        def _run_wedownloader():
+            _we_dir = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / "WEDownloader"
+            _we_exe = _we_dir / "WEDownloader.exe"
+            if _we_exe.exists():
+                import subprocess as _sp
+                _track_we(_sp.Popen([str(_we_exe)]))
+                return
+            if not _messagebox.askyesno('WE Downloader', 'WEDownloader.exe bulunamadi.\nIndirilsin mi?'):
+                return
+            import threading as _we_thr
+            def _task():
+                _we_dir.mkdir(parents=True, exist_ok=True)
+                self._set_indicator('WE Downloader indiriliyor...', 'working')
+                try:
+                    import requests as _req
+                    _api = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"
+                    _r = _req.get(_api, timeout=15, headers={'User-Agent': 'SteamToolsLua'})
+                    if _r.status_code != 200:
+                        self._set_indicator('WE Downloader hata: HTTP ' + str(_r.status_code), 'offline')
+                        return
+                    _asset = None
+                    for _a in _r.json().get('assets', []):
+                        if _a.get('name', '').lower() == 'wedownloader.exe':
+                            _asset = _a
+                            break
+                    if not _asset:
+                        self._set_indicator('WE Downloader hata: .exe bulunamadi', 'offline')
+                        return
+                    _dl = _req.get(_asset['browser_download_url'], timeout=120, stream=True)
+                    with open(str(_we_exe), 'wb') as _f:
+                        for _chunk in _dl.iter_content(8192):
+                            if _chunk:
+                                _f.write(_chunk)
+                    self._set_indicator('WE Downloader hazir', 'online')
+                    import subprocess as _sp
+                    _track_we(_sp.Popen([str(_we_exe)]))
+                except Exception as _ex:
+                    self._set_indicator('WE Downloader hata: ' + str(_ex), 'offline')
+            _we_thr.Thread(target=_task, daemon=True).start()
+        AB(_tr3, 'WE Downloader', _run_wedownloader,
+            120, 28, '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
+            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
 
-        # Also add save_path field
+        # ---- Save Path ----
         _sv_frame = tk.Frame(_p, bg='#0d1724')
         _sv_frame.pack(fill=tk.X, padx=16, pady=(2, 1))
         tk.Label(_sv_frame, text='Save Path', fg='#8fd3ff', bg='#0d1724',
@@ -4280,10 +4275,10 @@ def install_ui_fixes(g):
         # ---- Library (zip-based, appid from lua filename) ----
         lib_frame = tk.Frame(_p, bg='#0d1724')
         lib_frame.pack(fill=tk.X, padx=16, pady=(2, 1))
+        tk.Label(lib_frame, text=_tr(self, 'library.title'), fg='#8fd3ff', bg='#0d1724',
+                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
         lib_row = tk.Frame(_p, bg='#0d1724')
         lib_row.pack(fill=tk.X, padx=16, pady=(0, 2))
-        tk.Label(lib_row, text=_tr(self, 'library.title'), fg='#8fd3ff', bg='#0d1724',
-                 font=('Segoe UI Semibold', 11)).pack(side=tk.LEFT)
         import threading as _lib_thr
         def _open_library():
             _bd = Path(__file__).resolve().parent
@@ -4466,21 +4461,17 @@ def install_ui_fixes(g):
             _lib_thr.Thread(target=_lib_load, daemon=True).start()
         AB(lib_row, _tr(self, 'library.open'), _open_library, 130, 30,
            '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
-        # Remove License tab builder
-        AB(lib_row, _tr(self, 'library.open'), _open_library, 100, 30,
-           '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=4)
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 0))
         tk.Label(lib_row, text=_tr(self, 'library.desc'),
-                 fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=8)
+                 fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=(6, 0))
 
         # ---- Installed Steam Games (threaded list) ----
         _inst_frame = tk.Frame(_p, bg='#0d1724')
         _inst_frame.pack(fill=tk.X, padx=16, pady=(2, 1))
+        tk.Label(_inst_frame, text=_tr(self, 'settings.installed_games'),
+                 fg='#8fd3ff', bg='#0d1724', font=('Segoe UI Semibold', 11)).pack(anchor='w')
         _inst_row = tk.Frame(_p, bg='#0d1724')
         _inst_row.pack(fill=tk.X, padx=16, pady=(0, 2))
-        tk.Label(_inst_row, text=_tr(self, 'settings.installed_games'),
-                 fg='#8fd3ff', bg='#0d1724', font=('Segoe UI Semibold', 11)).pack(side=tk.LEFT)
         import threading as _inst_thr
         def _show_installed():
             _load_win = tk.Toplevel(window)
@@ -4608,7 +4599,7 @@ def install_ui_fixes(g):
             _inst_thr.Thread(target=_load_task, daemon=True).start()
         AB(_inst_row, _tr(self, 'settings.installed_games'), _show_installed, 130, 30,
            '#1c1c3a', '#2a2a5a', '#7c6fff', '#e0e0f0',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 0))
 
         _LUA_CACHE = {}
         _LUA_TAGS_CACHE = {}
@@ -4846,12 +4837,61 @@ def install_ui_fixes(g):
         _lt_row.pack(fill=tk.X, padx=16, pady=(0, 2))
         AB(_lt_row, 'LuaTools', _open_luatools_browser, 130, 30,
            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(10, 0))
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(4, 0))
         tk.Label(_lt_row, text='lua.tools/fixes (512+ oyun)', fg='#686880',
-                 bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=8)
+                 bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=(6, 0))
 
-        # ---- Torrent Downloader Section ----
-        # Footer
+        # ---- User info section ----
+        _fn = self.settings.get('firstname', '')
+        _ln = self.settings.get('lastname', '')
+        _nn = self.settings.get('nickname', '')
+        if _fn or _ln or _nn:
+            uf = tk.Frame(_p, bg='#0d1724')
+            uf.pack(fill=tk.X, padx=16, pady=(2, 1))
+            tk.Label(uf, text='Kullanici Bilgisi:', fg='#8fd3ff', bg='#0d1724',
+                     font=('Segoe UI Semibold', 10)).pack(anchor='w')
+            _info_text = f"Ad: {_fn}  |  Soyad: {_ln}  |  Nick: {_nn}"
+            tk.Label(uf, text=_info_text, fg='#48bb78', bg='#0d1724',
+                     font=('Segoe UI', 10)).pack(anchor='w', padx=8, pady=2)
+
+        # ---- Dev Controls (Card Width, Spacing) ----
+        _dev_frame = tk.Frame(_p, bg='#0d1724')
+        _dev_frame.pack(fill=tk.X, padx=16, pady=(2, 1))
+        tk.Label(_dev_frame, text='Gelistirici', fg='#8fd3ff', bg='#0d1724',
+                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
+        _dev_row = tk.Frame(_p, bg='#0d1724')
+        _dev_row.pack(fill=tk.X, padx=16, pady=(0, 4))
+        tk.Label(_dev_row, text='Card Width:', fg='#dce7f4', bg='#0d1724',
+                 font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=(0, 4))
+        cw_var = tk.IntVar(value=int(self.settings.get('card_width', 520)))
+        tk.Entry(_dev_row, textvariable=cw_var, width=5, relief=tk.FLAT,
+                 bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff').pack(side=tk.LEFT)
+        cs_var = tk.IntVar(value=int(self.settings.get('card_spacing', 28)))
+        tk.Label(_dev_row, text='Spacing:', fg='#dce7f4', bg='#0d1724',
+                 font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=(16, 4))
+        tk.Entry(_dev_row, textvariable=cs_var, width=5, relief=tk.FLAT,
+                 bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff').pack(side=tk.LEFT)
+        # Outside Games folder links
+        def _open_gg():
+            try: __import__('os').startfile(str(_get_game_files_dir()))
+            except: pass
+        def _open_og():
+            try: __import__('os').startfile(str(_get_outside_games_dir()))
+            except: pass
+        _gg_lbl = tk.Label(_dev_row, text='[Game Files]', fg='#48bb78', bg='#0d1724',
+                 font=('Segoe UI', 9, 'underline'), cursor='hand2')
+        _gg_lbl.pack(side=tk.LEFT, padx=(16, 2))
+        _gg_lbl.bind('<Button-1>', lambda e: _open_gg())
+        tk.Label(_dev_row, text='/', fg='#686880', bg='#0d1724',
+                 font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=2)
+        _og_lbl = tk.Label(_dev_row, text='[Outside Games]', fg='#fbbf24', bg='#0d1724',
+                 font=('Segoe UI', 9, 'underline'), cursor='hand2')
+        _og_lbl.pack(side=tk.LEFT, padx=2)
+        _og_lbl.bind('<Button-1>', lambda e: _open_og())
+        tk.Label(_dev_row, text=self.tr('settings.registry_note'),
+                 fg='#8fb8da', bg='#0d1724', wraplength=680).pack(fill=tk.X, expand=True, padx=16)
+
+        # ---- Footer ----
         footer = tk.Frame(window, bg='#0d1724')
 
         # Left: Versions button + Check Update
@@ -5012,17 +5052,15 @@ def install_ui_fixes(g):
             self.settings['language'] = language_value_to_key.get(lang_val, 'tr')
             self.settings['developer_mode'] = bool(developer_var.get())
             self.settings['console_visible'] = bool(console_var.get())
-            self.settings['auto_shutdown'] = bool(auto_shutdown_var.get())
             if hasattr(cw_var, 'get'):
                 self.settings['card_width'] = cw_var.get()
             if hasattr(cs_var, 'get'):
                 self.settings['card_spacing'] = cs_var.get()
             self.settings.setdefault('providers', {})
-            for pname, (kv, mv) in row_vars.items():
+            for pname, (kv,) in row_vars.items():
                 self.settings['providers'].setdefault(
                     pname, PROVIDER_DEFAULTS.get(pname, {}).copy())
                 self.settings['providers'][pname]['api_key'] = kv.get().strip()
-                self.settings['providers'][pname]['model'] = mv.get().strip()
             sv = _sv_var.get().strip()
             if sv:
                 self.settings['save_path'] = sv
@@ -5460,8 +5498,108 @@ def install_ui_fixes(g):
             except: pass
         if root_app: _fix_drag()
 
-    # ---- Scroll focus fix removed (unused) ----
-    pass
+    # ---- scroll focus fix ----
+    def _fix_scroll_propagation(w):
+        for child in w.winfo_children():
+            try:
+                for seq in ('<MouseWheel>', '<Button-4>', '<Button-5>'):
+                    binds = child.bind(seq)
+                    if binds:
+                        orig = child.bind(seq)
+                        def _safe_scroll(e, cb=orig):
+                            cb(e)
+                            return 'break'
+                        child.bind(seq, _safe_scroll, add='+')
+            except: pass
+            _fix_scroll_propagation(child)
+    root.after(500, lambda: _fix_scroll_propagation(root))
+
+    # ---- Provider Guide Window ----
+    _PROVIDER_GUIDE_TEXT = {
+        'groq': {
+            'tr': 'Groq ucretsiz API saglayicisidir.\n\nADIMLAR:\n1. console.groq.com adresine gidin\n2. Sign Up ile kayit olun\n3. Sol menuden API Keys secin\n4. Create API Key tiklayin\n5. Bir isim verin (ornek: SteamTools)\n6. Anahtari kopyalayin (gsk_ ile baslar)\n7. Ayarlar > Groq satirina yapistirin\n8. Kaydedin\n\nNOT: Ucretsiz, gunluk 14400 istek.',
+            'en': 'Groq is a free API provider.\n\nSTEPS:\n1. Go to console.groq.com\n2. Sign up\n3. Select API Keys from left menu\n4. Click Create API Key\n5. Name it (e.g. SteamTools)\n6. Copy the key (starts with gsk_)\n7. Paste into Groq in Settings\n8. Save\n\nNOTE: Free, ~14400 requests/day.',
+            'es': 'Groq es un proveedor API gratuito.\n\nPASOS:\n1. Vaya a console.groq.com\n2. Registrese\n3. Seleccione API Keys\n4. Cree API Key\n5. Asigne nombre\n6. Copie la clave\n7. Peguela en Groq en Ajustes\n8. Guarde',
+            'fr': 'Groq est un fournisseur API gratuit.\n\nETAPES:\n1. Allez sur console.groq.com\n2. Inscrivez-vous\n3. API Keys\n4. Create API Key\n5. Nommez-la\n6. Copiez la cle\n7. Collez dans Groq\n8. Enregistrez',
+            'de': 'Groq ist ein kostenloser API-Anbieter.\n\nSCHRITTE:\n1. console.groq.com\n2. Registrieren\n3. API Keys\n4. Create API Key\n5. Namen geben\n6. Schlussel kopieren\n7. In Groq-Zeile einfugen\n8. Speichern',
+            'ja': 'Groqは無料のAPIプロバイダーです。\n\n手順：\n1. console.groq.com\n2. 登録\n3. API Keys\n4. Create API Key\n5. 名前を入力\n6. キーをコピー\n7. Groq行に貼り付け\n8. 保存',
+        },
+        'openrouter': {
+            'tr': 'OpenRouter, birden fazla AI saglayicisina tek API ile erisim saglar.\n\nADIMLAR:\n1. openrouter.ai adresine gidin\n2. Kayit olun\n3. Dashboard > Keys bolumune gidin\n4. Create Key tiklayin\n5. Anahtari kopyalayin\n6. Ayarlar > OpenRouter satirina yapistirin\n7. Kaydedin\n\nNOT: Kullanim kadar odeme, kayitta 1$ kredi.',
+            'en': 'OpenRouter provides access to multiple AI providers via one API.\n\nSTEPS:\n1. Go to openrouter.ai\n2. Sign up\n3. Dashboard > Keys\n4. Click Create Key\n5. Copy the key\n6. Paste into OpenRouter in Settings\n7. Save\n\nNOTE: Pay-per-use, $1 free credit on signup.',
+            'es': 'OpenRouter da acceso a multiples IAs via una API.\n\nPASOS:\n1. openrouter.ai\n2. Registrese\n3. Dashboard > Keys\n4. Create Key\n5. Copie\n6. Pegue en Ajustes\n7. Guarde',
+            'fr': 'OpenRouter donne acces a plusieurs IA via une API.\n\nETAPES:\n1. openrouter.ai\n2. Inscription\n3. Dashboard > Keys\n4. Create Key\n5. Copiez\n6. Collez dans Parametres\n7. Enregistrez',
+            'de': 'OpenRouter bietet Zugriff auf mehrere KI-Anbieter.\n\nSCHRITTE:\n1. openrouter.ai\n2. Registrieren\n3. Dashboard > Keys\n4. Create Key\n5. Kopieren\n6. In Einstellungen einfugen\n7. Speichern',
+            'ja': 'OpenRouterは複数のAIプロバイダーにアクセスできます。\n\n手順：\n1. openrouter.ai\n2. 登録\n3. Dashboard > Keys\n4. Create Key\n5. コピー\n6. 設定に貼り付け\n7. 保存',
+        },
+        'huggingface': {
+            'tr': 'Hugging Face, AI modelleri icin ucretsiz Inference API sunar.\n\nADIMLAR:\n1. huggingface.co adresine gidin\n2. Kayit olun\n3. Profil resminiz > Settings\n4. Access Tokens secin\n5. New Token tiklayin\n6. Rol: Read\n7. Tokeni kopyalayin\n8. Ayarlar > HuggingFace satirina yapistirin\n9. Kaydedin\n\nNOT: Ucretsiz, sinirli istek/gun.',
+            'en': 'Hugging Face offers free Inference API for AI models.\n\nSTEPS:\n1. Go to huggingface.co\n2. Sign up\n3. Profile > Settings\n4. Select Access Tokens\n5. Click New Token\n6. Role: Read\n7. Copy the token\n8. Paste into HuggingFace in Settings\n9. Save\n\nNOTE: Free, limited requests/day.',
+            'es': 'Hugging Face ofrece API gratuita.\n\nPASOS:\n1. huggingface.co\n2. Registrese\n3. Perfil > Settings\n4. Access Tokens > New Token\n5. Rol: Read\n6. Copie el token\n7. Pegue en Ajustes\n8. Guarde',
+            'fr': 'Hugging Face propose une API gratuite.\n\nETAPES:\n1. huggingface.co\n2. Inscription\n3. Profil > Settings\n4. Access Tokens > New Token\n5. Role: Read\n6. Copiez le jeton\n7. Collez dans Parametres\n8. Enregistrez',
+            'de': 'Hugging Face bietet kostenlose API.\n\nSCHRITTE:\n1. huggingface.co\n2. Registrieren\n3. Profil > Settings\n4. Access Tokens > New Token\n5. Rolle: Read\n6. Token kopieren\n7. In Einstellungen einfugen\n8. Speichern',
+            'ja': 'Hugging Faceは無料APIを提供。\n\n手順：\n1. huggingface.co\n2. 登録\n3. プロフィール > Settings\n4. Access Tokens > New Token\n5. ロール: Read\n6. トークンをコピー\n7. 設定に貼り付け\n8. 保存',
+        },
+        'gemini': {
+            'tr': 'Google Gemini API anahtari alma.\n\nADIMLAR:\n1. makersuite.google.com/app/apikey adresine gidin\n2. Google hesabinizla giris yapin\n3. Create API Key tiklayin\n4. Olusan anahtari kopyalayin\n5. Ayarlar > Gemini satirina yapistirin\n6. Kaydedin\n\nNOT: Ucretsiz katmanda sinirli istek, ucretli katmanda daha fazla.',
+            'en': 'Google Gemini API key guide.\n\nSTEPS:\n1. Go to makersuite.google.com/app/apikey\n2. Sign in with Google\n3. Click Create API Key\n4. Copy the generated key\n5. Paste into Gemini in Settings\n6. Save\n\nNOTE: Free tier has limited requests, paid tier for more.',
+            'es': 'Guia de clave API de Google Gemini.\n\nPASOS:\n1. makersuite.google.com/app/apikey\n2. Inicie sesion con Google\n3. Cree API Key\n4. Copie la clave\n5. Pegue en Gemini en Ajustes\n6. Guarde',
+            'fr': 'Guide de cle API Google Gemini.\n\nETAPES:\n1. makersuite.google.com/app/apikey\n2. Connectez-vous avec Google\n3. Creez une cle API\n4. Copiez la cle\n5. Collez dans Gemini\n6. Enregistrez',
+            'de': 'Google Gemini API-Key-Anleitung.\n\nSCHRITTE:\n1. makersuite.google.com/app/apikey\n2. Mit Google anmelden\n3. API-Key erstellen\n4. Schlussel kopieren\n5. In Gemini-Zeile einfugen\n6. Speichern',
+            'ja': 'Google Gemini APIキーガイド。\n\n手順：\n1. makersuite.google.com/app/apikey\n2. Googleでサインイン\n3. APIキーを作成\n4. キーをコピー\n5. Gemini行に貼り付け\n6. 保存',
+        },
+        'ollama': {
+            'tr': 'Ollama yerel olarak calisir, API anahtari gerekmez.\n\nKULLANIM:\n1. ollama.ai adresinden Ollama\'yi indirin ve kurun\n2. Komut satirinda: ollama pull llama3.2\n3. Ayarlar > Ollama satirina http://localhost:11434 yazin\n4. Kaydedin\n\nNOT: Tamamen yerel, ucretsiz, internet gerektirmez.',
+            'en': 'Ollama runs locally, no API key needed.\n\nUSAGE:\n1. Download Ollama from ollama.ai\n2. Run: ollama pull llama3.2\n3. In Settings > Ollama, enter http://localhost:11434\n4. Save\n\nNOTE: Fully local, free, no internet required.',
+            'es': 'Ollama es local, no necesita clave.\n\nUSO:\n1. Descargue de ollama.ai\n2. Ejecute: ollama pull llama3.2\n3. En Ajustes, ponga http://localhost:11434\n4. Guarde',
+            'fr': 'Ollama est local, pas de cle necessaire.\n\nUTILISATION:\n1. Telechargez depuis ollama.ai\n2. Lancez: ollama pull llama3.2\n3. Dans Parametres, mettez http://localhost:11434\n4. Enregistrez',
+            'de': 'Ollama lauft lokal, kein API-Key notig.\n\nNUTZUNG:\n1. Von ollama.ai herunterladen\n2. Ausfuhren: ollama pull llama3.2\n3. In Einstellungen http://localhost:11434\n4. Speichern',
+            'ja': 'Ollamaはローカルで動作し、APIキーは不要です。\n\n使用方法：\n1. ollama.aiからダウンロード\n2. 実行: ollama pull llama3.2\n3. 設定でhttp://localhost:11434を入力\n4. 保存',
+        },
+    }
+    _PROVIDER_KEY_URLS = {
+        'groq': 'https://console.groq.com/keys',
+        'openrouter': 'https://openrouter.ai/keys',
+        'huggingface': 'https://huggingface.co/settings/tokens',
+        'gemini': 'https://makersuite.google.com/app/apikey',
+        'ollama': 'https://ollama.ai',
+    }
+
+    def _open_provider_guide_window(parent, pname, plabel, lang):
+        import webbrowser as _wb
+        guides = _PROVIDER_GUIDE_TEXT.get(pname, {})
+        text = guides.get(lang, guides.get('en', 'Guide not available'))
+        _gw = tk.Toplevel(parent)
+        _gw.title(f'{plabel} - API Key Guide')
+        _gw.geometry('580x480')
+        _gw.configure(bg='#0d1724')
+        _gw.resizable(True, True)
+        _gw.transient(parent)
+        _top = tk.Frame(_gw, bg='#0d1724')
+        _top.pack(fill=tk.X, padx=16, pady=(12, 4))
+        tk.Label(_top, text=f'{plabel} API Key Guide', fg='#8fd3ff', bg='#0d1724',
+                 font=('Bahnschrift SemiBold', 16)).pack(anchor='w')
+        _body = tk.Frame(_gw, bg='#0d1724')
+        _body.pack(fill=tk.BOTH, expand=True, padx=16, pady=4)
+        _txt = tk.Text(_body, bg='#0f1b2a', fg='#dce7f4', font=('Consolas', 10),
+                       wrap=tk.WORD, relief=tk.FLAT, bd=0, padx=12, pady=12)
+        _txt.insert(tk.END, text)
+        _txt.config(state=tk.DISABLED)
+        _scroll = tk.Scrollbar(_body, command=_txt.yview, bg='#152238')
+        _txt.config(yscrollcommand=_scroll.set)
+        _scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        _txt.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        _btn_frame = tk.Frame(_gw, bg='#0d1724')
+        _btn_frame.pack(fill=tk.X, padx=16, pady=(4, 12))
+        AB = g.get('AnimatedButton', AnimatedButton)
+        url = _PROVIDER_KEY_URLS.get(pname, '')
+        if url:
+            AB(_btn_frame, 'Open Website', lambda u=url: _wb.open(u), 120, 30,
+               '#244363', '#315f8e', '#66c0f4', '#ffffff',
+               ('Segoe UI Semibold', 10)).pack(side=tk.LEFT, padx=2)
+        AB(_btn_frame, 'Close', _gw.destroy, 80, 30,
+           '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
+           ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=2)
 
     # Find search entry for AI correction overlay
     try:
@@ -5481,7 +5619,7 @@ def install_ui_fixes(g):
     except:
         _srch_entry = None
 
-    # ---- AI Correction + Status overlay (bottom-right) ----
+    # ---- AI Correction + Status overlay (disabled) ----
     _ai_corrected_text = None
     _sb_overlay = tk.Frame(root, bg='#0a0a16', bd=1, relief=tk.SOLID, highlightbackground='#7c6fff', highlightthickness=1)
     _ai_row = tk.Frame(_sb_overlay, bg='#0a0a16')
@@ -5511,7 +5649,7 @@ def install_ui_fixes(g):
     root.after(200, _pos_overlay)
 
     def _show_ai_box(txt):
-        pass  # disabled - was showing weird text above search
+        pass  # disabled
     def _hide_ai_box():
         pass
     def _clk_ai_corrected(e=None):
@@ -5528,6 +5666,31 @@ def install_ui_fixes(g):
             root.after(1500, lambda: _ai_copy.config(text='\U0001f4cb'))
     _ai_lbl.bind('<Button-1>', _clk_ai_corrected)
     _ai_copy.config(command=_copy_corrected)
+
+    try:
+        if _srch_entry:
+            _has_ai_key = any(
+                p.get('api_key', '') and p.get('api_key', '').strip()
+                for p in app.settings.get('providers', {}).values()
+            )
+            _orig_build = app.build_candidate_titles
+            def _patched_build(query, limit, _orig=_orig_build, _root=root, _has_key=_has_ai_key):
+                nonlocal _ai_corrected_text
+                try:
+                    titles, ai_provider, query_mode = _orig(query, limit)
+                    if _has_key and titles and titles[0].lower() != query.lower():
+                        _ai_corrected_text = titles[0]
+                        _root.after(0, lambda t=titles[0]: _show_ai_box(t))
+                    else:
+                        _ai_corrected_text = None
+                        _root.after(0, _hide_ai_box)
+                    return titles, ai_provider, query_mode
+                except Exception:
+                    try: _root.after(0, _hide_ai_box)
+                    except: pass
+                    raise
+            app.build_candidate_titles = _patched_build
+    except: pass
 
     try:
         if _srch_entry:
@@ -5750,11 +5913,9 @@ def install_ui_fixes(g):
                 except: pass
                 app._sidebar = None
             sidebar = tk.Frame(app.root, bg='#06060a', width=64)
-            sidebar.pack(side=tk.LEFT, fill=tk.Y)
+            sidebar.pack(side=tk.LEFT, fill=tk.Y, pady=6)
             app._sidebar = sidebar
-            icons = [
-                ('🎮', lambda: _switch_tab(app, 'steamdb')),
-            ]
+            icons = []
             app._sidebar_btns = []
             for emoji, cmd in icons:
                 btn = tk.Button(sidebar, text=emoji, font=('Segoe UI', 16),
@@ -5772,6 +5933,10 @@ def install_ui_fixes(g):
         for i, btn in enumerate(getattr(app, '_sidebar_btns', [])):
             btn.configure(fg='#7c6fff' if i == idx else '#585878',
                          bg='#0a0a12' if i == idx else '#06060a')
+        _sd_back_btn = getattr(app, '_sd_back_btn', None)
+        if _sd_back_btn:
+            _sd_back_btn.configure(fg='#8fd3ff' if idx != 0 else '#585878',
+                                   bg='#1f3348' if idx != 0 else '#1f3348')
 
     def _switch_tab(app, tab):
         try:
@@ -5779,10 +5944,10 @@ def install_ui_fixes(g):
             _highlight_sidebar_btn(app, 0)
             _sd_bar = getattr(app, '_sd_bar', None)
             if _sd_bar:
-                try: _sd_bar.pack(fill=tk.X, padx=20, pady=(0, 5))
+                try: _sd_bar.pack(fill=tk.X, padx=20, pady=(0, 12))
                 except: pass
             try:
-                app.results_canvas.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 10))
+                app.results_canvas.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 12))
             except: pass
             if hasattr(app, '_steamdb_games'):
                 _steamdb_show_page(app, getattr(app, '_sd_page', 0))
@@ -5896,6 +6061,14 @@ def install_ui_fixes(g):
                         threading.Thread(target=_fetch, daemon=True).start()
                 except Exception as ex:
                     app.log(f'[Refresh] Hata: {ex}')
+            _back_btn = tk.Button(sd_bar, text='\U0001f3ae', bg='#1f3348', fg='#8fd3ff',
+                relief=tk.FLAT, padx=8, pady=1, font=('Segoe UI', 12),
+                activebackground='#2b4b68', activeforeground='#ffffff',
+                cursor='hand2', command=lambda: _switch_tab(app, 'steamdb'))
+            _back_btn.pack(side=tk.LEFT, padx=(0, 2))
+            _back_btn.bind('<Enter>', lambda e: app.status_var.set('Oyun listesine don'))
+            _back_btn.bind('<Leave>', lambda e: app.status_var.set(''))
+            app._sd_back_btn = _back_btn
             _ref_btn = tk.Button(sd_bar, text='\U0001f504', bg='#1f3348', fg='#8fd3ff',
                 relief=tk.FLAT, padx=8, pady=1, font=('Segoe UI', 12),
                 activebackground='#2b4b68', activeforeground='#ffffff',
@@ -5927,7 +6100,7 @@ def install_ui_fixes(g):
             app._sd_viewed = {}
             cinfo = app.results_canvas.pack_info()
             app.results_canvas.pack_forget()
-            sd_bar.pack(fill=tk.X, padx=20, pady=(0, 5))
+            sd_bar.pack(fill=tk.X, padx=20, pady=(0, 12))
             app.results_canvas.pack(**cinfo)
             if games:
                 app._steamdb_games = games
@@ -5949,6 +6122,143 @@ def install_ui_fixes(g):
         except Exception as ex:
             import traceback
             traceback.print_exc()
+
+    # ---- Speedtest Window ----
+    def _run_speedtest(result_callback):
+        def _task():
+            try:
+                import subprocess as _sp, json as _json
+                _r = _sp.run(['speedtest', '--format', 'json', '--accept-license', '--accept-gdpr'],
+                            capture_output=True, text=True, timeout=120)
+                if _r.returncode == 0:
+                    _data = _json.loads(_r.stdout)
+                    _dl = _data.get('download', {}).get('bandwidth', 0) * 8 / 1_000_000
+                    _ul = _data.get('upload', {}).get('bandwidth', 0) * 8 / 1_000_000
+                    _ping = _data.get('ping', {}).get('latency', 0)
+                    _jitter = _data.get('ping', {}).get('jitter', 0)
+                    _srv = _data.get('server', {})
+                    _srv_name = f"{_srv.get('name','?')} ({_srv.get('location','?')})"
+                    _isp = _data.get('isp', '?')
+                    result_callback(True, _ping, _dl, _ul, _jitter, _srv_name, _isp)
+                else:
+                    result_callback(False, 0, 0, 0, 0, _r.stderr[:80], '')
+            except FileNotFoundError:
+                result_callback(False, 0, 0, 0, 0, 'speedtest-cli kurulu degil (pip install speedtest-cli)', '')
+            except Exception as ex:
+                result_callback(False, 0, 0, 0, 0, str(ex)[:80], '')
+        threading.Thread(target=_task, daemon=True).start()
+
+    def _open_speedtest_window(_app):
+        _w = tk.Toplevel(_app.root if hasattr(_app, 'root') else _app)
+        _w.title('Speedtest')
+        _w.geometry('560x620')
+        _w.minsize(440, 440)
+        _w.configure(bg='#0a0e18')
+        _w.resizable(True, True)
+        if hasattr(_app, 'root') and hasattr(_app, 'settings_window'):
+            _w.transient(_app.root)
+
+        _main = tk.Frame(_w, bg='#0a0e18')
+        _main.pack(fill=tk.BOTH, expand=True, padx=20, pady=16)
+
+        # Title
+        _is_tr = getattr(_app, 'settings', {}).get('language', 'tr') == 'tr' if hasattr(_app, 'settings') else True
+        tk.Label(_main, text='\u26a1 Speedtest', fg='#7c6fff', bg='#0a0e18',
+                 font=('Segoe UI', 22, 'bold')).pack(anchor='center', pady=(0, 4))
+        tk.Label(_main, text='H\u0131z testi' if _is_tr else 'Internet connection test',
+                 fg='#585878', bg='#0a0e18',
+                 font=('Segoe UI', 10)).pack(anchor='center', pady=(0, 16))
+
+        # Ping card
+        _ping_card = tk.Frame(_main, bg='#111827', highlightthickness=1, highlightbackground='#1f2937')
+        _ping_card.pack(fill=tk.X, pady=4)
+        _ping_row = tk.Frame(_ping_card, bg='#111827')
+        _ping_row.pack(padx=16, pady=(12, 4))
+        tk.Label(_ping_row, text='PING', fg='#585878', bg='#111827',
+                 font=('Segoe UI', 9, 'bold')).pack(anchor='w')
+        _ping_val = tk.Label(_ping_row, text='-- ms', fg='#48bb78', bg='#111827',
+                             font=('Segoe UI', 28, 'bold'))
+        _ping_val.pack(anchor='w')
+        _jitter_val = tk.Label(_ping_row, text='Jitter: -- ms', fg='#686880', bg='#111827',
+                               font=('Segoe UI', 10))
+        _jitter_val.pack(anchor='w')
+
+        # DL / UL cards side by side
+        _duo = tk.Frame(_main, bg='#0a0e18')
+        _duo.pack(fill=tk.X, pady=4)
+        _dl_card = tk.Frame(_duo, bg='#111827', highlightthickness=1, highlightbackground='#1f2937')
+        _dl_card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, ipadx=8)
+        _dl_inner = tk.Frame(_dl_card, bg='#111827')
+        _dl_inner.pack(padx=16, pady=(12, 8), fill=tk.X)
+        tk.Label(_dl_inner, text='DOWNLOAD', fg='#585878', bg='#111827',
+                 font=('Segoe UI', 9, 'bold')).pack(anchor='w')
+        _dl_val = tk.Label(_dl_inner, text='-- Mbps', fg='#66c0f4', bg='#111827',
+                           font=('Segoe UI', 26, 'bold'))
+        _dl_val.pack(anchor='w')
+        _dl_bar = ttk.Progressbar(_dl_inner, mode='determinate', length=200, maximum=1000)
+        _dl_bar.pack(fill=tk.X, pady=(4, 0))
+
+        _ul_card = tk.Frame(_duo, bg='#111827', highlightthickness=1, highlightbackground='#1f2937')
+        _ul_card.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, ipadx=8, padx=(8, 0))
+        _ul_inner = tk.Frame(_ul_card, bg='#111827')
+        _ul_inner.pack(padx=16, pady=(12, 8), fill=tk.X)
+        tk.Label(_ul_inner, text='UPLOAD', fg='#585878', bg='#111827',
+                 font=('Segoe UI', 9, 'bold')).pack(anchor='w')
+        _ul_val = tk.Label(_ul_inner, text='-- Mbps', fg='#fbbf24', bg='#111827',
+                           font=('Segoe UI', 26, 'bold'))
+        _ul_val.pack(anchor='w')
+        _ul_bar = ttk.Progressbar(_ul_inner, mode='determinate', length=200, maximum=1000)
+        _ul_bar.pack(fill=tk.X, pady=(4, 0))
+
+        # Server / ISP info
+        _info_frame = tk.Frame(_main, bg='#111827', highlightthickness=1, highlightbackground='#1f2937')
+        _info_frame.pack(fill=tk.X, pady=4)
+        _info_inner = tk.Frame(_info_frame, bg='#111827')
+        _info_inner.pack(padx=16, pady=(8, 8), fill=tk.X)
+        _srv_lbl = tk.Label(_info_inner, text='Server: --', fg='#8fb8da', bg='#111827',
+                            font=('Segoe UI', 10))
+        _srv_lbl.pack(anchor='w')
+        _isp_lbl = tk.Label(_info_inner, text='ISP: --', fg='#8fb8da', bg='#111827',
+                            font=('Segoe UI', 10))
+        _isp_lbl.pack(anchor='w')
+
+        # Buttons
+        _btnf = tk.Frame(_main, bg='#0a0e18')
+        _btnf.pack(fill=tk.X, pady=(8, 0))
+        AB_st = g.get('AnimatedButton', AnimatedButton)
+
+        def _start_test():
+            _ping_val.config(text='...', fg='#f6ad55')
+            _jitter_val.config(text='Jitter: ...')
+            _dl_val.config(text='... Mbps', fg='#66c0f4')
+            _ul_val.config(text='... Mbps', fg='#fbbf24')
+            _dl_bar['value'] = 0
+            _ul_bar['value'] = 0
+            _srv_lbl.config(text='Server: Testing...')
+            _isp_lbl.config(text='ISP: ...')
+            def _cb(ok, ping, dl, ul, jitter, srv, isp):
+                def _upd():
+                    if ok:
+                        _ping_val.config(text=f'{ping:.0f} ms', fg='#48bb78' if ping < 50 else ('#fbbf24' if ping < 120 else '#f56565'))
+                        _jitter_val.config(text=f'Jitter: {jitter:.1f} ms')
+                        _dl_val.config(text=f'{dl:.1f} Mbps', fg='#66c0f4')
+                        _ul_val.config(text=f'{ul:.1f} Mbps', fg='#fbbf24')
+                        _dl_bar['value'] = min(1000, int(dl * 10))
+                        _ul_bar['value'] = min(1000, int(ul * 10))
+                        _srv_lbl.config(text=f'Server: {srv}')
+                        _isp_lbl.config(text=f'ISP: {isp}')
+                    else:
+                        _ping_val.config(text='FAIL', fg='#f56565')
+                        _srv_lbl.config(text=f'Error: {srv}')
+                _w.after(0, _upd)
+            _run_speedtest(_cb)
+
+        AB_st(_btnf, 'Testi Baslat', _start_test, 120, 34,
+              '#244363', '#315f8e', '#66c0f4', '#ffffff',
+                ('Segoe UI', 10)).pack(side=tk.LEFT, padx=(0, 6))
+        AB_st(_btnf, 'Kapat', _w.destroy, 100, 34,
+              '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
+              ('Segoe UI', 10)).pack(side=tk.LEFT)
 
     # Style existing scrollbars
     def _style_scrollbars(widget):

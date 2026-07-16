@@ -7,6 +7,9 @@ build/
 __pycache__/
 *.pyc
 
+# Executables
+*.exe
+
 # Tokens / secrets
 tokens/
 .github_token
@@ -26,3 +29,8 @@ Desktop.ini
 !bypass/SteamToolsLua.py
 SUMMARY.md
 _extract_cmds.txt
+
+# SteamDB ve diğer önbellek dosyalarını engelle
+*cache*
+cache/
+temp/
