@@ -5108,7 +5108,7 @@ def install_ui_fixes(g):
         def _open_yt():
             import webbrowser
             webbrowser.open('https://www.youtube.com/@oWL-Nexial')
-        AB(_ver_frame, _tr(self, 'button.youtube'), _open_yt, 80, 30,
+        AB(_ver_frame, 'YouTube 1', _open_yt, 90, 30,
            '#8b0000', '#cc0000', '#ffffff', '#ffffff',
            ('Segoe UI Black', 11)).pack(side=tk.LEFT, padx=(8, 0))
 
