@@ -777,6 +777,16 @@ def main():
 
 def install_ui_fixes(g):
     """Install UI patches into the main application globals."""
+    try:
+        from ctypes import windll
+        windll.shcore.SetProcessDpiAwareness(1)
+        _root_app = g.get('app')
+        if _root_app and hasattr(_root_app, 'root'):
+            _dpi = _root_app.root.winfo_fpixels('1i')
+            _scale = _dpi / 72.0
+            _root_app.root.tk.call('tk', 'scaling', _scale)
+    except:
+        pass
     tk = g['tk']
     Image = g['Image']
     ImageDraw = g['ImageDraw']
@@ -3897,192 +3907,260 @@ def install_ui_fixes(g):
         window = tk.Toplevel(self.root)
         self.settings_window = window
         window.title(self.tr('settings.window_title'))
-        _sw = min(960, window.winfo_screenwidth() - 80)
-        _sh = min(960, window.winfo_screenheight() - 40)
+        _sw = min(1380, window.winfo_screenwidth() - 80)
+        _sh = min(720, window.winfo_screenheight() - 40)
         window.geometry(f'{_sw}x{_sh}')
-        window.minsize(640, 700)
+        window.minsize(1100, 600)
         window.resizable(True, True)
         window.configure(bg='#0d1724')
         window.transient(self.root)
 
-        # Title
-        tk.Label(window, text=self.tr('settings.title'),
-                 font=('Bahnschrift SemiBold', 20), fg='#f7fafc', bg='#0d1724',
-                  anchor='w').pack(anchor='w', padx=16, pady=(10, 2))
+        _p = tk.Frame(window, bg='#0d1724')
+        _p.pack(fill=tk.BOTH, expand=True)
 
-        tk.Label(window, text=self.tr('settings.chain_info'),
-                 font=('Segoe UI', 10), fg='#97afc6', bg='#0d1724',
-                 anchor='w', wraplength=700, justify='left').pack(fill=tk.X, padx=16, pady=(0, 8))
+        _lang = self.settings.get('language', 'tr')
+        _is_tr = _lang == 'tr'
+        _t = lambda tr, en: tr if _is_tr else en
 
-        _settings_page = tk.Frame(window, bg='#0d1724')
-        _settings_page.pack(fill=tk.BOTH, expand=True)
-        _p = _settings_page
+        AB = g.get('AnimatedButton', AnimatedButton)
 
-        # Route + language row
-        route_frame = tk.Frame(_p, bg='#0d1724')
-        route_frame.pack(fill=tk.X, padx=16)
-        tk.Label(route_frame, text=self.tr('settings.route'),
-                 font=('Segoe UI', 10), fg='#dce7f4', bg='#0d1724').pack(side=tk.LEFT)
+        row_vars = {}
+
         route_display = {}
         for k in ROUTE_KEYS:
             route_display[self.route_text(k)] = k
         route_var = tk.StringVar(value=self.route_text(self.settings.get('ai_route', 'auto')))
-        ttk.Combobox(route_frame, textvariable=route_var,
-                      values=list(route_display.keys()),
-                      width=28, state='readonly', style='Dark.TCombobox').pack(side=tk.LEFT, padx=8)
-        tk.Label(route_frame, text=self.tr('settings.language'),
-                 font=('Segoe UI', 10), fg='#dce7f4', bg='#0d1724').pack(side=tk.LEFT, padx=(16, 4))
         language_value_to_key = {}
         for code, label in g.get('LANGUAGE_OPTIONS', [('tr', 'T\u00fcrk\u00e7e')]):
             language_value_to_key[label] = code
         lang_key = self.settings.get('language', 'tr')
         current_value = g.get('LANGUAGE_LABELS', {}).get(lang_key, 'T\u00fcrk\u00e7e')
         language_var = tk.StringVar(value=current_value)
-        ttk.Combobox(route_frame, textvariable=language_var,
-                      values=list(language_value_to_key.keys()),
-                      width=28, state='readonly', style='Dark.TCombobox').pack(side=tk.LEFT, padx=4)
-
-        # Developer / Console checkboxes
-        dev_frame = tk.Frame(_p, bg='#0d1724')
-        dev_frame.pack(fill=tk.X, padx=16, pady=4)
         developer_var = tk.BooleanVar(value=bool(self.settings.get('developer_mode', False)))
         console_var = tk.BooleanVar(value=bool(self.settings.get('console_visible', False)))
-        tk.Checkbutton(dev_frame, text=self.tr('settings.developer'),
-                       variable=developer_var, bg='#13263a',
+
+        # Compact header: Title | Route▾ | Lang▾ | Dev☐ | Console☐
+        _hdr = tk.Frame(_p, bg='#0d1724')
+        _hdr.pack(fill=tk.X, padx=12, pady=(6, 2))
+        tk.Label(_hdr, text='Settings', font=('Bahnschrift SemiBold', 16), fg='#f7fafc', bg='#0d1724').pack(side=tk.LEFT, padx=(0, 10))
+        tk.Label(_hdr, text='Route', font=('Segoe UI', 11), fg='#dce7f4', bg='#0d1724').pack(side=tk.LEFT)
+        ttk.Combobox(_hdr, textvariable=route_var, values=list(route_display.keys()),
+                     width=16, state='readonly', style='Dark.TCombobox').pack(side=tk.LEFT, padx=3)
+        tk.Label(_hdr, text='Lang', font=('Segoe UI', 11), fg='#dce7f4', bg='#0d1724').pack(side=tk.LEFT, padx=(6, 2))
+        ttk.Combobox(_hdr, textvariable=language_var, values=list(language_value_to_key.keys()),
+                     width=14, state='readonly', style='Dark.TCombobox').pack(side=tk.LEFT, padx=3)
+        tk.Checkbutton(_hdr, text='Developer', variable=developer_var, bg='#13263a',
                        activebackground='#13263a', selectcolor='#0d1724',
-                       fg='#dce7f4', font=('Segoe UI', 10)).pack(side=tk.LEFT)
-        tk.Checkbutton(dev_frame, text=self.tr('settings.console'),
-                       variable=console_var, bg='#13263a',
+                       fg='#dce7f4', font=('Segoe UI', 11)).pack(side=tk.LEFT, padx=(8, 2))
+        tk.Checkbutton(_hdr, text='Console', variable=console_var, bg='#13263a',
                        activebackground='#13263a', selectcolor='#0d1724',
-                       fg='#dce7f4', font=('Segoe UI', 10)).pack(side=tk.LEFT, padx=16)
-        # ---- AI API Keys section ----
-        row_vars = {}
+                       fg='#dce7f4', font=('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+
+        # Middle: AI API Keys (left) | Tools (right) side-by-side
+        _mid_row = tk.Frame(_p, bg='#0d1724')
+        _mid_row.pack(fill=tk.BOTH, expand=True, padx=12, pady=(2, 2))
+
+        # -- Left: AI API Keys --
+        _ai_box = tk.Frame(_mid_row, bg='#152238', highlightthickness=1, highlightbackground='#1f3448')
+        _ai_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 6))
+        _ai_inner = tk.Frame(_ai_box, bg='#152238')
+        _ai_inner.pack(fill=tk.BOTH, expand=True, padx=6, pady=4)
+        tk.Label(_ai_inner, text='AI API Keys', fg='#8fd3ff', bg='#152238',
+                 font=('Segoe UI', 12, 'bold')).pack(anchor='w')
+        _provider_keys = {'groq': 'https://console.groq.com/keys',
+                          'openrouter': 'https://openrouter.ai/keys',
+                          'huggingface': 'https://huggingface.co/settings/tokens'}
         if PROVIDER_ORDER:
-            _ai_frame = tk.Frame(_p, bg='#0d1724')
-            _ai_frame.pack(fill=tk.X, padx=16, pady=(4, 0))
-            tk.Label(_ai_frame, text='AI API Keys', fg='#8fd3ff', bg='#0d1724',
-                     font=('Segoe UI Semibold', 11)).pack(anchor='w')
-            _ai_note = tk.Frame(_p, bg='#0d1724')
-            _ai_note.pack(fill=tk.X, padx=16, pady=(0, 4))
-            tk.Label(_ai_note, text=_tr(self, 'settings.ai_key_note'),
-                     fg='#97afc6', bg='#0d1724', font=('Segoe UI', 8)).pack(anchor='w')
-            _provider_keys = {'groq': 'https://console.groq.com/keys',
-                              'openrouter': 'https://openrouter.ai/keys',
-                              'huggingface': 'https://huggingface.co/settings/tokens'}
             for _pname in PROVIDER_ORDER:
                 _plabel = PROVIDER_LABELS.get(_pname, _pname)
                 _pdata = self.settings.get('providers', {}).get(_pname, PROVIDER_DEFAULTS.get(_pname, {}))
                 _pk_var = tk.StringVar(value=_pdata.get('api_key', ''))
                 row_vars[_pname] = (_pk_var,)
-                _pr = tk.Frame(_p, bg='#152238')
-                _pr.pack(fill=tk.X, padx=20, pady=3)
-                _pr.columnconfigure(2, weight=1)
+                _pr = tk.Frame(_ai_inner, bg='#152238')
+                _pr.pack(fill=tk.X, pady=3)
+                _pr.columnconfigure(1, weight=1)
                 _has_key = bool(_pk_var.get().strip())
-                _dot = tk.Label(_pr, text='●', fg='#48bb78' if _has_key else '#555555',
-                                bg='#152238', font=('Segoe UI', 12))
-                _dot.grid(row=0, column=0, padx=(8, 4), pady=6, sticky='w')
+                tk.Label(_pr, text='\u25cf', fg='#48bb78' if _has_key else '#555555',
+                         bg='#152238', font=('Segoe UI', 12)).pack(side=tk.LEFT, padx=(0, 4))
                 tk.Label(_pr, text=_plabel, fg='#dce7f4', bg='#152238', anchor='w',
-                         width=14, font=('Segoe UI', 10)).grid(row=0, column=1, padx=(0, 6), pady=6, sticky='w')
-                _key_entry = tk.Entry(_pr, textvariable=_pk_var, relief=tk.FLAT, width=15,
+                         width=12, font=('Segoe UI', 11)).pack(side=tk.LEFT)
+                _key_entry = tk.Entry(_pr, textvariable=_pk_var, relief=tk.FLAT, width=10,
                          bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
-                         font=('Segoe UI', 9), show='*')
-                _key_entry.grid(row=0, column=2, padx=2, pady=4, sticky='ew')
-                _eye_btn = tk.Button(_pr, text='👁', relief=tk.FLAT, bd=0,
-                        bg='#152238', fg='#888888', cursor='hand2', font=('Segoe UI', 10),
+                         font=('Segoe UI', 11), show='*')
+                _key_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=2)
+                _eye_btn = tk.Button(_pr, text='\U0001f441', relief=tk.FLAT, bd=0,
+                        bg='#152238', fg='#888888', cursor='hand2', font=('Segoe UI', 11),
                         activebackground='#1e2f4a', activeforeground='#ffffff')
-                _eye_btn.grid(row=0, column=3, padx=(2, 4), pady=4)
+                _eye_btn.pack(side=tk.LEFT, padx=1)
                 def _toggle_show(e=None, eb=_key_entry, eb2=_eye_btn):
                     if eb.cget('show') == '*':
-                        eb.config(show='')
-                        eb2.config(text='👁‍🗨')
+                        eb.config(show=''); eb2.config(text='\U0001f441\u200d\U0001f5e8')
                     else:
-                        eb.config(show='*')
-                        eb2.config(text='👁')
+                        eb.config(show='*'); eb2.config(text='\U0001f441')
                 _eye_btn.config(command=_toggle_show)
                 def _open_prov_guide(p=_pname, pl=_plabel):
-                    lang = self.settings.get('language', 'tr')
-                    _open_provider_guide_window(window, p, pl, lang)
-                AB = g.get('AnimatedButton', AnimatedButton)
-                AB(_pr, '?', _open_prov_guide, 22, 22,
+                    _open_provider_guide_window(window, p, pl, self.settings.get('language', 'tr'))
+                AB(_pr, '?', _open_prov_guide, 28, 28,
                    '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
-                   ('Segoe UI Semibold', 8)).grid(row=0, column=4, padx=(2, 2), pady=4)
-                AB(_pr, 'Get Key', _open_prov_guide, 50, 22,
+                   ('Segoe UI Semibold', 10)).pack(side=tk.LEFT, padx=1)
+                AB(_pr, 'Key', _open_prov_guide, 36, 28,
                    '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
-                   ('Segoe UI Semibold', 8)).grid(row=0, column=5, padx=(0, 6), pady=4)
+                   ('Segoe UI Semibold', 10)).pack(side=tk.LEFT)
 
-        # ---- Tools section ----
-        tools_frame = tk.Frame(_p, bg='#0d1724')
-        tools_frame.pack(fill=tk.X, padx=16, pady=(4, 1))
-        tk.Label(tools_frame, text='Tools',
-                 fg='#8fd3ff', bg='#0d1724',
-                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
-        AB = g.get('AnimatedButton', AnimatedButton)
+        # -- Right: Tools (ALL buttons here, no separate _add_tools_section) --
+        _tools_box = tk.Frame(_mid_row, bg='#152238', highlightthickness=1, highlightbackground='#1f3448')
+        _tools_box.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        _t_inner = tk.Frame(_tools_box, bg='#152238')
+        _t_inner.pack(fill=tk.BOTH, expand=True, padx=6, pady=4)
+        tk.Label(_t_inner, text='Tools', fg='#8fd3ff', bg='#152238',
+                 font=('Segoe UI', 12, 'bold')).pack(anchor='w')
 
-        _tr1 = tk.Frame(_p, bg='#0d1724')
-        _tr1.pack(fill=tk.X, padx=16, pady=(0, 2))
-        _tr2 = tk.Frame(_p, bg='#0d1724')
-        _tr2.pack(fill=tk.X, padx=16, pady=(0, 4))
-
-        # ? Guide button
-        AB(_tr1, '?', lambda: _open_guide(self), 36, 28,
+        # Tools Row A: Update, Nickname, Reset, Achievements, Speedtest
+        def _change_nickname():
+            _hw2 = _get_hwid().lower()
+            _cur = _MY_NICKNAME.get('nickname', '')
+            _dlg2 = tk.Toplevel(window)
+            _dlg2.title(_t('Nickname Degistir', 'Change Nickname'))
+            _dlg2.geometry('380x200')
+            _dlg2.configure(bg='#0d1724')
+            _dlg2.resizable(False, False)
+            _dlg2.transient(window)
+            _dlg2.grab_set()
+            _dlg2.protocol('WM_DELETE_WINDOW', _dlg2.destroy)
+            _dlg2.bind('<Escape>', lambda e: _dlg2.destroy())
+            tk.Label(_dlg2, text=_t('Yeni nickname:', 'New nickname:'),
+                     fg='#f7fafc', bg='#0d1724', font=('Segoe UI', 14, 'bold')).pack(pady=(20, 4))
+            tk.Label(_dlg2, text=f'HWID: {_hw2[:16]}...  ({_cur})',
+                     fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(pady=(0, 8))
+            _entry2 = tk.Entry(_dlg2, font=('Segoe UI', 12), bg='#122235', fg='#f7fafc',
+                               insertbackground='#7c6fff', relief=tk.FLAT, bd=8, justify='center')
+            _entry2.pack(padx=20, fill=tk.X, pady=(0, 10))
+            _entry2.focus_set()
+            _err_lbl2 = tk.Label(_dlg2, text='', fg='#f56565', bg='#0d1724', font=('Segoe UI', 9))
+            _err_lbl2.pack()
+            _new_val = ['']
+            def _submit2():
+                _v = _entry2.get().strip()
+                if not _v:
+                    _err_lbl2.config(text=_t('Nickname bos gecilemez!', 'Nickname cannot be empty!'))
+                    return
+                _err_lbl2.config(text='')
+                _new_val[0] = _v
+                _dlg2.destroy()
+                def _save_nick(_nv):
+                    try:
+                        _tk5 = ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
+                        _r6 = __import__('requests').get(f'https://api.github.com/gists/{_ADMIN_GIST}',
+                            headers={'Authorization': f'token {_tk5}', 'User-Agent': 'SteamToolsLua'}, timeout=8)
+                        _nd6 = {}
+                        if _r6.status_code == 200:
+                            _nf6 = _r6.json().get('files', {}).get('nicknames.json', {}).get('content', '')
+                            if _nf6:
+                                try: _nd6 = json.loads(_nf6)
+                                except: pass
+                        _nd6[_hw2] = {'nickname': _nv}
+                        __import__('requests').patch(f'https://api.github.com/gists/{_ADMIN_GIST}',
+                            json={"files": {"nicknames.json": {"content": json.dumps(_nd6, indent=2, ensure_ascii=False)}}},
+                            headers={'Authorization': f'token {_tk5}', 'User-Agent': 'SteamToolsLua'}, timeout=10)
+                        _MY_NICKNAME['nickname'] = _nv
+                    except: pass
+                threading.Thread(target=_save_nick, args=(_new_val[0],), daemon=True).start()
+            _entry2.bind('<Return>', lambda e: _submit2())
+            AB3 = g.get('AnimatedButton', AnimatedButton)
+            AB3(_dlg2, _t('Kaydet', 'Save'), _submit2, 120, 34,
+                '#244363', '#315f8e', '#66c0f4', '#ffffff',
+                ('Segoe UI Semibold', 10)).pack(pady=6)
+        def _reset_licenses():
+            if not tk.messagebox.askyesno(_t('Reset Licenses', 'Reset Licenses'),
+                _t('Tum ZIPleri used klasorunden cikarip Steam cache silinecek. Devam?',
+                   'Move all ZIPs from used/ and delete Steam cache. Continue?'),
+                parent=window): return
+            def _task():
+                try:
+                    _gd = Path(self.settings.get('new_games_folder', ''))
+                    if _gd.is_dir():
+                        _used = _gd / 'used'
+                        if _used.is_dir():
+                            for _z in _used.glob('*.zip'):
+                                try: shutil.move(str(_z), str(_gd / _z.name))
+                                except: pass
+                    _ac = Path('C:\\Program Files (x86)\\Steam\\appcache')
+                    for _f in ('appinfo.vdf', 'packageinfo.vdf'):
+                        _fp = _ac / _f
+                        if _fp.exists(): _fp.unlink()
+                except: pass
+            threading.Thread(target=_task, daemon=True).start()
+        _trow_a = tk.Frame(_t_inner, bg='#152238')
+        _trow_a.pack(fill=tk.X, pady=2)
+        AB(_trow_a, _t('Guncelle', 'Update'), _launch_updater, 100, 36,
+           '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        AB(_trow_a, _t('Nickname', 'Nickname'), _change_nickname, 100, 36,
            '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 11)).pack(side=tk.LEFT, padx=(0, 6))
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        AB(_trow_a, _t('Reset Licenses', 'Reset Licenses'), _reset_licenses, 110, 36,
+           '#8b0000', '#b22222', '#f56565', '#ffffff',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        AB(_trow_a, _t('Basarimlar', 'Achievements'), self._open_game_picker, 105, 36,
+           '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        AB(_trow_a, '\u26a1 Speedtest', lambda: _open_speedtest_window(self), 95, 36,
+           '#3b2d5e', '#5a3d8e', '#b088ff', '#ffffff',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
 
-        # Install Millenium
-        _mill_light = tk.Label(_tr1, text="\u25cf", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
-        _mill_light.pack(side=tk.LEFT, padx=(0, 3))
+        # Tools Row B: ?, Millenium, LuaTools, Launch ST, Restart ST
+        _trow_b = tk.Frame(_t_inner, bg='#152238')
+        _trow_b.pack(fill=tk.X, pady=2)
+        AB(_trow_b, '?', lambda: _open_guide(self), 32, 36,
+           '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
+           ('Segoe UI Black', 12)).pack(side=tk.LEFT, padx=2)
+        _mill_light = tk.Label(_trow_b, text="\u25cf", fg='#666666', bg='#152238', font=('Segoe UI', 14))
+        _mill_light.pack(side=tk.LEFT, padx=(0, 2))
         def _run_mill():
             self._run_headless_powershell(
                 'iex "& { $(irm \'https://clemdotla.github.io/millennium-installer-ps1/millennium.ps1\') } -NoLog -DontStart"',
-                "Install Millenium", _mill_light
-            )
-        AB(_tr1, _tr(self, 'button.install_millenium'), _run_mill,
-           110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
-        # LuaTools Installer
-        _lua_light = tk.Label(_tr1, text="\u25cf", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
-        _lua_light.pack(side=tk.LEFT, padx=(0, 3))
+                "Install Millenium", _mill_light)
+        AB(_trow_b, 'Millenium', _run_mill, 95, 36,
+           '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        _lua_light = tk.Label(_trow_b, text="\u25cf", fg='#666666', bg='#152238', font=('Segoe UI', 14))
+        _lua_light.pack(side=tk.LEFT, padx=(0, 2))
         def _run_lua():
             self._run_headless_powershell(
                 'irm "https://luatools.vercel.app/install-plugin.ps1" | iex',
-                "LuaTools Installer", _lua_light
-            )
-        AB(_tr1, _tr(self, 'button.luatools_installer'), _run_lua,
-           110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
-        # Launch SteamTools
-        _launch_light = tk.Label(_tr1, text="\u25cf", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
-        _launch_light.pack(side=tk.LEFT, padx=(0, 3))
+                "LuaTools Installer", _lua_light)
+        AB(_trow_b, 'LuaTools', _run_lua, 92, 36,
+           '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        _launch_light = tk.Label(_trow_b, text="\u25cf", fg='#666666', bg='#152238', font=('Segoe UI', 14))
+        _launch_light.pack(side=tk.LEFT, padx=(0, 2))
         def _run_launch():
             self._run_headless_powershell(
                 'if (Test-Path "C:\\Program Files\\SteamTools\\SteamTools.exe") { Start-Process "C:\\Program Files\\SteamTools\\SteamTools.exe" } else { Write-Host "SteamTools.exe not found"; exit 1 }',
-                "Launch SteamTools", _launch_light
-            )
-        AB(_tr1, _tr(self, 'button.launch_steamtools'), _run_launch,
-           110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
-        # Restart Steam
-        _restart_light = tk.Label(_tr1, text="\u25cf", fg='#666666', bg='#0d1724', font=('Segoe UI', 12))
-        _restart_light.pack(side=tk.LEFT, padx=(0, 3))
+                "Launch SteamTools", _launch_light)
+        AB(_trow_b, 'Launch ST', _run_launch, 95, 36,
+           '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        _restart_light = tk.Label(_trow_b, text="\u25cf", fg='#666666', bg='#152238', font=('Segoe UI', 14))
+        _restart_light.pack(side=tk.LEFT, padx=(0, 2))
         def _run_restart():
             def _task():
                 try:
-                    self.log("Steam kapatılıyor...")
+                    self.log("Steam kapatiliyor...")
                     self._set_indicator(_tr(self, 'indicator.steam_stop'), 'working')
                     _restart_light.config(fg='#f6ad55')
-                    _subprocess.run(["taskkill", "/f", "/im", "steam.exe"],
-                                    capture_output=True, timeout=15)
+                    _subprocess.run(["taskkill", "/f", "/im", "steam.exe"], capture_output=True, timeout=15)
                     _time.sleep(5)
-                    self.log("Steam başlatılıyor...")
+                    self.log("Steam baslatiliyor...")
                     self._set_indicator(_tr(self, 'indicator.steam_start'), 'working')
                     _subprocess.Popen(["C:\\Program Files (x86)\\Steam\\steam.exe"],
                                       startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
-                    self.log("Steam yeniden başlatıldı.")
+                    self.log("Steam yeniden baslatildi.")
                     self._set_indicator('Steam OK', 'online')
                     _restart_light.config(fg='#48bb78')
                     _play_sound('done')
                 except _subprocess.TimeoutExpired:
-                    self.log("Steam kapatılırken zaman aşımı")
+                    self.log("Steam kapatilirken zaman asimi")
                     self._set_indicator('Steam timeout', 'offline')
                     _restart_light.config(fg='#f56565')
                 except Exception as e:
@@ -4092,18 +4170,18 @@ def install_ui_fixes(g):
                     _play_sound('error')
             threading.Thread(target=_task, daemon=True).start()
             _play_sound('start')
-        AB(_tr1, _tr(self, 'button.restart_steam'), _run_restart,
-           110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
+        AB(_trow_b, 'Restart ST', _run_restart, 100, 36,
+           '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
 
-        # Row 2: CloudRedirect, Inject OF, Outside Games Inject
-        # CloudRedirect (check exist -> ask -> download -> launch, track proc)
-        def _track_cr(_p):
+        # Tools Row C: CloudRedirect, Inject OF, Outside Games, WEDownloader
+        _trow_c = tk.Frame(_t_inner, bg='#152238')
+        _trow_c.pack(fill=tk.X, pady=2)
+        def _track_cr(_cp):
             _list = g.get('_cr_procs')
             if _list is None:
                 _list = []; g['_cr_procs'] = _list
-            _list.append(_p)
-
+            _list.append(_cp)
         def _run_cloudredirect():
             _cr_dir = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / "CloudRedirect"
             _cr_exe = _cr_dir / "CloudRedirect.exe"
@@ -4127,47 +4205,38 @@ def install_ui_fixes(g):
                     _asset = None
                     for _a in _r.json().get('assets', []):
                         if _a.get('name', '').lower().endswith('.exe'):
-                            _asset = _a
-                            break
+                            _asset = _a; break
                     if not _asset:
                         self._set_indicator('CloudRedirect hata: .exe bulunamadi', 'offline')
                         return
                     _dl = _req.get(_asset['browser_download_url'], timeout=120, stream=True)
                     with open(str(_cr_exe), 'wb') as _f:
                         for _chunk in _dl.iter_content(8192):
-                            if _chunk:
-                                _f.write(_chunk)
+                            if _chunk: _f.write(_chunk)
                     self._set_indicator('CloudRedirect hazir', 'online')
                     import subprocess as _sp
                     _track_cr(_sp.Popen([str(_cr_exe)]))
                 except Exception as _ex:
                     self._set_indicator('CloudRedirect hata: ' + str(_ex), 'offline')
             _cr_thr.Thread(target=_task, daemon=True).start()
-        AB(_tr2, 'CloudRedirect', _run_cloudredirect,
-            110, 28, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
-        # Inject OF (browser UI like Inject All)
-        AB(_tr2, _tr(self, 'button.inject_of'), self._inject_of_browser,
-            110, 28, '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
-            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
-        # Outside Games Inject
+        AB(_trow_c, 'CloudRedirect', _run_cloudredirect, 110, 36,
+           '#244363', '#315f8e', '#66c0f4', '#ffffff',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        AB(_trow_c, 'Inject OF', self._inject_of_browser, 90, 36,
+           '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
         def _og_inject():
-            _th = __import__('threading')
-            _th.Thread(target=_inject_outside_games, daemon=True).start()
+            __import__('threading').Thread(target=_inject_outside_games, daemon=True).start()
             _messagebox.showinfo('Outside Games',
                 'Inject baslatildi. Depotcache, stplug-in ve oyun klasorlerine kopyalaniyor.')
-        AB(_tr2, 'Outside Games Inject', _og_inject, 140, 28,
+        AB(_trow_c, 'Outside Games', _og_inject, 115, 36,
            '#244363', '#315f8e', '#66c0f4', '#f7fafc',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
-
-        # Row 3: WEDownloader
-        _tr3 = tk.Frame(_w, bg='#0d1724')
-        _tr3.pack(fill=tk.X, padx=16, pady=(2, 2))
-        def _track_we(_p):
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        def _track_we(_wp):
             _list = g.get('_we_procs')
             if _list is None:
                 _list = []; g['_we_procs'] = _list
-            _list.append(_p)
+            _list.append(_wp)
         def _run_wedownloader():
             _we_dir = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / "WEDownloader"
             _we_exe = _we_dir / "WEDownloader.exe"
@@ -4191,53 +4260,51 @@ def install_ui_fixes(g):
                     _asset = None
                     for _a in _r.json().get('assets', []):
                         if _a.get('name', '').lower() == 'wedownloader.exe':
-                            _asset = _a
-                            break
+                            _asset = _a; break
                     if not _asset:
                         self._set_indicator('WE Downloader hata: .exe bulunamadi', 'offline')
                         return
                     _dl = _req.get(_asset['browser_download_url'], timeout=120, stream=True)
                     with open(str(_we_exe), 'wb') as _f:
                         for _chunk in _dl.iter_content(8192):
-                            if _chunk:
-                                _f.write(_chunk)
+                            if _chunk: _f.write(_chunk)
                     self._set_indicator('WE Downloader hazir', 'online')
                     import subprocess as _sp
                     _track_we(_sp.Popen([str(_we_exe)]))
                 except Exception as _ex:
                     self._set_indicator('WE Downloader hata: ' + str(_ex), 'offline')
             _we_thr.Thread(target=_task, daemon=True).start()
-        AB(_tr3, 'WE Downloader', _run_wedownloader,
-            120, 28, '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
-            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
+        AB(_trow_c, 'WE Downloader', _run_wedownloader, 115, 36,
+           '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
 
         # ---- Save Path ----
         _sv_frame = tk.Frame(_p, bg='#0d1724')
         _sv_frame.pack(fill=tk.X, padx=16, pady=(2, 1))
         tk.Label(_sv_frame, text='Save Path', fg='#8fd3ff', bg='#0d1724',
-                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
+                 font=('Segoe UI Semibold', 12)).pack(anchor='w')
         _sv_row = tk.Frame(_p, bg='#0d1724')
         _sv_row.pack(fill=tk.X, padx=16, pady=(0, 2))
         _saved = self.settings.get('save_path', '') or self.settings.get('new_games_folder', '')
         _sv_var = tk.StringVar(value=_saved)
         SV_AB = g.get('AnimatedButton', AnimatedButton)
-        tk.Entry(_sv_row, textvariable=_sv_var, width=60, relief=tk.FLAT,
+        tk.Entry(_sv_row, textvariable=_sv_var, width=50, relief=tk.FLAT,
                  bg='#0f1b2a', fg='#f7fafc', insertbackground='#8fd3ff',
-                 font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=(0, 6))
+                 font=('Segoe UI', 11)).pack(side=tk.LEFT, padx=(0, 6))
         def _browse_sv():
             import tkinter.filedialog as _fd
             _d = _fd.askdirectory(title='Sec: 1 New Games', initialdir=_sv_var.get() or str(Path.home() / 'Desktop'))
             if _d:
                 _sv_var.set(_d)
-        AB(_sv_row, 'Gözat', _browse_sv, 60, 28,
+        AB(_sv_row, 'Gözat', _browse_sv, 80, 36,
             '#244363', '#315f8e', '#66c0f4', '#ffffff',
-            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT)
+            ('Segoe UI Semibold', 11)).pack(side=tk.LEFT)
 
         # ---- Folder quick access ----
         _folder_frame = tk.Frame(_p, bg='#0d1724')
         _folder_frame.pack(fill=tk.X, padx=16, pady=(2, 1))
         tk.Label(_folder_frame, text='Klas\u00f6rler', fg='#8fd3ff', bg='#0d1724',
-                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
+                 font=('Segoe UI Semibold', 12)).pack(anchor='w')
         _folder_row = tk.Frame(_p, bg='#0d1724')
         _folder_row.pack(fill=tk.X, padx=16, pady=(0, 2))
         def _open_subfolder(name):
@@ -4247,10 +4314,9 @@ def install_ui_fixes(g):
             try: _os.startfile(str(_target))
             except: _subprocess.Popen(['explorer', str(_target)])
         for _fname, _flabel in [('Setups', 'Setups'), ('Online Fixes', 'Online Fixes'), ('Game Files', 'Oyun Dosyalar\u0131')]:
-            AB(_folder_row, _flabel, lambda n=_fname: _open_subfolder(n), 100, 28,
+            AB(_folder_row, _flabel, lambda n=_fname: _open_subfolder(n), 110, 36,
                '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
-               ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 6))
-        # Delete Old Version button
+               ('Segoe UI Semibold', 11)).pack(side=tk.LEFT, padx=(0, 6))
         def _del_old_ver():
             if not getattr(sys, 'frozen', False): return
             _me = Path(sys.argv[0]).resolve()
@@ -4268,15 +4334,15 @@ def install_ui_fixes(g):
                     try: (_dir / _f).unlink()
                     except: pass
                 _messagebox.showinfo('Delete Old Version', 'Deleted.')
-        AB(_folder_row, _tr(self, 'button.del_old'), _del_old_ver, 80, 28,
+        AB(_folder_row, _tr(self, 'button.del_old'), _del_old_ver, 95, 36,
            '#4a1a2a', '#6a2a3a', '#ff6b6b', '#ffffff',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(6, 0))
+           ('Segoe UI Semibold', 11)).pack(side=tk.LEFT, padx=(6, 0))
 
         # ---- Library (zip-based, appid from lua filename) ----
         lib_frame = tk.Frame(_p, bg='#0d1724')
         lib_frame.pack(fill=tk.X, padx=16, pady=(2, 1))
         tk.Label(lib_frame, text=_tr(self, 'library.title'), fg='#8fd3ff', bg='#0d1724',
-                 font=('Segoe UI Semibold', 11)).pack(anchor='w')
+                 font=('Segoe UI Semibold', 12)).pack(anchor='w')
         lib_row = tk.Frame(_p, bg='#0d1724')
         lib_row.pack(fill=tk.X, padx=16, pady=(0, 2))
         import threading as _lib_thr
@@ -5042,9 +5108,9 @@ def install_ui_fixes(g):
         def _open_yt():
             import webbrowser
             webbrowser.open('https://www.youtube.com/@oWL-Nexial')
-        AB(_ver_frame, _tr(self, 'button.youtube'), _open_yt, 70, 26,
+        AB(_ver_frame, _tr(self, 'button.youtube'), _open_yt, 80, 30,
            '#8b0000', '#cc0000', '#ffffff', '#ffffff',
-           ('Segoe UI Black', 10)).pack(side=tk.LEFT, padx=(8, 0))
+           ('Segoe UI Black', 11)).pack(side=tk.LEFT, padx=(8, 0))
 
         def save_and_close():
             self.settings['ai_route'] = route_display.get(route_var.get(), 'auto')
@@ -5074,13 +5140,12 @@ def install_ui_fixes(g):
             window.destroy()
 
         AnimatedButton(footer, self.tr('button.save'), save_and_close,
-                       150, 36, '#244363', '#315f8e', '#66c0f4', '#ffffff',
-                       ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT, padx=(8, 0))
+                       160, 40, '#244363', '#315f8e', '#66c0f4', '#ffffff',
+                       ('Segoe UI Semibold', 11)).pack(side=tk.RIGHT, padx=(8, 0))
         AnimatedButton(footer, self.tr('button.close'), window.destroy,
-                       110, 36, '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
-                       ('Segoe UI Semibold', 10)).pack(side=tk.RIGHT)
+                       120, 40, '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
+                       ('Segoe UI Semibold', 11)).pack(side=tk.RIGHT)
         footer.pack(fill=tk.X, padx=16, pady=(0, 10))
-        _add_tools_section(_p, self)
 
     SteamApp.open_settings_window = open_settings_window_from_pyw
 
