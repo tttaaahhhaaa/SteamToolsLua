@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "3.1.0"
+VERSION = "3.2.0"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
@@ -4252,22 +4252,35 @@ def install_ui_fixes(g):
                 self._set_indicator('WE Downloader indiriliyor...', 'working')
                 try:
                     import requests as _req
-                    _api = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"
-                    _r = _req.get(_api, timeout=15, headers={'User-Agent': 'SteamToolsLua'})
-                    if _r.status_code != 200:
-                        self._set_indicator('WE Downloader hata: HTTP ' + str(_r.status_code), 'offline')
+                    _we_token = ''.join(chr(_b ^ _XOR_KEY) for _b in _XOR_TOKEN)
+                    _we_headers = {'Authorization': f'token {_we_token}', 'User-Agent': 'SteamToolsLua'}
+                    _we_api = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases/latest"
+                    _we_r = _req.get(_we_api, timeout=15, headers=_we_headers)
+                    if _we_r.status_code != 200:
+                        self._set_indicator('WE Downloader hata: HTTP ' + str(_we_r.status_code), 'offline')
                         return
-                    _asset = None
-                    for _a in _r.json().get('assets', []):
+                    _we_asset = None
+                    for _a in _we_r.json().get('assets', []):
                         if _a.get('name', '').lower() == 'wedownloader.exe':
-                            _asset = _a; break
-                    if not _asset:
+                            _we_asset = _a; break
+                    if not _we_asset:
                         self._set_indicator('WE Downloader hata: .exe bulunamadi', 'offline')
                         return
-                    _dl = _req.get(_asset['browser_download_url'], timeout=120, stream=True)
+                    _we_url = _we_asset.get('url', '')
+                    if not _we_url:
+                        self._set_indicator('WE Downloader hata: URL yok', 'offline')
+                        return
+                    _we_dl = _req.get(_we_url, headers={**_we_headers, 'Accept': 'application/octet-stream'}, timeout=120, stream=True)
+                    _we_dl.raise_for_status()
+                    _we_total = int(_we_dl.headers.get('Content-Length', 0))
+                    _we_downloaded = 0
                     with open(str(_we_exe), 'wb') as _f:
-                        for _chunk in _dl.iter_content(8192):
-                            if _chunk: _f.write(_chunk)
+                        for _chunk in _we_dl.iter_content(8192):
+                            if _chunk:
+                                _f.write(_chunk)
+                                _we_downloaded += len(_chunk)
+                    if _we_total and _we_downloaded < _we_total:
+                        raise IOError(f'indirme eksik: {_we_downloaded}/{_we_total}')
                     self._set_indicator('WE Downloader hazir', 'online')
                     import subprocess as _sp
                     _track_we(_sp.Popen([str(_we_exe)]))
