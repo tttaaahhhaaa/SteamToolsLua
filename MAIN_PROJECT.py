@@ -4098,13 +4098,13 @@ def install_ui_fixes(g):
         AB(_trow_a, _t('Nickname', 'Nickname'), _change_nickname, 100, 36,
            '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
-        AB(_trow_a, _t('Reset Licenses', 'Reset Licenses'), _reset_licenses, 110, 36,
+        AB(_trow_a, _t('Reset Licenses', 'Reset Licenses'), _reset_licenses, 100, 36,
            '#8b0000', '#b22222', '#f56565', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
-        AB(_trow_a, _t('Basarimlar', 'Achievements'), self._open_game_picker, 105, 36,
+        AB(_trow_a, _t('Basarimlar', 'Achievements'), self._open_game_picker, 100, 36,
            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
-        AB(_trow_a, '\u26a1 Speedtest', lambda: _open_speedtest_window(self), 95, 36,
+        AB(_trow_a, '\u26a1 Speedtest', lambda: _open_speedtest_window(self), 100, 36,
            '#3b2d5e', '#5a3d8e', '#b088ff', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
 
@@ -4120,7 +4120,7 @@ def install_ui_fixes(g):
             self._run_headless_powershell(
                 'iex "& { $(irm \'https://clemdotla.github.io/millennium-installer-ps1/millennium.ps1\') } -NoLog -DontStart"',
                 "Install Millenium", _mill_light)
-        AB(_trow_b, 'Millenium', _run_mill, 95, 36,
+        AB(_trow_b, 'Millenium', _run_mill, 100, 36,
            '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
         _lua_light = tk.Label(_trow_b, text="\u25cf", fg='#666666', bg='#152238', font=('Segoe UI', 14))
@@ -4129,7 +4129,7 @@ def install_ui_fixes(g):
             self._run_headless_powershell(
                 'irm "https://luatools.vercel.app/install-plugin.ps1" | iex',
                 "LuaTools Installer", _lua_light)
-        AB(_trow_b, 'LuaTools', _run_lua, 92, 36,
+        AB(_trow_b, 'LuaTools', _run_lua, 100, 36,
            '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
         _launch_light = tk.Label(_trow_b, text="\u25cf", fg='#666666', bg='#152238', font=('Segoe UI', 14))
@@ -4138,7 +4138,7 @@ def install_ui_fixes(g):
             self._run_headless_powershell(
                 'if (Test-Path "C:\\Program Files\\SteamTools\\SteamTools.exe") { Start-Process "C:\\Program Files\\SteamTools\\SteamTools.exe" } else { Write-Host "SteamTools.exe not found"; exit 1 }',
                 "Launch SteamTools", _launch_light)
-        AB(_trow_b, 'Launch ST', _run_launch, 95, 36,
+        AB(_trow_b, 'Launch STL', _run_launch, 100, 36,
            '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
         _restart_light = tk.Label(_trow_b, text="\u25cf", fg='#666666', bg='#152238', font=('Segoe UI', 14))
@@ -4170,7 +4170,7 @@ def install_ui_fixes(g):
                     _play_sound('error')
             threading.Thread(target=_task, daemon=True).start()
             _play_sound('start')
-        AB(_trow_b, 'Restart ST', _run_restart, 100, 36,
+        AB(_trow_b, 'Restart STM', _run_restart, 105, 36,
            '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
 
@@ -4219,17 +4219,17 @@ def install_ui_fixes(g):
                 except Exception as _ex:
                     self._set_indicator('CloudRedirect hata: ' + str(_ex), 'offline')
             _cr_thr.Thread(target=_task, daemon=True).start()
-        AB(_trow_c, 'CloudRedirect', _run_cloudredirect, 110, 36,
+        AB(_trow_c, 'CloudRedirect', _run_cloudredirect, 100, 36,
            '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
-        AB(_trow_c, 'Inject OF', self._inject_of_browser, 90, 36,
+        AB(_trow_c, 'Inject OF', self._inject_of_browser, 100, 36,
            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
         def _og_inject():
             __import__('threading').Thread(target=_inject_outside_games, daemon=True).start()
             _messagebox.showinfo('Outside Games',
                 'Inject baslatildi. Depotcache, stplug-in ve oyun klasorlerine kopyalaniyor.')
-        AB(_trow_c, 'Outside Games', _og_inject, 115, 36,
+        AB(_trow_c, 'Outside Games', _og_inject, 100, 36,
            '#244363', '#315f8e', '#66c0f4', '#f7fafc',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
         def _track_we(_wp):
@@ -4274,7 +4274,7 @@ def install_ui_fixes(g):
                 except Exception as _ex:
                     self._set_indicator('WE Downloader hata: ' + str(_ex), 'offline')
             _we_thr.Thread(target=_task, daemon=True).start()
-        AB(_trow_c, 'WE Downloader', _run_wedownloader, 115, 36,
+        AB(_trow_c, 'WE Downloader', _run_wedownloader, 100, 36,
            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
 
