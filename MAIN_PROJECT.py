@@ -4274,7 +4274,7 @@ def install_ui_fixes(g):
                 except Exception as _ex:
                     self._set_indicator('WE Downloader hata: ' + str(_ex), 'offline')
             _we_thr.Thread(target=_task, daemon=True).start()
-        AB(_trow_c, 'WE Downloader', _run_wedownloader, 100, 36,
+        AB(_trow_c, 'WE Downloader', _run_wedownloader, 120, 36,
            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
 
@@ -6193,8 +6193,9 @@ def install_ui_fixes(g):
         def _task():
             try:
                 import subprocess as _sp, json as _json
+                _si = _sp.STARTUPINFO(dwFlags=_sp.STARTF_USESHOWWINDOW)
                 _r = _sp.run(['speedtest', '--format', 'json', '--accept-license', '--accept-gdpr'],
-                            capture_output=True, text=True, timeout=120)
+                            capture_output=True, text=True, timeout=120, startupinfo=_si)
                 if _r.returncode == 0:
                     _data = _json.loads(_r.stdout)
                     _dl = _data.get('download', {}).get('bandwidth', 0) * 8 / 1_000_000
