@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "3.2.0"
+VERSION = "3.3.0"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
@@ -618,12 +618,17 @@ def main():
     # Fix: ensure window closes properly and returns from taskbar
     _orig_destroy = root.destroy
     def _on_main_close():
-        # Kill CloudRedirect if running
-        _cr_procs = app_globals.get('_cr_procs', [])
-        for _p in _cr_procs:
-            if _p and _p.poll() is None:
-                try: _p.kill()
-                except: pass
+        # Kill tracked subprocesses
+        for _key in ('_cr_procs', '_we_procs'):
+            _procs = app_globals.get(_key, [])
+            for _p in _procs:
+                if _p and _p.poll() is None:
+                    try: _p.kill()
+                    except: pass
+        # Kill SAM + WE by name
+        for _name in ('SAM.Picker.exe', 'SAM.Game.exe', 'WEDownloader.exe'):
+            try: _sp.run(['taskkill', '/f', '/im', _name], capture_output=True, timeout=5)
+            except: pass
         _orig_destroy()
     root.protocol('WM_DELETE_WINDOW', _on_main_close)
     try: root.attributes('-toolwindow', False)
@@ -6467,7 +6472,10 @@ def install_ui_fixes(g):
                 try:
                     import requests as _req
                     me = Path(sys.argv[0] if getattr(sys, 'frozen', False) else __file__).resolve()
-                    temp = me.parent / f'.update_{latest}.exe'
+                    _adata = Path(os.environ.get('APPDATA', str(Path.home()))) / 'SteamToolsLua'
+                    _adata.mkdir(parents=True, exist_ok=True)
+                    temp = _adata / f'.update_{latest}.exe'
+                    updater_path = _adata / 'SteamToolsLua_Updater.exe'
                     app.log(f'[Update] {latest} indiriliyor...')
                     app.root.after(0, lambda: app._set_indicator('Guncelleme indiriliyor...', 'working'))
                     hdrs = {'Authorization': f'token {_get_token()}', 'User-Agent': 'SteamToolsLua'}
@@ -6477,42 +6485,37 @@ def install_ui_fixes(g):
                         _messagebox.showerror('Update', f'Surum bilgisi alinamadi (HTTP {r.status_code})')
                         return
                     tag_data = r.json()
-                    asset = next((a for a in tag_data.get('assets', []) if '.exe' in a.get('name','') and 'SteamTools' in a['name']), None)
-                    if not asset:
+                    core_asset = updater_asset = None
+                    for a in tag_data.get('assets', []):
+                        n = a.get('name', '')
+                        if 'Updater' in n:
+                            updater_asset = a
+                        elif '.exe' in n and 'SteamTools' in n:
+                            core_asset = a
+                    if not core_asset:
                         _messagebox.showerror('Update', 'Dosya bulunamadi')
                         return
-                    dl_url = asset.get('url', '')
-                    if not dl_url:
-                        _messagebox.showerror('Update', 'Indirme linki yok')
+                    def _dl_asset(asset, out):
+                        url = asset.get('url', '')
+                        if not url: raise ValueError('no url')
+                        dl_hdrs = {**hdrs, 'Accept': 'application/octet-stream'}
+                        d = _req.get(url, headers=dl_hdrs, timeout=300, stream=True)
+                        d.raise_for_status()
+                        total = int(d.headers.get('Content-Length', 0))
+                        down = 0
+                        with open(str(out), 'wb') as f:
+                            for ch in d.iter_content(8192):
+                                if ch: f.write(ch); down += len(ch)
+                        if total and down < total: raise IOError(f'eksik: {down}/{total}')
+                    _dl_asset(core_asset, temp)
+                    if updater_asset:
+                        _dl_asset(updater_asset, updater_path)
+                    elif not updater_path.exists():
+                        _messagebox.showerror('Update', 'Updater bulunamadi')
                         return
-                    dl_hdrs = {**hdrs, 'Accept': 'application/octet-stream'}
-                    d = _req.get(dl_url, headers=dl_hdrs, timeout=300, stream=True)
-                    d.raise_for_status()
-                    total = int(d.headers.get('Content-Length', 0))
-                    downloaded = 0
-                    with open(str(temp), 'wb') as f:
-                        for chunk in d.iter_content(8192):
-                            if chunk:
-                                f.write(chunk)
-                                downloaded += len(chunk)
-                                if total and downloaded % (1024*1024) < 8192:
-                                    pct = downloaded * 100 // total
-                                    app.root.after(0, lambda p=pct: app._set_indicator(f'Guncelleme: %{p}', 'working'))
-                    if total and downloaded < total:
-                        raise IOError(f'eksik: {downloaded}/{total}')
                     app.log(f'[Update] v{latest} indi, degistiriliyor...')
-                    bat = me.parent / '.update.bat'
-                    bat.write_text(
-                        f'@echo off\r\n'
-                        f':loop\r\n'
-                        f'tasklist /fi "PID eq {os.getpid()}" | findstr "{os.getpid()}" >nul\r\n'
-                        f'if not errorlevel 1 (timeout /t 1 /nobreak >nul & goto loop)\r\n'
-                        f'move /y "{temp}" "{me}" >nul\r\n'
-                        f'start "" "{me}"\r\n'
-                        f'del "%~f0"\r\n'
-                    , encoding='utf-8')
                     import subprocess as _sp
-                    _sp.Popen(['cmd', '/c', str(bat)], close_fds=True)
+                    _sp.Popen([str(updater_path), '--old-exe', str(me), '--new-exe', str(temp)], close_fds=True)
                     app.root.after(200, lambda: os._exit(0))
                 except:
                     import traceback; traceback.print_exc()
