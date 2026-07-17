@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "3.2.0"
+VERSION = "3.3.0"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
@@ -6039,7 +6039,10 @@ def install_ui_fixes(g):
             _highlight_sidebar_btn(app, 0)
             _sd_bar = getattr(app, '_sd_bar', None)
             if _sd_bar:
-                try: _sd_bar.pack(fill=tk.X, padx=20, pady=(0, 12))
+                try:
+                    _sd_bar.pack(side=tk.BOTTOM, fill=tk.X, padx=8, pady=(0, 4))
+                    _sd_bar.sd_tag.pack(side=tk.LEFT)
+                    _sd_bar.sd_info.pack(side=tk.LEFT, padx=6)
                 except: pass
             try:
                 app.results_canvas.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 12))
@@ -6082,10 +6085,8 @@ def install_ui_fixes(g):
             sd_bar = tk.Frame(app.root, bg='#0f1b2a')
             sd_tag = tk.Label(sd_bar, text='SteamDB', fg='#7c6fff', bg='#0f1b2a',
                                font=('Segoe UI', 10, 'bold'))
-            sd_tag.pack(side=tk.LEFT)
             sd_info = tk.Label(sd_bar, text='', fg='#8fd3ff', bg='#0f1b2a',
                                font=('Segoe UI', 10))
-            sd_info.pack(side=tk.LEFT, padx=12)
             # Refresh button - cycle next chunk from cache, or fetch if no cache
             def _refresh_list():
                 try:
