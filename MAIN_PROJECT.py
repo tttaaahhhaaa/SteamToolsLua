@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "3.3.0"
+VERSION = "3.2.0"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
@@ -43,6 +43,9 @@ _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
 # XOR-obfuscated token (key=0xAA) — not plaintext, prevents casual extraction
 _XOR_KEY = 170
 _XOR_TOKEN = [205,195,222,194,223,200,245,218,203,222,245,155,155,232,229,232,236,226,226,251,154,196,218,242,216,253,251,224,156,196,254,221,192,245,197,211,242,204,154,199,235,225,217,222,225,199,242,210,220,204,237,218,254,230,197,249,249,195,206,232,220,235,208,197,236,198,226,146,201,250,220,194,220,227,242,236,236,226,229,226,237,249,233,235,228,220,229,229,243,216,217,228,153]
+_GIT_REPO = 'tttaaahhhaaa/SteamToolsLua'
+def _get_token():
+    return ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
 _ADMIN_GIST = "6f3df9ed457b97936420526d5f5a431b"
 
 # ===== Steam Achievement Manager (SAM) integration =====
@@ -6463,38 +6466,54 @@ def install_ui_fixes(g):
             def _dl_task():
                 try:
                     import requests as _req
-                    dl_url = f'{DOWNLOAD_BASE}/v{latest}/SteamToolsLua.exe'
-                    print(f'[Update] Indiriliyor: {dl_url}')
-                    app.log(f'[Update] {latest} indiriliyor...')
                     me = Path(sys.argv[0] if getattr(sys, 'frozen', False) else __file__).resolve()
-                    out_path = me.parent / f'SteamToolsLua_v{latest}.exe'
-                    d = _req.get(dl_url, timeout=120, stream=True)
-                    if d.status_code != 200:
-                        print(f'[Update] HTTP {d.status_code}')
-                        app.log(f'[Update] HTTP hatasi: {d.status_code}')
-                        _messagebox.showerror('Update', f'Indirme basarisiz (HTTP {d.status_code})')
+                    temp = me.parent / f'.update_{latest}.exe'
+                    app.log(f'[Update] {latest} indiriliyor...')
+                    app.root.after(0, lambda: app._set_indicator('Guncelleme indiriliyor...', 'working'))
+                    hdrs = {'Authorization': f'token {_get_token()}', 'User-Agent': 'SteamToolsLua'}
+                    r = _req.get(f'https://api.github.com/repos/{_GIT_REPO}/releases/tags/v{latest}',
+                                 timeout=15, headers=hdrs)
+                    if r.status_code != 200:
+                        _messagebox.showerror('Update', f'Surum bilgisi alinamadi (HTTP {r.status_code})')
                         return
+                    tag_data = r.json()
+                    asset = next((a for a in tag_data.get('assets', []) if '.exe' in a.get('name','') and 'SteamTools' in a['name']), None)
+                    if not asset:
+                        _messagebox.showerror('Update', 'Dosya bulunamadi')
+                        return
+                    dl_url = asset.get('url', '')
+                    if not dl_url:
+                        _messagebox.showerror('Update', 'Indirme linki yok')
+                        return
+                    dl_hdrs = {**hdrs, 'Accept': 'application/octet-stream'}
+                    d = _req.get(dl_url, headers=dl_hdrs, timeout=300, stream=True)
+                    d.raise_for_status()
                     total = int(d.headers.get('Content-Length', 0))
                     downloaded = 0
-                    with open(str(out_path), 'wb') as f:
+                    with open(str(temp), 'wb') as f:
                         for chunk in d.iter_content(8192):
                             if chunk:
                                 f.write(chunk)
                                 downloaded += len(chunk)
                                 if total and downloaded % (1024*1024) < 8192:
                                     pct = downloaded * 100 // total
-                                    print(f'[Update] Indirme: %{pct} ({downloaded//1024//1024}MB/{total//1024//1024}MB)')
                                     app.root.after(0, lambda p=pct: app._set_indicator(f'Guncelleme: %{p}', 'working'))
-                    print(f'[Update] Indi: {out_path} ({downloaded//1024//1024}MB)')
-                    app.log(f'[Update] v{latest} indirildi, baslatiliyor...')
-                    try:
-                        _info = {"old_name": me.name, "old_path": str(me.parent), "updated_to": latest}
-                        _info_file = me.parent / '.update_info.txt'
-                        _info_file.write_text(json.dumps(_info), encoding='utf-8')
-                    except: pass
+                    if total and downloaded < total:
+                        raise IOError(f'eksik: {downloaded}/{total}')
+                    app.log(f'[Update] v{latest} indi, degistiriliyor...')
+                    bat = me.parent / '.update.bat'
+                    bat.write_text(
+                        f'@echo off\r\n'
+                        f':loop\r\n'
+                        f'tasklist /fi "PID eq {os.getpid()}" | findstr "{os.getpid()}" >nul\r\n'
+                        f'if not errorlevel 1 (timeout /t 1 /nobreak >nul & goto loop)\r\n'
+                        f'move /y "{temp}" "{me}" >nul\r\n'
+                        f'start "" "{me}"\r\n'
+                        f'del "%~f0"\r\n'
+                    , encoding='utf-8')
                     import subprocess as _sp
-                    _sp.Popen([str(out_path)], close_fds=True)
-                    app.root.after(500, lambda: os._exit(0))
+                    _sp.Popen(['cmd', '/c', str(bat)], close_fds=True)
+                    app.root.after(200, lambda: os._exit(0))
                 except:
                     import traceback; traceback.print_exc()
                     _messagebox.showerror('Update', 'Guncelleme basarisiz.')
