@@ -3926,6 +3926,10 @@ def install_ui_fixes(g):
             def _task():
                 _gd = Path(_self.settings.get('new_games_folder', ''))
                 _si = None
+                _steam_root = Path('C:\\Program Files (x86)\\Steam')
+                _st_dir = Path('C:\\Program Files\\SteamTools')
+                _st_exe = _st_dir / 'SteamTools.exe'
+                _uninst = _st_dir / 'uninstall.exe'
                 try:
                     if _gd.is_dir():
                         _used = _gd / 'used'
@@ -3935,7 +3939,6 @@ def install_ui_fixes(g):
                                 except: pass
                             try: _shutil.rmtree(str(_used))
                             except: pass
-                    _steam_root = Path('C:\\Program Files (x86)\\Steam')
                     for _dir in ('config\\depotcache', 'config\\stplug-in'):
                         _p = _steam_root / _dir
                         if _p.exists():
@@ -3946,6 +3949,16 @@ def install_ui_fixes(g):
                         _fp = _ac / _f
                         if _fp.exists(): _fp.unlink()
                 except: pass
+                _si = _subprocess.STARTUPINFO()
+                _si.dwFlags = _subprocess.STARTF_USESHOWWINDOW
+                _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
+                                startupinfo=_si, capture_output=True)
+                _time.sleep(1)
+                if _uninst.exists():
+                    try:
+                        _subprocess.run([str(_uninst), '/S'], capture_output=True, timeout=30)
+                        _time.sleep(2)
+                    except: pass
                 try:
                     _setup_path = Path(_os.environ['TEMP']) / 'SteamtoolsSetup.exe'
                     _r = requests.get(
@@ -3958,17 +3971,15 @@ def install_ui_fixes(g):
                         try: _setup_path.unlink()
                         except: pass
                 except: pass
-                _si = _subprocess.STARTUPINFO()
-                _si.dwFlags = _subprocess.STARTF_USESHOWWINDOW
-                _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
-                                startupinfo=_si, capture_output=True)
-                _time.sleep(1)
-                _st_exe = Path('C:\\Program Files\\SteamTools\\SteamTools.exe')
                 if _st_exe.exists():
                     _subprocess.Popen([str(_st_exe)], startupinfo=_si)
                 _time.sleep(3)
                 if _gd.is_dir():
                     _inject_all_parent(_gd)
+                _subprocess.run(['taskkill', '/f', '/im', 'steam.exe'], capture_output=True, timeout=15)
+                _time.sleep(5)
+                _subprocess.Popen(['C:\\Program Files (x86)\\Steam\\steam.exe'],
+                                  startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
             threading.Thread(target=_task, daemon=True).start()
         _btnf = tk.Frame(_w, bg='#0d1724')
         _btnf.pack(fill=tk.X, padx=16, pady=(4, 8))
@@ -4185,6 +4196,10 @@ def install_ui_fixes(g):
             def _task():
                 _gd = Path(self.settings.get('new_games_folder', ''))
                 _si = None
+                _steam_root = Path('C:\\Program Files (x86)\\Steam')
+                _st_dir = Path('C:\\Program Files\\SteamTools')
+                _st_exe = _st_dir / 'SteamTools.exe'
+                _uninst = _st_dir / 'uninstall.exe'
                 try:
                     if _gd.is_dir():
                         _used = _gd / 'used'
@@ -4194,7 +4209,6 @@ def install_ui_fixes(g):
                                 except: pass
                             try: _shutil.rmtree(str(_used))
                             except: pass
-                    _steam_root = Path('C:\\Program Files (x86)\\Steam')
                     for _dir in ('config\\depotcache', 'config\\stplug-in'):
                         _p = _steam_root / _dir
                         if _p.exists():
@@ -4205,6 +4219,16 @@ def install_ui_fixes(g):
                         _fp = _ac / _f
                         if _fp.exists(): _fp.unlink()
                 except: pass
+                _si = _subprocess.STARTUPINFO()
+                _si.dwFlags = _subprocess.STARTF_USESHOWWINDOW
+                _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
+                                startupinfo=_si, capture_output=True)
+                _time.sleep(1)
+                if _uninst.exists():
+                    try:
+                        _subprocess.run([str(_uninst), '/S'], capture_output=True, timeout=30)
+                        _time.sleep(2)
+                    except: pass
                 try:
                     _setup_path = Path(_os.environ['TEMP']) / 'SteamtoolsSetup.exe'
                     _r = requests.get(
@@ -4217,17 +4241,15 @@ def install_ui_fixes(g):
                         try: _setup_path.unlink()
                         except: pass
                 except: pass
-                _si = _subprocess.STARTUPINFO()
-                _si.dwFlags = _subprocess.STARTF_USESHOWWINDOW
-                _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
-                                startupinfo=_si, capture_output=True)
-                _time.sleep(1)
-                _st_exe = Path('C:\\Program Files\\SteamTools\\SteamTools.exe')
                 if _st_exe.exists():
                     _subprocess.Popen([str(_st_exe)], startupinfo=_si)
                 _time.sleep(3)
                 if _gd.is_dir():
                     _inject_all_parent(_gd)
+                _subprocess.run(['taskkill', '/f', '/im', 'steam.exe'], capture_output=True, timeout=15)
+                _time.sleep(5)
+                _subprocess.Popen(['C:\\Program Files (x86)\\Steam\\steam.exe'],
+                                  startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
             threading.Thread(target=_task, daemon=True).start()
         _trow_a = tk.Frame(_t_inner, bg='#152238')
         _trow_a.pack(fill=tk.X, pady=2)
