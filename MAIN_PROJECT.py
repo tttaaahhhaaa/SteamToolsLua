@@ -6674,7 +6674,8 @@ def install_ui_fixes(g):
         if not _st_watchdog_active[0]: return
         try:
             _r = _subprocess.run(['tasklist', '/fi', 'imagename eq SteamTools.exe'],
-                                 capture_output=True, text=True, timeout=5)
+                                 capture_output=True, text=True, timeout=5,
+                                 creationflags=_subprocess.CREATE_NO_WINDOW)
             if 'SteamTools.exe' not in _r.stdout:
                 if not _st_exe_path.exists():
                     try:
