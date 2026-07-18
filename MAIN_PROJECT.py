@@ -6606,12 +6606,10 @@ def install_ui_fixes(g):
                         _messagebox.showerror('Update', f'Surum bilgisi alinamadi (HTTP {r.status_code})')
                         return
                     tag_data = r.json()
-                    core_asset = updater_asset = None
+                    core_asset = None
                     for a in tag_data.get('assets', []):
                         n = a.get('name', '')
-                        if 'Updater' in n:
-                            updater_asset = a
-                        elif '.exe' in n and 'SteamTools' in n:
+                        if '.exe' in n and 'SteamTools' in n:
                             core_asset = a
                     if not core_asset:
                         _messagebox.showerror('Update', 'Dosya bulunamadi')
@@ -6629,8 +6627,10 @@ def install_ui_fixes(g):
                                 if ch: f.write(ch); down += len(ch)
                         if total and down < total: raise IOError(f'eksik: {down}/{total}')
                     _dl_asset(core_asset, temp)
-                    if updater_asset:
-                        _dl_asset(updater_asset, updater_path)
+                    updater_url = f'https://raw.githubusercontent.com/{_GIT_REPO}/updater-bin/SteamToolsLua_Updater.exe'
+                    d = _req.get(updater_url, timeout=60)
+                    if d.status_code == 200:
+                        updater_path.write_bytes(d.content)
                     elif not updater_path.exists():
                         _messagebox.showerror('Update', 'Updater bulunamadi')
                         return
