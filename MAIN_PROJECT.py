@@ -5221,7 +5221,7 @@ def install_ui_fixes(g):
                         self.log(f'[Update] Zaten guncel (v{current})')
                         _messagebox.showinfo('Update', _tr(self, 'update.up_to_date'))
                         return
-                    dl_url = f'{DOWNLOAD_BASE}/v{latest}/SteamToolsLua.exe'
+                    dl_url = f'{DOWNLOAD_BASE}/v{latest}/SteamToolsLua_v{latest}.exe'
                     self.log(f'[Update] {latest} indiriliyor...')
                     d = _req.get(dl_url, timeout=120, stream=True)
                     if d.status_code != 200:
