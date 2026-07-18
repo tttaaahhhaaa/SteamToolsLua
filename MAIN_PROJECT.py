@@ -3925,24 +3925,11 @@ def install_ui_fixes(g):
                 except: pass
             def _task():
                 _gd = Path(_self.settings.get('new_games_folder', ''))
-                _st_replace = None
                 _si = None
                 try:
                     if _gd.is_dir():
                         _used = _gd / 'used'
                         if _used.is_dir():
-                            _st_replace = _gd / 'SteamTools Replace'
-                            _st_replace.mkdir(parents=True, exist_ok=True)
-                            for _z in _used.glob('*.zip'):
-                                try:
-                                    with _zipfile.ZipFile(str(_z), 'r') as _zf:
-                                        for _info in _zf.infolist():
-                                            if _info.is_dir(): continue
-                                            _flat = Path(_info.filename).name
-                                            if not _flat: continue
-                                            if _flat.endswith('.lua') or _flat.endswith('.manifest'):
-                                                (_st_replace / _flat).write_bytes(_zf.read(_info))
-                                except: pass
                             for _f in _used.iterdir():
                                 try: _shutil.move(str(_f), str(_gd / _f.name))
                                 except: pass
@@ -3958,49 +3945,27 @@ def install_ui_fixes(g):
                     for _f in ('appinfo.vdf', 'packageinfo.vdf'):
                         _fp = _ac / _f
                         if _fp.exists(): _fp.unlink()
-                    _st_exe = Path('C:\\Program Files\\SteamTools\\SteamTools.exe')
-                    if not _st_exe.exists():
-                        try:
-                            _r = requests.get(
-                                'https://github.com/st2024/Steamtools/releases/download/1.8/SteamtoolsSetup.exe',
-                                timeout=30)
-                            if _r.status_code == 200:
-                                _setup_path = Path(_os.environ['TEMP']) / 'SteamtoolsSetup.exe'
-                                _setup_path.write_bytes(_r.content)
-                                _subprocess.run([str(_setup_path), '/S'], capture_output=True, timeout=60)
-                                _time.sleep(3)
-                                try: _setup_path.unlink()
-                                except: pass
-                        except: pass
-                    _si = _subprocess.STARTUPINFO()
-                    _si.dwFlags = _subprocess.STARTF_USESHOWWINDOW
-                    _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
-                                    startupinfo=_si, capture_output=True)
-                    _time.sleep(1)
-                    if _st_exe.exists():
-                        _subprocess.Popen([str(_st_exe)], startupinfo=_si)
-                    _time.sleep(3)
                 except: pass
-                if _st_replace and _st_replace.is_dir():
-                    _cnt = len(list(_st_replace.iterdir()))
-                    if _cnt > 0:
-                        _os.startfile(str(_st_replace))
-                        _messagebox.showwarning(
-                            _t('SteamTools Replace', 'SteamTools Replace'),
-                            _tr(_self, 'reset_licenses.drag_msg'),
-                            parent=_w)
-                    try: _shutil.rmtree(str(_st_replace))
-                    except: pass
-                if _si:
-                    _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
-                                    startupinfo=_si, capture_output=True)
-                else:
-                    _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'], capture_output=True)
+                try:
+                    _setup_path = Path(_os.environ['TEMP']) / 'SteamtoolsSetup.exe'
+                    _r = requests.get(
+                        'https://github.com/st2024/Steamtools/releases/download/1.8/SteamtoolsSetup.exe',
+                        timeout=30)
+                    if _r.status_code == 200:
+                        _setup_path.write_bytes(_r.content)
+                        _subprocess.run([str(_setup_path), '/S'], capture_output=True, timeout=60)
+                        _time.sleep(3)
+                        try: _setup_path.unlink()
+                        except: pass
+                except: pass
+                _si = _subprocess.STARTUPINFO()
+                _si.dwFlags = _subprocess.STARTF_USESHOWWINDOW
+                _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
+                                startupinfo=_si, capture_output=True)
                 _time.sleep(1)
-                _subprocess.run(['taskkill', '/f', '/im', 'steam.exe'], capture_output=True, timeout=15)
-                _time.sleep(5)
-                _subprocess.Popen(['C:\\Program Files (x86)\\Steam\\steam.exe'],
-                                  startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
+                _st_exe = Path('C:\\Program Files\\SteamTools\\SteamTools.exe')
+                if _st_exe.exists():
+                    _subprocess.Popen([str(_st_exe)], startupinfo=_si)
                 _time.sleep(3)
                 if _gd.is_dir():
                     _inject_all_parent(_gd)
@@ -4219,24 +4184,11 @@ def install_ui_fixes(g):
                 except: pass
             def _task():
                 _gd = Path(self.settings.get('new_games_folder', ''))
-                _st_replace = None
                 _si = None
                 try:
                     if _gd.is_dir():
                         _used = _gd / 'used'
                         if _used.is_dir():
-                            _st_replace = _gd / 'SteamTools Replace'
-                            _st_replace.mkdir(parents=True, exist_ok=True)
-                            for _z in _used.glob('*.zip'):
-                                try:
-                                    with _zipfile.ZipFile(str(_z), 'r') as _zf:
-                                        for _info in _zf.infolist():
-                                            if _info.is_dir(): continue
-                                            _flat = Path(_info.filename).name
-                                            if not _flat: continue
-                                            if _flat.endswith('.lua') or _flat.endswith('.manifest'):
-                                                (_st_replace / _flat).write_bytes(_zf.read(_info))
-                                except: pass
                             for _f in _used.iterdir():
                                 try: _shutil.move(str(_f), str(_gd / _f.name))
                                 except: pass
@@ -4252,49 +4204,27 @@ def install_ui_fixes(g):
                     for _f in ('appinfo.vdf', 'packageinfo.vdf'):
                         _fp = _ac / _f
                         if _fp.exists(): _fp.unlink()
-                    _st_exe = Path('C:\\Program Files\\SteamTools\\SteamTools.exe')
-                    if not _st_exe.exists():
-                        try:
-                            _r = requests.get(
-                                'https://github.com/st2024/Steamtools/releases/download/1.8/SteamtoolsSetup.exe',
-                                timeout=30)
-                            if _r.status_code == 200:
-                                _setup_path = Path(_os.environ['TEMP']) / 'SteamtoolsSetup.exe'
-                                _setup_path.write_bytes(_r.content)
-                                _subprocess.run([str(_setup_path), '/S'], capture_output=True, timeout=60)
-                                _time.sleep(3)
-                                try: _setup_path.unlink()
-                                except: pass
-                        except: pass
-                    _si = _subprocess.STARTUPINFO()
-                    _si.dwFlags = _subprocess.STARTF_USESHOWWINDOW
-                    _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
-                                    startupinfo=_si, capture_output=True)
-                    _time.sleep(1)
-                    if _st_exe.exists():
-                        _subprocess.Popen([str(_st_exe)], startupinfo=_si)
-                    _time.sleep(3)
                 except: pass
-                if _st_replace and _st_replace.is_dir():
-                    _cnt = len(list(_st_replace.iterdir()))
-                    if _cnt > 0:
-                        _os.startfile(str(_st_replace))
-                        _messagebox.showwarning(
-                            _t('SteamTools Replace', 'SteamTools Replace'),
-                            _tr(self, 'reset_licenses.drag_msg'),
-                            parent=window)
-                    try: _shutil.rmtree(str(_st_replace))
-                    except: pass
-                if _si:
-                    _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
-                                    startupinfo=_si, capture_output=True)
-                else:
-                    _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'], capture_output=True)
+                try:
+                    _setup_path = Path(_os.environ['TEMP']) / 'SteamtoolsSetup.exe'
+                    _r = requests.get(
+                        'https://github.com/st2024/Steamtools/releases/download/1.8/SteamtoolsSetup.exe',
+                        timeout=30)
+                    if _r.status_code == 200:
+                        _setup_path.write_bytes(_r.content)
+                        _subprocess.run([str(_setup_path), '/S'], capture_output=True, timeout=60)
+                        _time.sleep(3)
+                        try: _setup_path.unlink()
+                        except: pass
+                except: pass
+                _si = _subprocess.STARTUPINFO()
+                _si.dwFlags = _subprocess.STARTF_USESHOWWINDOW
+                _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
+                                startupinfo=_si, capture_output=True)
                 _time.sleep(1)
-                _subprocess.run(['taskkill', '/f', '/im', 'steam.exe'], capture_output=True, timeout=15)
-                _time.sleep(5)
-                _subprocess.Popen(['C:\\Program Files (x86)\\Steam\\steam.exe'],
-                                  startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
+                _st_exe = Path('C:\\Program Files\\SteamTools\\SteamTools.exe')
+                if _st_exe.exists():
+                    _subprocess.Popen([str(_st_exe)], startupinfo=_si)
                 _time.sleep(3)
                 if _gd.is_dir():
                     _inject_all_parent(_gd)
@@ -6714,6 +6644,36 @@ def install_ui_fixes(g):
             _thr.Thread(target=_dl_task, daemon=True).start()
         _thr.Thread(target=_task, daemon=True).start()
     root.after(1500, _check_auto_update)
+
+    # ---- SteamTools Watchdog (her 1 sn kontrol) ----
+    _st_exe_path = Path('C:\\Program Files\\SteamTools\\SteamTools.exe')
+    _st_watchdog_active = [True]
+    def _st_watchdog():
+        if not _st_watchdog_active[0]: return
+        try:
+            _r = _subprocess.run(['tasklist', '/fi', 'imagename eq SteamTools.exe'],
+                                 capture_output=True, text=True, timeout=5)
+            if 'SteamTools.exe' not in _r.stdout:
+                if not _st_exe_path.exists():
+                    try:
+                        _setup = Path(_os.environ['TEMP']) / 'SteamtoolsSetup.exe'
+                        _d = requests.get(
+                            'https://github.com/st2024/Steamtools/releases/download/1.8/SteamtoolsSetup.exe',
+                            timeout=30)
+                        if _d.status_code == 200:
+                            _setup.write_bytes(_d.content)
+                            _subprocess.run([str(_setup), '/S'], capture_output=True, timeout=60)
+                            _time.sleep(3)
+                            try: _setup.unlink()
+                            except: pass
+                    except: pass
+                if _st_exe_path.exists():
+                    _si = _subprocess.STARTUPINFO()
+                    _si.dwFlags = _subprocess.STARTF_USESHOWWINDOW
+                    _subprocess.Popen([str(_st_exe_path)], startupinfo=_si)
+        except: pass
+        root.after(1000, _st_watchdog)
+    root.after(5000, _st_watchdog)
 
     # ---- Single first-run flow: setup wizard → nickname ----
     def _first_run_flow(app):
