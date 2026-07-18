@@ -3936,7 +3936,7 @@ def install_ui_fixes(g):
                             try: _shutil.rmtree(str(_used))
                             except: pass
                     _steam_root = Path('C:\\Program Files (x86)\\Steam')
-                    for _dir in ('config\\depotcache', 'config\\stplug-in', 'steamapps\\1 New Games'):
+                    for _dir in ('config\\depotcache', 'config\\stplug-in'):
                         _p = _steam_root / _dir
                         if _p.exists():
                             try: _shutil.rmtree(str(_p))
@@ -4195,7 +4195,7 @@ def install_ui_fixes(g):
                             try: _shutil.rmtree(str(_used))
                             except: pass
                     _steam_root = Path('C:\\Program Files (x86)\\Steam')
-                    for _dir in ('config\\depotcache', 'config\\stplug-in', 'steamapps\\1 New Games'):
+                    for _dir in ('config\\depotcache', 'config\\stplug-in'):
                         _p = _steam_root / _dir
                         if _p.exists():
                             try: _shutil.rmtree(str(_p))
