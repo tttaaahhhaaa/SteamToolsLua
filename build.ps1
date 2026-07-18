@@ -1,7 +1,7 @@
 $Python311 = "C:\Users\Taha\AppData\Local\Programs\Python\Python314\python.exe"
 $PyInstaller = "C:\Users\Taha\AppData\Local\Programs\Python\Python314\Scripts\pyinstaller.exe"
 $Source = "MAIN_PROJECT.py"
-$Output = "C:\Users\Taha\Desktop\SteamToolsLua_v3.4.0.exe"
+$Output = "C:\Users\Taha\Desktop\SteamToolsLua_v3.5.0.exe"
 
 $HiddenImports = @(
     "--hidden-import=html", "--hidden-import=html.parser", "--hidden-import=html.entities"
@@ -30,7 +30,7 @@ $AbsIcon = (Resolve-Path -LiteralPath "icon.ico").Path
     --specpath="build_temp" `
     --noconfirm $Source
 
-if ($?) {
+if (Test-Path -LiteralPath "C:\Users\Taha\Desktop\SteamToolsLua.exe") {
     Remove-Item -LiteralPath $Output -Force -ErrorAction SilentlyContinue
     Move-Item -LiteralPath "C:\Users\Taha\Desktop\SteamToolsLua.exe" -Destination $Output -Force
     Write-Host "BUILD BASARILI: $Output"

@@ -33,8 +33,11 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "3.4.0"
+VERSION = "3.5.0"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
+try:
+    Path(os.environ.get('APPDATA', str(Path.home())), 'SteamToolsLua', 'version.txt').write_text(VERSION)
+except: pass
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"
@@ -566,8 +569,11 @@ def main():
         if sys.version_info[:2] != (3, 11):
             for _py in [
                 Path(r'C:\Users\Taha\AppData\Local\Programs\Python\Python311\python.exe'),
+                Path(r'C:\Users\Taha\AppData\Local\Programs\Python\Python312\python.exe'),
                 Path(sys.executable).parent / 'python3.11.exe',
+                Path(sys.executable).parent / 'python3.12.exe',
                 Path(sys.executable).parent.parent / 'Python311' / 'python.exe',
+                Path(sys.executable).parent.parent / 'Python312' / 'python.exe',
             ]:
                 if _py.exists():
                     try:
@@ -2168,9 +2174,16 @@ def install_ui_fixes(g):
             'http://167.235.229.108/{}',
             'https://files.luatools.work/GameBypasses/{}.zip',
         ]
+        class _FakeResp:
+            status_code = 404
+            content = b''
+            def raise_for_status(self): raise requests.exceptions.HTTPError('blocked')
+            def iter_content(self, *a, **kw): return iter([])
+            def __enter__(self): return self
+            def __exit__(self, *a): pass
         def _luatools_get(self, url, *args, **kwargs):
-            if 'walftech.com' in url and 'proxy.php' in url:
-                m = _re2.search(r'id=(\d+)', url)
+            if 'walftech.com' in url:
+                m = _re2.search(r'(?:id=|/)(\d{4,})', url)
                 if m:
                     appid = m.group(1)
                     for _lu in _LUATOOLS_URLS:
@@ -2179,6 +2192,7 @@ def install_ui_fixes(g):
                             if _r and _r.status_code == 200:
                                 return _r
                         except: pass
+                return _FakeResp()
             return _orig_session_get(self, url, *args, **kwargs)
         _req2.Session.get = _luatools_get
     except:
@@ -2296,7 +2310,7 @@ def install_ui_fixes(g):
                     except: pass
             return True, f'{_count} dosya ayiklandi -> {_gd}'
         except Exception as _ex:
-            return _luatools_download_game(appid, gamename, parent_win)
+            return False, f'Lua yukleme hatasi: {_ex}'
 
     def _walftech_download_game(appid, gamename, parent_win=None):
         try:
@@ -2316,7 +2330,7 @@ def install_ui_fixes(g):
                         break
                 except: pass
             if not _zip_data:
-                return _luatools_download_game(appid, gamename, parent_win)
+                return False, 'Tum LuaTools URLleri basarisiz'
             _gd = _get_game_files_dir() / gamename
             _gd.mkdir(parents=True, exist_ok=True)
             _count = 0
@@ -2326,7 +2340,7 @@ def install_ui_fixes(g):
                     except: pass
             return True, f'{_count} dosya ayiklandi -> {_gd}'
         except Exception as _ex:
-            return _luatools_download_game(appid, gamename, parent_win)
+            return False, f'Walftech yukleme hatasi: {_ex}'
 
     def _inject_outside_games():
         _dir = _get_outside_games_dir()
@@ -3902,96 +3916,14 @@ def install_ui_fixes(g):
             AB3(_dlg2, _t('Kaydet', 'Save'), _submit2, 120, 34,
                 '#244363', '#315f8e', '#66c0f4', '#ffffff',
                 ('Segoe UI Semibold', 10)).pack(pady=6)
-        def _reset_licenses():
-            if not tk.messagebox.askyesno('Reset Licenses',
-                _tr(_self, 'reset_licenses.confirm'),
-                parent=_w): return
-            def _inject_all_parent(_parent_dir):
-                try:
-                    _zips = sorted(Path(_parent_dir).glob('*.zip'))
-                    if not _zips: return
-                    _depot = Path('C:\\Program Files (x86)\\Steam\\config\\depotcache')
-                    _stplug = Path('C:\\Program Files (x86)\\Steam\\config\\stplug-in')
-                    _depot.mkdir(parents=True, exist_ok=True)
-                    _stplug.mkdir(parents=True, exist_ok=True)
-                    for _zp in _zips:
-                        try:
-                            with _zipfile.ZipFile(str(_zp), 'r') as _zf:
-                                for _info in _zf.infolist():
-                                    if _info.is_dir(): continue
-                                    _target = _depot if _info.filename.endswith('.manifest') else _stplug
-                                    (_target / Path(_info.filename).name).write_bytes(_zf.read(_info))
-                        except: pass
-                except: pass
-            def _task():
-                _gd = Path(_self.settings.get('new_games_folder', ''))
-                _si = None
-                _steam_root = Path('C:\\Program Files (x86)\\Steam')
-                _st_dir = Path('C:\\Program Files\\SteamTools')
-                _st_exe = _st_dir / 'SteamTools.exe'
-                _uninst = _st_dir / 'uninstall.exe'
-                try:
-                    if _gd.is_dir():
-                        _used = _gd / 'used'
-                        if _used.is_dir():
-                            for _f in _used.iterdir():
-                                try: _shutil.move(str(_f), str(_gd / _f.name))
-                                except: pass
-                            try: _shutil.rmtree(str(_used))
-                            except: pass
-                    for _dir in ('config\\depotcache', 'config\\stplug-in'):
-                        _p = _steam_root / _dir
-                        if _p.exists():
-                            try: _shutil.rmtree(str(_p))
-                            except: pass
-                    _ac = _steam_root / 'appcache'
-                    for _f in ('appinfo.vdf', 'packageinfo.vdf'):
-                        _fp = _ac / _f
-                        if _fp.exists(): _fp.unlink()
-                except: pass
-                _si = _subprocess.STARTUPINFO()
-                _si.dwFlags = _subprocess.STARTF_USESHOWWINDOW
-                _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
-                                startupinfo=_si, capture_output=True)
-                _time.sleep(1)
-                if _uninst.exists():
-                    try:
-                        _subprocess.run([str(_uninst), '/S'], capture_output=True, timeout=30)
-                        _time.sleep(2)
-                    except: pass
-                try:
-                    _setup_path = Path(_os.environ['TEMP']) / 'SteamtoolsSetup.exe'
-                    _r = requests.get(
-                        'https://github.com/st2024/Steamtools/releases/download/1.8/SteamtoolsSetup.exe',
-                        timeout=30)
-                    if _r.status_code == 200:
-                        _setup_path.write_bytes(_r.content)
-                        _subprocess.run([str(_setup_path), '/S'], capture_output=True, timeout=60)
-                        _time.sleep(3)
-                        try: _setup_path.unlink()
-                        except: pass
-                except: pass
-                if _st_exe.exists():
-                    _subprocess.Popen([str(_st_exe)], startupinfo=_si)
-                _time.sleep(3)
-                if _gd.is_dir():
-                    _inject_all_parent(_gd)
-                _subprocess.run(['taskkill', '/f', '/im', 'steam.exe'], capture_output=True, timeout=15)
-                _time.sleep(5)
-                _subprocess.Popen(['C:\\Program Files (x86)\\Steam\\steam.exe'],
-                                  startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
-            threading.Thread(target=_task, daemon=True).start()
         _btnf = tk.Frame(_w, bg='#0d1724')
         _btnf.pack(fill=tk.X, padx=16, pady=(4, 8))
         AB2 = g.get('AnimatedButton', AnimatedButton)
-        AB2(_btnf, _t('Guncelle', 'Update'), _launch_updater, 100, 30,
+        AB2(_btnf, _t('Guncelle', 'Update'), _launch_updater_ui, 100, 30,
             '#244363', '#315f8e', '#66c0f4', '#ffffff',
             ('Segoe UI Semibold', 10)).pack(side=tk.LEFT, padx=2)
         AB2(_btnf, _t('Nickname Degistir', 'Change Nickname'), _change_nickname, 140, 30,
             '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
-            ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=2)
-        AB2(_btnf, _t('Reset Licenses', 'Reset Licenses'), _reset_licenses, 120, 30,
-            '#8b0000', '#b22222', '#f56565', '#ffffff',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=2)
         AB2(_btnf, _t('Basarimlar', 'Achievements'), _self._open_game_picker, 120, 30,
             '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
@@ -4172,89 +4104,248 @@ def install_ui_fixes(g):
             AB3(_dlg2, _t('Kaydet', 'Save'), _submit2, 120, 34,
                 '#244363', '#315f8e', '#66c0f4', '#ffffff',
                 ('Segoe UI Semibold', 10)).pack(pady=6)
+        _pb_frame = tk.Frame(_t_inner, bg='#152238')
+        _pb = ttk.Progressbar(_pb_frame, mode='determinate', length=280, maximum=100)
+        _styl = ttk.Style()
+        _styl.theme_use('alt')
+        _styl.configure('ST.Horizontal.TProgressbar', background='#7c6fff', troughcolor='#1a1a30',
+                         bordercolor='#0d1724', lightcolor='#7c6fff', darkcolor='#4a3fbf')
+        _pb.configure(style='ST.Horizontal.TProgressbar')
+        _pb.pack(side=tk.LEFT, padx=(8, 4), pady=4, fill=tk.X, expand=True)
+        _pb_lbl = tk.Label(_pb_frame, text='', fg='#a0a0c0', bg='#152238', font=('Segoe UI', 8))
+        _pb_lbl.pack(side=tk.LEFT, padx=(4, 8))
+        _pb_target = [0]
+        _pb_current = [0]
+        def _pb_upd_smooth():
+            if _pb_current[0] < _pb_target[0]:
+                _pb_current[0] += 1
+                _pb['value'] = _pb_current[0]
+                _pb_frame.after(8, _pb_upd_smooth)
+        def _pb_set(val, text=''):
+            _pb_target[0] = val
+            window.after(0, lambda: _pb_lbl.config(text=text))
+            window.after(0, _pb_upd_smooth)
         def _reset_licenses():
             if not tk.messagebox.askyesno('Reset Licenses',
                 _tr(self, 'reset_licenses.confirm'),
                 parent=window): return
-            def _inject_all_parent(_parent_dir):
-                try:
-                    _zips = sorted(Path(_parent_dir).glob('*.zip'))
-                    if not _zips: return
-                    _depot = Path('C:\\Program Files (x86)\\Steam\\config\\depotcache')
-                    _stplug = Path('C:\\Program Files (x86)\\Steam\\config\\stplug-in')
-                    _depot.mkdir(parents=True, exist_ok=True)
-                    _stplug.mkdir(parents=True, exist_ok=True)
-                    for _zp in _zips:
-                        try:
-                            with _zipfile.ZipFile(str(_zp), 'r') as _zf:
-                                for _info in _zf.infolist():
-                                    if _info.is_dir(): continue
-                                    _target = _depot if _info.filename.endswith('.manifest') else _stplug
-                                    (_target / Path(_info.filename).name).write_bytes(_zf.read(_info))
-                        except: pass
-                except: pass
+            _pb_frame.pack(fill=tk.X, pady=(0, 2))
+            _log = lambda m: window.after(0, lambda: self.log(m))
             def _task():
-                _gd = Path(self.settings.get('new_games_folder', ''))
-                _si = None
+                _gd = Path(self.settings.get('save_path', '') or self.settings.get('new_games_folder', '') or '')
                 _steam_root = Path('C:\\Program Files (x86)\\Steam')
                 _st_dir = Path('C:\\Program Files\\SteamTools')
                 _st_exe = _st_dir / 'SteamTools.exe'
                 _uninst = _st_dir / 'uninstall.exe'
-                try:
-                    if _gd.is_dir():
-                        _used = _gd / 'used'
-                        if _used.is_dir():
-                            for _f in _used.iterdir():
-                                try: _shutil.move(str(_f), str(_gd / _f.name))
-                                except: pass
-                            try: _shutil.rmtree(str(_used))
-                            except: pass
-                    for _dir in ('config\\depotcache', 'config\\stplug-in'):
-                        _p = _steam_root / _dir
-                        if _p.exists():
-                            try: _shutil.rmtree(str(_p))
-                            except: pass
-                    _ac = _steam_root / 'appcache'
-                    for _f in ('appinfo.vdf', 'packageinfo.vdf'):
-                        _fp = _ac / _f
-                        if _fp.exists(): _fp.unlink()
-                except: pass
                 _si = _subprocess.STARTUPINFO()
                 _si.dwFlags = _subprocess.STARTF_USESHOWWINDOW
+                _st_watchdog_active[0] = False
+                _desktop = Path(_os.environ['USERPROFILE']) / 'Desktop'
+                # 1 Kill Steam
+                _log('[Reset] Steam kapatiliyor...')
+                _pb_set(10, 'Steam kapatiliyor...')
+                _subprocess.run(['taskkill', '/f', '/im', 'steam.exe'], startupinfo=_si, capture_output=True)
+                _time.sleep(2)
+                # 2 Kill ST + watchdog kapali
+                _log('[Reset] SteamTools kapatiliyor...')
+                _pb_set(20, 'SteamTools kapatiliyor...')
                 _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
                                 startupinfo=_si, capture_output=True)
                 _time.sleep(1)
+                # 3 Steam temizligi (depotcache/stplug-in/VDF) - used/ zipleri inject fonunda taranir
+                _log('[Reset] Depotcache/stplug-in/VDF siliniyor...')
+                _pb_set(40, 'Depotcache/stplug-in/VDF siliniyor...')
+                try:
+                    for _dir in ('config\\depotcache', 'config\\stplug-in'):
+                        _p = _steam_root / _dir
+                        if _p.exists():
+                            _subprocess.run(['cmd', '/c', f'rd /s /q "{_p}"'], capture_output=True, timeout=10)
+                            _log(f'[Reset] Silindi: {_dir}')
+                        else:
+                            _log(f'[Reset] {_dir} zaten yok')
+                    _ac = _steam_root / 'appcache'
+                    for _f in ('appinfo.vdf', 'packageinfo.vdf'):
+                        _fp = _ac / _f
+                        if _fp.exists(): _fp.unlink(); _log(f'[Reset] Silindi: {_f}')
+                except Exception as _ex:
+                    _log(f'[Reset] Adim 4 hatasi: {_ex}')
+                # 5 SteamTools kaldir (force, admin)
+                _log('[Reset] SteamTools kaldiriliyor (admin)...')
+                _pb_set(50, 'SteamTools kaldiriliyor...')
+                _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'], startupinfo=_si, capture_output=True)
+                _time.sleep(1)
                 if _uninst.exists():
                     try:
-                        _subprocess.run([str(_uninst), '/S'], capture_output=True, timeout=30)
+                        _ps_cmd = f'Start-Process -FilePath "{_uninst}" -ArgumentList "/S" -Wait -Verb RunAs'
+                        _subprocess.run(['powershell', '-Command', _ps_cmd], capture_output=True, timeout=60)
                         _time.sleep(2)
-                    except: pass
+                    except Exception as _ex:
+                        _log(f'[Reset] Uninstall hatasi: {_ex}')
+                if _st_dir.is_dir():
+                    _log('[Reset] SteamTools hala var, zorla siliniyor (admin rd)...')
+                    try:
+                        _ps_cmd = f'Start-Process -FilePath "cmd" -ArgumentList "/c rd /s /q ""{_st_dir}""" -Wait -Verb RunAs -WindowStyle Hidden'
+                        _subprocess.run(['powershell', '-Command', _ps_cmd], capture_output=True, timeout=30)
+                        _time.sleep(2)
+                    except Exception as _ex:
+                        _log(f'[Reset] Admin silme hatasi: {_ex}')
+                if _st_dir.is_dir():
+                    _log('[Reset] SteamTools hala duruyor!')
+                else:
+                    _log('[Reset] SteamTools basariyla silindi')
+                # 6 SteamTools indir (Desktop'e)
+                _log('[Reset] SteamTools indiriliyor...')
+                _pb_set(60, 'SteamTools indiriliyor...')
+                _setup_path = None
                 try:
-                    _setup_path = Path(_os.environ['TEMP']) / 'SteamtoolsSetup.exe'
+                    _setup_path = _desktop / 'st-setup-1.8.30.exe'
                     _r = requests.get(
-                        'https://github.com/st2024/Steamtools/releases/download/1.8/SteamtoolsSetup.exe',
-                        timeout=30)
+                        'https://steamtools.net/res/st-setup-1.8.30.exe',
+                        timeout=60)
                     if _r.status_code == 200:
                         _setup_path.write_bytes(_r.content)
-                        _subprocess.run([str(_setup_path), '/S'], capture_output=True, timeout=60)
+                        _log(f'[Reset] Indi: {len(_r.content)//1024}KB')
+                    else:
+                        _log(f'[Reset] SteamTools indirme hatasi HTTP {_r.status_code}')
+                        _setup_path = None
+                except Exception as _ex:
+                    _log(f'[Reset] SteamTools indirme hatasi: {_ex}')
+                    _setup_path = None
+                # 7 SteamTools kur (admin yetkisiyle)
+                if _setup_path and _setup_path.exists():
+                    _log('[Reset] SteamTools kuruluyor (admin)...')
+                    _pb_set(70, 'SteamTools kuruluyor...')
+                    try:
+                        _ps_cmd = f'Start-Process -FilePath "{_setup_path}" -ArgumentList "/S" -Wait -Verb RunAs'
+                        _subprocess.run(['powershell', '-Command', _ps_cmd], capture_output=True, timeout=180)
                         _time.sleep(3)
                         try: _setup_path.unlink()
                         except: pass
-                except: pass
+                    except Exception as _ex:
+                        _log(f'[Reset] SteamTools kurulum hatasi: {_ex}')
+                else:
+                    _log('[Reset] Kurulum atlandi (setup.exe yok)')
+                    _pb_set(70, 'Kurulum atlandi')
+                # 8 SteamTools baslat (inject'ten once)
+                _log('[Reset] SteamTools baslatiliyor...')
+                _pb_set(80, 'SteamTools baslatiliyor...')
                 if _st_exe.exists():
                     _subprocess.Popen([str(_st_exe)], startupinfo=_si)
-                _time.sleep(3)
-                if _gd.is_dir():
-                    _inject_all_parent(_gd)
-                _subprocess.run(['taskkill', '/f', '/im', 'steam.exe'], capture_output=True, timeout=15)
-                _time.sleep(5)
+                    _time.sleep(3)
+                else:
+                    _log('[Reset] SteamTools.exe bulunamadi, baslatilamadi')
+                # 9 Tumunu enjekte et
+                _log(f'[Reset] Tum oyunlar inject ediliyor... (klasor={_gd})')
+                _pb_set(90, 'Tum oyunlar inject ediliyor...')
+                _inject_all_parent_reset(_gd)
+                _log('[Reset] Inject fonksiyonu bitti')
+                _time.sleep(1)
+                _st_chk = _subprocess.run(['tasklist', '/fi', 'imagename eq SteamTools.exe'],
+                                          capture_output=True, text=True, timeout=5)
+                if 'SteamTools.exe' not in _st_chk.stdout:
+                    _log('[Reset] SteamTools calismiyor, tekrar baslatiliyor')
+                    if _st_exe.exists():
+                        try: _subprocess.Popen([str(_st_exe)], startupinfo=_si)
+                        except: pass
+                    _time.sleep(2)
+                # 10 Steam baslat + watchdog
+                _log('[Reset] Steam baslatiliyor + watchdog aciliyor...')
+                _pb_set(100, 'Steam baslatiliyor...')
                 _subprocess.Popen(['C:\\Program Files (x86)\\Steam\\steam.exe'],
                                   startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
+                _st_watchdog_active[0] = True
+                _time.sleep(2)
+                window.after(0, lambda: _pb_frame.pack_forget())
+                _log('[Reset] Tamamlandi')
+            def _inject_all_parent_reset(_parent_dir):
+                try:
+                    _log(f'[Reset] Inject: Basladi, klasor="{_parent_dir}"')
+                    if not _parent_dir or str(_parent_dir) == '.' or not _parent_dir.exists():
+                        _log(f'[Reset] Inject: Klasor gecersiz veya yok: "{_parent_dir}"')
+                        _log(f'[Reset] Inject: Desktop\'ta used/ araniyor...')
+                        _dd = Path(_os.environ['USERPROFILE']) / 'Desktop'
+                        _desktop_zips = []
+                        for _d in _dd.iterdir():
+                            if _d.is_dir():
+                                _u = _d / 'used'
+                                if _u.is_dir():
+                                    for _f in _u.iterdir():
+                                        if _f.suffix.lower() == '.zip':
+                                            _desktop_zips.append(_f)
+                        if _desktop_zips:
+                            _log(f'[Reset] Inject: Desktop altinda {len(_desktop_zips)} zip bulundu')
+                            _parent_dir = _desktop_zips[0].parent.parent
+                            _log(f'[Reset] Inject: Yeni klasor: {_parent_dir}')
+                        else:
+                            _log('[Reset] Inject: Desktop\'ta used/ icinde zip bulunamadi')
+                            return
+                    _log(f'[Reset] Inject: Klasor var, zip taranıyor: {_parent_dir}')
+                    try:
+                        _zips = []
+                        for _f in _parent_dir.iterdir():
+                            if _f.suffix.lower() == '.zip':
+                                _zips.append(_f)
+                        _used = _parent_dir / 'used'
+                        if _used.is_dir():
+                            for _f in _used.iterdir():
+                                if _f.suffix.lower() == '.zip':
+                                    _zips.append(_f)
+                        _zips.sort()
+                        _log(f'[Reset] Inject: Ana: {len([z for z in _parent_dir.iterdir() if z.suffix.lower()==".zip"])} zip, used/: {len([z for z in _used.iterdir() if z.suffix.lower()==".zip"]) if _used.is_dir() else 0} zip')
+                    except Exception as _ex:
+                        _log(f'[Reset] Inject: Tarama hatasi: {_ex}')
+                        return
+                    _log(f'[Reset] Inject: Toplam {len(_zips)} zip bulundu')
+                    if not _zips:
+                        _log('[Reset] Inject: Zip yok, inject atlandi')
+                        return
+                    _depot = Path('C:\\Program Files (x86)\\Steam\\config\\depotcache')
+                    _stplug = Path('C:\\Program Files (x86)\\Steam\\config\\stplug-in')
+                    _depot.mkdir(parents=True, exist_ok=True)
+                    _stplug.mkdir(parents=True, exist_ok=True)
+                    if not _used.is_dir():
+                        _used.mkdir(parents=True, exist_ok=True)
+                    _ini_path = _used / 'injected_games.ini'
+                    _cfg = _configparser.ConfigParser()
+                    if _ini_path.exists():
+                        try: _cfg.read(str(_ini_path), encoding='utf-8')
+                        except: pass
+                    if 'Games' not in _cfg: _cfg['Games'] = {}
+                    for _i, _zp in enumerate(_zips):
+                        try:
+                            _log(f'[Reset] Inject: [{_i+1}/{len(_zips)}] {_zp.name}...')
+                            window.after(0, lambda i=_i, z=_zp, t=len(_zips): _pb_lbl.config(text=f'Inject: [{i+1}/{t}] {z.name}'))
+                            with _zipfile.ZipFile(str(_zp), 'r') as _zf:
+                                _extracted = 0
+                                for _info in _zf.infolist():
+                                    if _info.is_dir(): continue
+                                    _target = _depot if _info.filename.endswith('.manifest') else _stplug
+                                    try:
+                                        (_target / Path(_info.filename).name).write_bytes(_zf.read(_info))
+                                        _extracted += 1
+                                    except Exception as _ex2:
+                                        _log(f'[Reset] Inject: {_zp.name}/{_info.filename} hata: {_ex2}')
+                                _log(f'[Reset] Inject: {_zp.name} -> {_extracted} dosya extract edildi')
+                            _gname = _zp.stem.replace('_', ' ').replace('-', ' ').strip()
+                            _gname = ' '.join(w.capitalize() for w in _gname.split())
+                            _cfg['Games'][_gname] = _time.strftime('%Y-%m-%d %H:%M')
+                            if _zp.parent == _used:
+                                _log(f'[Reset] Inject: {_gname} (zaten used/ icinde)')
+                            else:
+                                _shutil.move(str(_zp), str(_used / _zp.name))
+                                _log(f'[Reset] Inject: {_gname} -> used/')
+                        except Exception as _ex:
+                            _log(f'[Reset] Inject: {_zp.name} hatasi: {_ex}')
+                    with open(str(_ini_path), 'w', encoding='utf-8') as _f:
+                        _cfg.write(_f)
+                    _log(f'[Reset] Inject: injected_games.ini yazildi ({len(_cfg["Games"])} oyun)')
+                except Exception as _ex:
+                    _log(f'[Reset] Inject hatasi: {_ex}')
             threading.Thread(target=_task, daemon=True).start()
         _trow_a = tk.Frame(_t_inner, bg='#152238')
         _trow_a.pack(fill=tk.X, pady=2)
         _btn_w = 120
-        AB(_trow_a, _t('Guncelle', 'Update'), _launch_updater, _btn_w, 36,
+        AB(_trow_a, _t('Guncelle', 'Update'), _launch_updater_ui, _btn_w, 36,
            '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
         AB(_trow_a, _t('Nickname', 'Nickname'), _change_nickname, _btn_w, 36,
@@ -5288,7 +5379,7 @@ def install_ui_fixes(g):
                  font=('Segoe UI', 8)).pack(side=tk.LEFT, padx=(4, 0))
         def _open_yt():
             import webbrowser
-            webbrowser.open('https://www.youtube.com/@oWL-Nexial')
+            webbrowser.open('https://www.youtube.com/@oWL-Nexial?sub_confirmation=1')
         AB(_ver_frame, 'YouTube 1', _open_yt, 90, 30,
            '#8b0000', '#cc0000', '#ffffff', '#ffffff',
            ('Segoe UI Black', 11)).pack(side=tk.LEFT, padx=(8, 0))
@@ -6678,25 +6769,27 @@ def install_ui_fixes(g):
                                  creationflags=_subprocess.CREATE_NO_WINDOW)
             if 'SteamTools.exe' not in _r.stdout:
                 if not _st_exe_path.exists():
-                    try:
-                        _setup = Path(_os.environ['TEMP']) / 'SteamtoolsSetup.exe'
-                        _d = requests.get(
-                            'https://github.com/st2024/Steamtools/releases/download/1.8/SteamtoolsSetup.exe',
-                            timeout=30)
-                        if _d.status_code == 200:
-                            _setup.write_bytes(_d.content)
-                            _subprocess.run([str(_setup), '/S'], capture_output=True, timeout=60)
-                            _time.sleep(3)
-                            try: _setup.unlink()
-                            except: pass
-                    except: pass
-                if _st_exe_path.exists():
+                    _thr.Thread(target=_st_download_and_install, daemon=True).start()
+                elif _st_exe_path.exists():
                     _si = _subprocess.STARTUPINFO()
                     _si.dwFlags = _subprocess.STARTF_USESHOWWINDOW
                     _subprocess.Popen([str(_st_exe_path)], startupinfo=_si)
         except: pass
-        root.after(1000, _st_watchdog)
-    root.after(5000, _st_watchdog)
+        root.after(5000, _st_watchdog)
+    def _st_download_and_install():
+        try:
+            _setup = Path(_os.environ['TEMP']) / 'SteamtoolsSetup.exe'
+            _d = requests.get(
+                'https://github.com/st2024/Steamtools/releases/download/1.8/SteamtoolsSetup.exe',
+                timeout=60)
+            if _d.status_code == 200:
+                _setup.write_bytes(_d.content)
+                _subprocess.run([str(_setup), '/S'], capture_output=True, timeout=120)
+                _time.sleep(3)
+                try: _setup.unlink()
+                except: pass
+        except: pass
+    root.after(10000, _st_watchdog)
 
     # ---- Single first-run flow: setup wizard → nickname ----
     def _first_run_flow(app):
@@ -6777,43 +6870,29 @@ def install_ui_fixes(g):
     SteamApp._inject_of_flow = _inject_of_flow
 
     # ---- Updater: extract + schedule + patch settings ----
-    def _ensure_updater():
-        _ad = Path(os.environ.get('APPDATA', str(Path.home()))) / 'SteamToolsLua'
-        _ad.mkdir(parents=True, exist_ok=True)
-        _tgt = _ad / 'STL_Update.exe'
-        if not _tgt.exists():
-            _src = None
-            if getattr(sys, 'frozen', False):
-                _mp = getattr(sys, '_MEIPASS', None)
-                if _mp:
-                    _c = Path(_mp) / 'STL_Update.exe'
-                    if _c.exists(): _src = _c
-            if not _src:
-                _c = Path(__file__).parent / 'STL_Update.exe'
-                if _c.exists(): _src = _c
-            if _src:
-                try: shutil.copy2(str(_src), str(_tgt))
-                except: pass
-        return _tgt if _tgt.exists() else None
-
-    _updater_exe = _ensure_updater()
-    _exe_path = sys.executable if getattr(sys, 'frozen', False) else __file__
-
-    def _launch_updater():
+    def _launch_updater_ui():
+        _udir = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua"
+        _udir.mkdir(parents=True, exist_ok=True)
+        _uexe = _udir / "SteamToolsLua_Updater_UI.exe"
+        if _uexe.exists():
+            subprocess.Popen([str(_uexe), '--current', VERSION])
+            return
+        _base = 'https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/updater-ui-bin'
+        _ok = True
         try:
-            if _updater_exe:
-                subprocess.Popen(
-                    [str(_updater_exe), '--current', VERSION, '--exe', _exe_path],
-                    creationflags=subprocess.CREATE_NO_WINDOW
-                )
+            import requests as _req
+            _r = _req.get(f'{_base}/SteamToolsLua_Updater_UI.exe', timeout=30)
+            if _r.status_code == 200:
+                _uexe.write_bytes(_r.content)
+            else:
+                _ok = False
         except:
-            pass
-
-    # Auto check after 15s
-    _ru = getattr(g.get('app'), 'root', None) if g.get('app') else None
-    if _ru:
-        try: _ru.after(15000, _launch_updater)
-        except: pass
+            _ok = False
+        if _ok:
+            subprocess.Popen([str(_uexe), '--current', VERSION])
+        else:
+            import ctypes as _ct
+            _ct.windll.user32.MessageBoxW(0, "SteamToolsLua_Updater_UI.exe indirilemedi.", "Hata", 0x10)
 
 if __name__ == '__main__':
     if sys.version_info < (3, 11):
