@@ -4144,13 +4144,13 @@ def install_ui_fixes(g):
                 # 1 Kill Steam
                 _log('[Reset] Steam kapatiliyor...')
                 _pb_set(10, 'Steam kapatiliyor...')
-                _subprocess.run(['taskkill', '/f', '/im', 'steam.exe'], startupinfo=_si, capture_output=True)
+                _subprocess.run(['taskkill', '/f', '/im', 'steam.exe'], startupinfo=_si, capture_output=True, creationflags=_subprocess.CREATE_NO_WINDOW)
                 _time.sleep(2)
                 # 2 Kill ST + watchdog kapali
                 _log('[Reset] SteamTools kapatiliyor...')
                 _pb_set(20, 'SteamTools kapatiliyor...')
                 _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
-                                startupinfo=_si, capture_output=True)
+                                startupinfo=_si, capture_output=True, creationflags=_subprocess.CREATE_NO_WINDOW)
                 _time.sleep(1)
                 # 3 Steam temizligi (depotcache/stplug-in/VDF) - used/ zipleri inject fonunda taranir
                 _log('[Reset] Depotcache/stplug-in/VDF siliniyor...')
@@ -4159,12 +4159,13 @@ def install_ui_fixes(g):
                     for _dir in ('config\\depotcache', 'config\\stplug-in'):
                         _p = _steam_root / _dir
                         if _p.exists():
-                            _subprocess.run(['cmd', '/c', f'rd /s /q "{_p}"'], capture_output=True, timeout=10)
+                            try: _shutil.rmtree(str(_p))
+                            except: _subprocess.run(['cmd', '/c', f'rd /s /q "{_p}"'], startupinfo=_si, capture_output=True, timeout=10, creationflags=_subprocess.CREATE_NO_WINDOW)
                             _log(f'[Reset] Silindi: {_dir}')
                         else:
                             _log(f'[Reset] {_dir} zaten yok')
                     _ac = _steam_root / 'appcache'
-                    for _f in ('appinfo.vdf', 'packageinfo.vdf'):
+                    for _f in ('appinfo.vdf', 'packageinfo.vdf', 'packcode.vdf'):
                         _fp = _ac / _f
                         if _fp.exists(): _fp.unlink(); _log(f'[Reset] Silindi: {_f}')
                 except Exception as _ex:
@@ -4177,7 +4178,7 @@ def install_ui_fixes(g):
                 if _uninst.exists():
                     try:
                         _ps_cmd = f'Start-Process -FilePath "{_uninst}" -ArgumentList "/S" -Wait -Verb RunAs'
-                        _subprocess.run(['powershell', '-Command', _ps_cmd], capture_output=True, timeout=60)
+                        _subprocess.run(['powershell', '-Command', _ps_cmd], startupinfo=_si, capture_output=True, timeout=60, creationflags=_subprocess.CREATE_NO_WINDOW)
                         _time.sleep(2)
                     except Exception as _ex:
                         _log(f'[Reset] Uninstall hatasi: {_ex}')
@@ -4185,7 +4186,7 @@ def install_ui_fixes(g):
                     _log('[Reset] SteamTools hala var, zorla siliniyor (admin rd)...')
                     try:
                         _ps_cmd = f'Start-Process -FilePath "cmd" -ArgumentList "/c rd /s /q ""{_st_dir}""" -Wait -Verb RunAs -WindowStyle Hidden'
-                        _subprocess.run(['powershell', '-Command', _ps_cmd], capture_output=True, timeout=30)
+                        _subprocess.run(['powershell', '-Command', _ps_cmd], startupinfo=_si, capture_output=True, timeout=30, creationflags=_subprocess.CREATE_NO_WINDOW)
                         _time.sleep(2)
                     except Exception as _ex:
                         _log(f'[Reset] Admin silme hatasi: {_ex}')
@@ -4217,7 +4218,7 @@ def install_ui_fixes(g):
                     _pb_set(70, 'SteamTools kuruluyor...')
                     try:
                         _ps_cmd = f'Start-Process -FilePath "{_setup_path}" -ArgumentList "/S" -Wait -Verb RunAs'
-                        _subprocess.run(['powershell', '-Command', _ps_cmd], capture_output=True, timeout=180)
+                        _subprocess.run(['powershell', '-Command', _ps_cmd], startupinfo=_si, capture_output=True, timeout=180, creationflags=_subprocess.CREATE_NO_WINDOW)
                         _time.sleep(3)
                         try: _setup_path.unlink()
                         except: pass
@@ -4241,7 +4242,8 @@ def install_ui_fixes(g):
                 _log('[Reset] Inject fonksiyonu bitti')
                 _time.sleep(1)
                 _st_chk = _subprocess.run(['tasklist', '/fi', 'imagename eq SteamTools.exe'],
-                                          capture_output=True, text=True, timeout=5)
+                                          capture_output=True, text=True, timeout=5,
+                                          startupinfo=_si, creationflags=_subprocess.CREATE_NO_WINDOW)
                 if 'SteamTools.exe' not in _st_chk.stdout:
                     _log('[Reset] SteamTools calismiyor, tekrar baslatiliyor')
                     if _st_exe.exists():
@@ -4342,6 +4344,91 @@ def install_ui_fixes(g):
                 except Exception as _ex:
                     _log(f'[Reset] Inject hatasi: {_ex}')
             threading.Thread(target=_task, daemon=True).start()
+        def _reset_licenses_backup():
+            if not tk.messagebox.askyesno('Reset Licenses Backup',
+                'Bu islem:\n'
+                '1. Xinput1_4.dll -> DWM API.dll (indir/yeniden adlandir)\n'
+                '2. Steam kapa/ac\n'
+                '3. Cloudflare Warp indir/kur\n'
+                '4. VPN baglan\n'
+                '5. PowerShell: irm steam.run | iex\n'
+                '6. Bilgisayari yeniden baslat\n\n'
+                'Devam edilsin mi?',
+                parent=window): return
+            def _task_bak():
+                _log = lambda m: window.after(0, lambda: self.log(m))
+                _si_bak = _subprocess.STARTUPINFO()
+                _si_bak.dwFlags = _subprocess.STARTF_USESHOWWINDOW
+                _nw = _subprocess.CREATE_NO_WINDOW
+                _steam_root = Path('C:\\Program Files (x86)\\Steam')
+                _desktop_bak = Path(_os.environ['USERPROFILE']) / 'Desktop'
+                # 1 Xinput1_4.dll islemleri
+                _log('[RLB] Xinput1_4.dll kontrol ediliyor...')
+                _dll_path = _steam_root / 'Xinput1_4.dll'
+                if _dll_path.exists():
+                    try:
+                        _dll_path.rename(_steam_root / 'DWM API.dll')
+                        _log('[RLB] Xinput1_4.dll -> DWM API.dll olarak yeniden adlandirildi')
+                    except Exception as _ex:
+                        _log(f'[RLB] Yeniden adlandirma hatasi: {_ex}')
+                else:
+                    _log('[RLB] Xinput1_4.dll bulunamadi, indiriliyor...')
+                    try:
+                        _r = requests.get('https://www.dll-files.com/download/2f11c2213a4d60a347b53a50277cd131/xinput1_4.dll.html?c=L2tMN1FQZTBhU04wbjB1c05FYmpjZz09', timeout=30)
+                        if _r.status_code == 200:
+                            _dll_path.write_bytes(_r.content)
+                            _log(f'[RLB] Xinput1_4.dll indirildi ({len(_r.content)//1024}KB)')
+                            try: _dll_path.rename(_steam_root / 'DWM API.dll')
+                            except: pass
+                        else:
+                            _log(f'[RLB] Indirme hatasi HTTP {_r.status_code}')
+                    except Exception as _ex:
+                        _log(f'[RLB] Indirme hatasi: {_ex}')
+                # 2 Steam kapa/ac
+                _log('[RLB] Steam kapatiliyor...')
+                _subprocess.run(['taskkill', '/f', '/im', 'steam.exe'], startupinfo=_si_bak, capture_output=True, creationflags=_nw)
+                _time.sleep(3)
+                _subprocess.Popen(['C:\\Program Files (x86)\\Steam\\steam.exe'],
+                                  startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
+                _log('[RLB] Steam yeniden baslatildi')
+                # 3 Cloudflare Warp indir/kur
+                _log('[RLB] Cloudflare Warp indiriliyor...')
+                _cf_path = _desktop_bak / 'Cloudflare_WARP.exe'
+                try:
+                    _r = requests.get('https://developers.cloudflare.com/cloudflare-one/team-and-resources/devices/cloudflare-one-client/download/', timeout=30, allow_redirects=True)
+                    if _r.status_code == 200:
+                        _cf_path.write_bytes(_r.content)
+                        _log(f'[RLB] Cloudflare Warp indirildi ({len(_r.content)//1024}KB)')
+                        try:
+                            _subprocess.run([str(_cf_path), '/S'], startupinfo=_si_bak, capture_output=True, timeout=120, creationflags=_nw)
+                            _time.sleep(5)
+                        except Exception as _ex:
+                            _log(f'[RLB] Warp kurulum hatasi: {_ex}')
+                    else:
+                        _log(f'[RLB] Warp indirme hatasi HTTP {_r.status_code}')
+                except Exception as _ex:
+                    _log(f'[RLB] Warp indirme hatasi: {_ex}')
+                # 4 PowerShell irm steam.run | iex
+                _log('[RLB] PowerShell ile irm steam.run | iex calistiriliyor...')
+                _log('[RLB] Bu islem uzun surebilir...')
+                try:
+                    _ps_code = 'irm steam.run | iex'
+                    _ps_cmd = f'Start-Process -FilePath "powershell" -ArgumentList "-Command {_ps_code}" -Wait -Verb RunAs -WindowStyle Hidden'
+                    _subprocess.run(['powershell', '-Command', _ps_cmd], startupinfo=_si_bak, capture_output=True, timeout=600, creationflags=_nw)
+                    _log('[RLB] PowerShell komutu tamamlandi')
+                except Exception as _ex:
+                    _log(f'[RLB] PowerShell hatasi: {_ex}')
+                # 5 Uyari + restart
+                _log('[RLB] Islemler tamamlandi! Bilgisayar yeniden baslatiliyor...')
+                window.after(0, lambda: tk.messagebox.showwarning('Yeniden Baslatma',
+                    'Islemler basariyla tamamlandi.\n\nBilgisayar 10 saniye icinde yeniden baslatilacak.',
+                    parent=window))
+                _time.sleep(10)
+                try:
+                    _subprocess.run(['shutdown', '/r', '/t', '0', '/f'], startupinfo=_si_bak, capture_output=True, creationflags=_nw)
+                except:
+                    pass
+            threading.Thread(target=_task_bak, daemon=True).start()
         _trow_a = tk.Frame(_t_inner, bg='#152238')
         _trow_a.pack(fill=tk.X, pady=2)
         _btn_w = 120
@@ -4353,6 +4440,9 @@ def install_ui_fixes(g):
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
         AB(_trow_a, _t('Reset Licenses', 'Reset Licenses'), _reset_licenses, _btn_w, 36,
            '#8b0000', '#b22222', '#f56565', '#ffffff',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        AB(_trow_a, _t('Reset Backup', 'Reset Backup'), _reset_licenses_backup, _btn_w, 36,
+           '#6b3a2e', '#8b4a3e', '#e8927c', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
         AB(_trow_a, _t('Basarimlar', 'Achievements'), self._open_game_picker, _btn_w, 36,
            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
