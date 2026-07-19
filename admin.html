@@ -146,17 +146,15 @@ footer a{color:#7c6fff;text-decoration:none}
 </footer>
 
 <script>
-const GIST_ID='6f3df9ed457b97936420526d5f5a431b';
-let token=localStorage.getItem('gh_token')||'', gistData=null;
+let token=localStorage.getItem('gh_token')||'';
+const BL_URL='https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/contents/blacklist.txt';
 
-function showMsg(text,type){const el=document.getElementById('msg');el.textContent=text;el.className='msg '+type+' show';setTimeout(()=>el.classList.remove('show'),3500)}
+function showMsg(text,type){const el=document.getElementById('msg');el.textContent=text;el.className='msg '+type+' show';setTimeout(()=>el.classList.remove('msg'),3500)}
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
-
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));
 }
-
 function saveToken(){
   const t=document.getElementById('tokenInput').value.trim();
   if(!t){showMsg('Token girin.','error');return}
@@ -164,41 +162,31 @@ function saveToken(){
   showMsg('Token kaydedildi.','success');
   loadAll();
 }
-
 async function ghFetch(url,opts={}){
   const h={'User-Agent':'SteamToolsLua-Admin'};
   if(token) h['Authorization']='Bearer '+token;
   if(opts.body) h['Content-Type']='application/json';
   return fetch(url,{...opts,headers:h});
 }
-
-async function loadGist(){
+async function readBL(){
   try{
-    const r=await ghFetch(`https://api.github.com/gists/${GIST_ID}`);
-    if(!r.ok){showMsg('Gist yuklenemedi: '+r.status,'error');return null}
-    return await r.json();
-  }catch(e){showMsg('Gist hatasi: '+e.message,'error');return null}
+    const r=await ghFetch(BL_URL);
+    if(!r.ok){showMsg('blacklist.txt okunamadi: '+r.status,'error');return null}
+    const data=await r.json();
+    const lines=atob(data.content).split('\n').filter(l=>l.trim()&&!l.startsWith('#'));
+    return {lines,sha:data.sha};
+  }catch(e){showMsg('Hata: '+e.message,'error');return null}
 }
-
-function getFile(gist,name){
-  if(!gist||!gist.files||!gist.files[name]) return null;
-  try{return JSON.parse(gist.files[name].content)}
-  catch(e){return gist.files[name].content}
-}
-
-async function updateFile(name,data){
+async function writeBL(lines,sha){
   if(!token){showMsg('Yazmak icin token gerekli.','error');return false}
+  const content=lines.join('\n')+(lines.length?'\n':'');
+  const body=JSON.stringify({message:'Update blacklist.txt',content:btoa(content),sha});
   try{
-    const content=typeof data==='string'?data:JSON.stringify(data,null,2);
-    const body={files:{}}; body.files[name]={content};
-    const r=await ghFetch(`https://api.github.com/gists/${GIST_ID}`,{method:'PATCH',body:JSON.stringify(body)});
-    if(!r.ok){const e=await r.text();showMsg('Guncelleme hatasi: '+e,'error');return false}
-    showMsg('Kaydedildi!','success');
-    return true;
+    const r=await ghFetch(BL_URL,{method:'PUT',body});
+    if(!r.ok){const e=await r.text();showMsg('Yazma hatasi: '+e,'error');return false}
+    showMsg('Kaydedildi!','success');return true
   }catch(e){showMsg('Hata: '+e.message,'error');return false}
 }
-
-// ---- BAN MODAL ----
 function showBanModal(hwid){
   const inp=document.getElementById('blInput');
   const val=hwid||inp.value.trim().toLowerCase();
@@ -214,161 +202,95 @@ async function confirmBan(){
   const reason=document.getElementById('modalReason').value.trim();
   if(!hwid){showMsg('HWID gerekli.','error');return}
   closeBanModal()
-  const g=await loadGist(); if(!g) return;
-  let bl=getFile(g,'blacklist.json');
-  let msgs=getFile(g,'ban_messages.json')||{};
-  if(!Array.isArray(bl)) bl=[];
-  if(bl.includes(hwid)){showMsg('Zaten listede: '+hwid,'error');return}
-  bl.push(hwid);
-  if(reason) msgs[hwid]=reason;
-  await updateFile('ban_messages.json',msgs);
-  if(await updateFile('blacklist.json',bl)){document.getElementById('blInput').value='';loadBlacklist()}
+  const bl=await readBL();
+  if(!bl) return;
+  if(bl.lines.includes(hwid)){showMsg('Zaten listede: '+hwid,'error');return}
+  const entry=reason ? hwid+' # '+reason : hwid;
+  bl.lines.push(entry);
+  if(await writeBL(bl.lines,bl.sha)){document.getElementById('blInput').value='';loadBlacklist()}
 }
-
-// ---- BLACKLIST ----
 async function loadBlacklist(){
   const el=document.getElementById('blEntries');
+  if(!token){el.innerHTML='<div class="empty">Token gerekli (Ayarlar).</div>';return}
   el.innerHTML='<div class="empty">Yukleniyor...</div>';
-  const g=await loadGist();
-  if(!g){el.innerHTML='<div class="empty">Gist yuklenemedi.</div>';return}
-  const bl=getFile(g,'blacklist.json');
-  const msgs=getFile(g,'ban_messages.json')||{};
-  if(!bl||!Array.isArray(bl)){el.innerHTML='<div class="empty">blacklist.json bos veya gecersiz.</div>';return}
-  document.getElementById('blCount').textContent='('+bl.length+')';
-  if(!bl.length){el.innerHTML='<div class="empty">Kara liste bos.</div>';return}
-  el.innerHTML=bl.map((h,i)=>{
-    const msg=msgs[h]||'';
+  const bl=await readBL();
+  if(!bl){el.innerHTML='<div class="empty">blacklist.txt yuklenemedi.</div>';return}
+  document.getElementById('blCount').textContent='('+bl.lines.length+')';
+  if(!bl.lines.length){el.innerHTML='<div class="empty">Kara liste bos.</div>';return}
+  el.innerHTML=bl.lines.map((h,i)=>{
+    const parts=h.split(' # ');
+    const hwid=parts[0];
+    const msg=parts.slice(1).join(' # ');
     const msgHtml=msg?'<br><small style="color:#f56565">Sebep: '+esc(msg)+'</small>':'';
-    return '<div class="entry"><span>'+esc(h)+msgHtml+'</span><button class="btn btn-danger btn-sm" onclick="removeBlacklist('+i+')">Kaldir</button></div>'
+    return '<div class="entry"><span>'+esc(hwid)+msgHtml+'</span><button class="btn btn-danger btn-sm" onclick="removeBlacklist('+i+')">Kaldir</button></div>'
   }).join('');
 }
-
 async function removeBlacklist(i){
-  const g=await loadGist(); if(!g) return;
-  let bl=getFile(g,'blacklist.json');
-  let msgs=getFile(g,'ban_messages.json')||{};
-  if(!Array.isArray(bl)) return;
-  const hwid=bl[i];
-  bl.splice(i,1);
-  delete msgs[hwid];
-  await updateFile('ban_messages.json',msgs);
-  if(await updateFile('blacklist.json',bl)) loadBlacklist();
+  const bl=await readBL();
+  if(!bl) return;
+  bl.lines.splice(i,1);
+  if(await writeBL(bl.lines,bl.sha)) loadBlacklist();
 }
-
-// ---- DEVICES (usage history grouped by day) ----
+const GIST_ID='6f3df9ed457b97936420526d5f5a431b';
 async function loadDevices(){
   const el=document.getElementById('devEntries');
-  el.innerHTML='<div class="empty">Yukleniyor...</div>';
-  const g=await loadGist();
-  if(!g){el.innerHTML='<div class="empty">Gist yuklenemedi.</div>';return}
-  const dev=getFile(g,'devices.json');
-  if(!dev||!Array.isArray(dev)){el.innerHTML='<div class="empty">devices.json bos veya gecersiz.</div>';return}
-
-  // filter real device entries (must have hwid + pc)
-  const real=dev.filter(e=>e&&typeof e==='object'&&e.hwid&&e.pc);
-  if(!real.length){el.innerHTML='<div class="empty">Henuz cihaz kaydi yok.</div>';return}
-  document.getElementById('devCount').textContent='('+real.length+')';
-
-  // group by hwid
-  const byHwid={};
-  for (const e of real){
-    if(!byHwid[e.hwid]) byHwid[e.hwid]={pc:e.pc,ip:e.ip,times:[]};
-    if(e.time) byHwid[e.hwid].times.push(e.time);
-  }
-
-  // sort each device's times, group by day
-  const now=new Date();
-  const todayStr=now.toISOString().slice(0,10);
-  const dayLabels={0:'Pazar',1:'Pazartesi',2:'Sali',3:'Carsamba',4:'Persembe',5:'Cuma',6:'Cumartesi'};
-
-  function formatTime(isoStr){
-    const d=new Date(isoStr);
-    return d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
-  }
-
-  function getDayLabel(isoStr){
-    const d=new Date(isoStr.slice(0,10));
-    const diff=Math.round((now-d)/86400000);
-    if(diff===0) return 'Bugun';
-    if(diff===1) return 'Dun';
-    return d.toLocaleDateString('tr-TR',{day:'numeric',month:'long'})+' '+dayLabels[d.getDay()];
-  }
-
-  let html='';
-  for (const [hwid,info] of Object.entries(byHwid)){
-    info.times.sort();
-    // group times by day (yyyy-mm-dd)
-    const byDay={};
-    for (const t of info.times){
-      const day=t.slice(0,10);
-      if(!byDay[day]) byDay[day]=[];
-      byDay[day].push(t);
+  el.innerHTML='<div class="empty">Cihaz gecmisi icin gist token gerekli.</div>';
+  if(!token) return;
+  try{
+    const r=await ghFetch(`https://api.github.com/gists/${GIST_ID}`);
+    if(!r.ok) return;
+    const g=await r.json();
+    const raw=g.files&&g.files['devices.json']?g.files['devices.json'].content:null;
+    if(!raw||!raw.trim()){el.innerHTML='<div class="empty">devices.json bos.</div>';return}
+    const dev=JSON.parse(raw); const real=dev.filter(e=>e&&typeof e==='object'&&e.hwid&&e.pc);
+    if(!real.length){el.innerHTML='<div class="empty">Henuz cihaz kaydi yok.</div>';return}
+    document.getElementById('devCount').textContent='('+real.length+')';
+    const byHwid={}; const now=new Date();
+    for(const e of real){
+      if(!byHwid[e.hwid]) byHwid[e.hwid]={pc:e.pc,ip:e.ip,times:[]};
+      if(e.time) byHwid[e.hwid].times.push(e.time);
     }
-
-    // sorted days descending (newest first)
-    const days=Object.keys(byDay).sort().reverse();
-
-    html+='<div class="dev-card">';
-    html+='<div class="hwid">'+esc(hwid)+'</div>';
-    html+='<div class="info">'+esc(info.pc)+' &middot; '+esc(info.ip)+' &middot; '+info.times.length+' kez</div>';
-    for (const day of days){
-      const ts=byDay[day];
-      html+='<div class="day-group">';
-      html+='<div class="day-label">'+getDayLabel(day)+' ('+ts.length+')</div>';
-      html+='<div class="time-list">';
-      // show up to 10 time badges, rest as "+N more"
-      const show=ts.slice(-12);
-      const hidden=ts.length-show.length;
-      for (const t of show){
-        html+='<span class="time-badge">'+formatTime(t)+'</span>';
+    let html='';
+    for(const [hwid,info] of Object.entries(byHwid)){
+      info.times.sort(); const byDay={};
+      for(const t of info.times){const day=t.slice(0,10);if(!byDay[day]) byDay[day]=[];byDay[day].push(t)}
+      const days=Object.keys(byDay).sort().reverse();
+      html+='<div class="dev-card"><div class="hwid">'+esc(hwid)+'</div><div class="info">'+esc(info.pc)+' &middot; '+esc(info.ip)+' &middot; '+info.times.length+' kez</div>';
+      for(const day of days){
+        const ts=byDay[day]; const d=new Date(day);
+        const diff=Math.round((now-d)/86400000);
+        const label=diff===0?'Bugun':diff===1?'Dun':d.toLocaleDateString('tr-TR',{day:'numeric',month:'long'});
+        html+='<div class="day-group"><div class="day-label">'+label+' ('+ts.length+')</div><div class="time-list">';
+        const show=ts.slice(-12); const hidden=ts.length-show.length;
+        for(const t of show) html+='<span class="time-badge">'+new Date(t).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})+'</span>';
+        if(hidden>0) html+='<span class="time-badge many">+'+hidden+' daha</span>';
+        html+='</div></div>';
       }
-      if(hidden>0) html+='<span class="time-badge many">+'+hidden+' daha</span>';
-      html+='</div></div>';
+      html+='<div style="margin-top:8px"><button class="btn btn-danger btn-sm" onclick="showBanModal(\''+esc(hwid)+'\')">Banla</button></div></div>';
     }
-    html+='<div style="margin-top:8px"><button class="btn btn-danger btn-sm" onclick="showBanModal(\''+esc(hwid)+'\')">Banla</button></div>';
-    html+='</div>';
-  }
-  el.innerHTML=html;
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div class="empty">Hata: '+e.message+'</div>'}
 }
-
-// ---- USERS ----
 async function loadUsers(){
   const el=document.getElementById('usrEntries');
-  el.innerHTML='<div class="empty">Yukleniyor...</div>';
-  const g=await loadGist();
-  if(!g){el.innerHTML='<div class="empty">Gist yuklenemedi.</div>';return}
-  const usr=getFile(g,'users.json');
-  if(!usr||!Array.isArray(usr)){el.innerHTML='<div class="empty">users.json bos veya gecersiz.</div>';return}
-  document.getElementById('usrCount').textContent='('+usr.length+')';
-  if(!usr.length){el.innerHTML='<div class="empty">Kayitli kullanici yok.</div>';return}
-  el.innerHTML=usr.map(u=>{
-    const hwid=esc(u.hwid||u.id||'-');
-    const name=esc(u.nickname||u.name||u.username||'-');
-    const date=esc(u.date||u.created||u.last_seen||'-');
-    return '<div class="entry"><span>'+esc(name)+'<br><small style="color:#686880">HWID: '+hwid+' &middot; '+date+'</small></span></div>'
-  }).join('');
+  el.innerHTML='<div class="empty">Kullanicilar icin gist token gerekli.</div>';
+  if(!token) return;
+  try{
+    const r=await ghFetch(`https://api.github.com/gists/${GIST_ID}`);
+    if(!r.ok) return;
+    const g=await r.json();
+    const raw=g.files&&g.files['users.json']?g.files['users.json'].content:null;
+    if(!raw||!raw.trim()){el.innerHTML='<div class="empty">users.json bos.</div>';return}
+    const usr=JSON.parse(raw);
+    if(!usr.length){el.innerHTML='<div class="empty">Kayitli kullanici yok.</div>';return}
+    document.getElementById('usrCount').textContent='('+usr.length+')';
+    el.innerHTML=usr.map(u=>{
+      const hwid=esc(u.hwid||u.id||'-'); const name=esc(u.nickname||u.name||u.username||'-');
+      return '<div class="entry"><span>'+name+'<br><small style="color:#686880">HWID: '+hwid+'</small></span></div>'
+    }).join('');
+  }catch(e){el.innerHTML='<div class="empty">Hata: '+e.message+'</div>'}
 }
-
-// ---- NICKNAMES ----
-async function loadNicknames(){
-  const g=await loadGist();
-  if(!g) return;
-  const nn=getFile(g,'nicknames.json');
-  if(nn&&typeof nn==='object') return nn;
-  return {};
-}
-
-// ---- Init ----
-async function loadAll(){
-  if(!token){
-    document.getElementById('blEntries').innerHTML='<div class="empty">Token gerekli (Ayarlar sekmesi).</div>';
-    document.getElementById('devEntries').innerHTML='<div class="empty">Token gerekli.</div>';
-    document.getElementById('usrEntries').innerHTML='<div class="empty">Token gerekli.</div>';
-    return;
-  }
-  await Promise.all([loadBlacklist(),loadDevices(),loadUsers()]);
-}
-
+async function loadAll(){await Promise.all([loadBlacklist(),loadDevices(),loadUsers()])}
 if(token) loadAll();
 </script>
 </body>
