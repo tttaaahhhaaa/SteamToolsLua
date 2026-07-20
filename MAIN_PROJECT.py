@@ -1436,7 +1436,7 @@ def install_ui_fixes(g):
             image_h = max(150, min(int(app.settings.get('cover_height', cover_size[1])), 240))
         except Exception:
             image_h = cover_size[1]
-        self.configure(width=cw, height=image_h + 270, cursor='hand2')
+        self.configure(width=cw, height=image_h + 320, cursor='hand2')
         self.grid_propagate(False)
         self.grid_columnconfigure(0, weight=1)
         self.image_label = tk.Label(self, bg='#0d1825', fg='#8fb8da', text='', relief=tk.FLAT)
@@ -1513,7 +1513,19 @@ def install_ui_fixes(g):
         self.btn_onlinefix = AnimatedButton(self, app.tr('button.onlinefix'),
             lambda: app.open_onlinefix(result), iw, 36,
             '#2d4a3e', '#3d6b56', '#66c0f4', '#f7fafc', ('Segoe UI Semibold', 9))
-        self.btn_onlinefix.grid(row=5, column=0, sticky='ew', padx=14, pady=(0, 8))
+        self.btn_onlinefix.grid(row=5, column=0, sticky='ew', padx=14, pady=(0, 4))
+        def _card_unlock(aid=result.get('appid', ''), aname=result.get('name', '')):
+            app.log(f'[Unlock] {aname} ({aid}) manifest indiriliyor...')
+            _ok = _download_manifest_sync(aid, log_func=lambda m: app.log(m))
+            if _ok:
+                app._set_indicator(f'Unlock: {aname} manifest tamam', 'online')
+                app.log(f'[Unlock] {aname} basarili')
+            else:
+                app._set_indicator(f'Unlock: {aname} manifest hatasi', 'offline')
+                app.log(f'[Unlock] {aname} basarisiz')
+        self.btn_unlock = AnimatedButton(self, 'Unlock', _card_unlock, iw, 36,
+            '#3b2d5e', '#5a3d8e', '#b088ff', '#ffffff', ('Segoe UI Semibold', 9))
+        self.btn_unlock.grid(row=6, column=0, sticky='ew', padx=14, pady=(0, 8))
         for widget in (self.image_label, self.title_label, self.meta_label, self.footer_label):
             widget.bind('<Enter>', self._on_enter)
             widget.bind('<Leave>', self._on_leave)
