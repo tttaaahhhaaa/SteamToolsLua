@@ -4648,6 +4648,93 @@ def install_ui_fixes(g):
                 except Exception as _ex:
                     self._set_indicator('WE Downloader hata: ' + str(_ex), 'offline')
             _we_thr.Thread(target=_task, daemon=True).start()
+        _ost_dlls = ['dwmapi.dll', 'xinput1_4.dll', 'OpenSteamTool.dll']
+        def _install_ost():
+            threading.Thread(target=lambda: _install_ost_thread(), daemon=True).start()
+        def _install_ost_thread():
+            _log_ost = lambda m: window.after(0, lambda: (self.log(m), _pb_lbl.config(text=m)))
+            _log_ost('[OST] OpenSteamTool kuruluyor...')
+            _steam = Path('C:\\Program Files (x86)\\Steam')
+            _ost_dir = Path(_os.environ['APPDATA']) / 'SteamToolsLua' / 'OpenSteamTool'
+            _ost_dir.mkdir(parents=True, exist_ok=True)
+            _zip_path = _ost_dir / 'OpenSteamTool-Release.zip'
+            try:
+                _log_ost('[OST] Indiriliyor...')
+                _r = requests.get(
+                    'https://github.com/OpenSteam001/OpenSteamTool/releases/download/1.4.8/OpenSteamTool-1.4.8-Release.zip',
+                    timeout=60)
+                if _r.status_code != 200:
+                    _log_ost(f'[OST] Indirme hatasi HTTP {_r.status_code}'); return
+                _zip_path.write_bytes(_r.content)
+                _log_ost(f'[OST] Indirildi ({len(_r.content)//1024}KB)')
+            except Exception as _ex:
+                _log_ost(f'[OST] Indirme hatasi: {_ex}'); return
+            try:
+                import zipfile as _zf
+                with _zf.ZipFile(str(_zip_path), 'r') as _z:
+                    for _m in _z.namelist():
+                        if any(d in _m for d in _ost_dlls):
+                            (_ost_dir / Path(_m).name).write_bytes(_z.read(_m))
+                            _log_ost(f'[OST] Ayiklandi: {Path(_m).name}')
+            except Exception as _ex:
+                _log_ost(f'[OST] Zip acma hatasi: {_ex}'); return
+            try:
+                _log_ost('[OST] Steam kapatiliyor...')
+                _subprocess.run(['taskkill','/f','/im','steam.exe'],
+                    startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW),
+                    capture_output=True, creationflags=0x08000000)
+                _time.sleep(2)
+                for _dll in _ost_dlls:
+                    _src, _dst = _ost_dir / _dll, _steam / _dll
+                    if _dst.exists():
+                        _bak = _ost_dir / f'{_dll}.backup'
+                        if not _bak.exists(): _dst.rename(_bak); _log_ost(f'[OST] Yedeklendi: {_dll}')
+                    _shutil.copy2(str(_src), str(_dst)); _log_ost(f'[OST] Kopyalandi: {_dll}')
+                _lua_dir = _steam / 'config' / 'lua'
+                _stplug = _steam / 'config' / 'stplug-in'
+                if _stplug.is_dir():
+                    _lua_dir.mkdir(parents=True, exist_ok=True)
+                    for _lf in _stplug.iterdir():
+                        if _lf.suffix.lower() == '.lua':
+                            _shutil.copy2(str(_lf), str(_lua_dir / _lf.name))
+                            _log_ost(f'[OST] Lua kopyalandi: {_lf.name}')
+                _log_ost('[OST] Steam baslatiliyor...')
+                _subprocess.Popen([str(_steam / 'steam.exe')],
+                    startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
+                window.after(0, lambda: tk.messagebox.showinfo('OpenSteamTool',
+                    'OpenSteamTool basariyla kuruldu!\nSteam yeniden baslatildi.\nGeri almak icin OST Kaldir.', parent=window))
+            except Exception as _ex:
+                _log_ost(f'[OST] Kurulum hatasi: {_ex}')
+        def _uninstall_ost():
+            threading.Thread(target=lambda: _uninstall_ost_thread(), daemon=True).start()
+        def _uninstall_ost_thread():
+            _log_ost = lambda m: window.after(0, lambda: (self.log(m), _pb_lbl.config(text=m)))
+            _log_ost('[OST] OpenSteamTool kaldiriliyor...')
+            _steam = Path('C:\\Program Files (x86)\\Steam')
+            _ost_dir = Path(_os.environ['APPDATA']) / 'SteamToolsLua' / 'OpenSteamTool'
+            try:
+                _subprocess.run(['taskkill','/f','/im','steam.exe'],
+                    startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW),
+                    capture_output=True, creationflags=0x08000000)
+                _time.sleep(2)
+                for _dll in _ost_dlls:
+                    _dst = _steam / _dll
+                    if _dst.exists(): _dst.unlink(); _log_ost(f'[OST] Silindi: {_dll}')
+                    _bak = _ost_dir / f'{_dll}.backup'
+                    if _bak.exists(): _shutil.move(str(_bak), str(_dst)); _log_ost(f'[OST] Geri yuklendi: {_dll}')
+                _log_ost('[OST] Steam baslatiliyor...')
+                _subprocess.Popen([str(_steam / 'steam.exe')],
+                    startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
+                window.after(0, lambda: tk.messagebox.showinfo('OpenSteamTool',
+                    'OpenSteamTool kaldirildi.\nSteam yeniden baslatildi.', parent=window))
+            except Exception as _ex:
+                _log_ost(f'[OST] Kaldirma hatasi: {_ex}')
+        AB(_trow_c, 'OST Kur', _install_ost, _btn_w, 36,
+           '#3b2d5e', '#5a3d8e', '#b088ff', '#ffffff',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        AB(_trow_c, 'OST Kaldir', _uninstall_ost, _btn_w, 36,
+           '#5e2d3b', '#8e3d5a', '#ff88b0', '#ffffff',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
         AB(_trow_c, 'WE Downloader', _run_wedownloader, _btn_w, 36,
            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
