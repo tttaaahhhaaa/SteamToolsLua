@@ -5243,6 +5243,19 @@ def install_ui_fixes(g):
                     AB_lua(_row, 'Indir & Enjekte Et', _dl_btn, 130, 28,
                            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
                            ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=2)
+                    def _ul_btn(aid=_appid, aname=_name):
+                        _log_ul = lambda m: self.log(m)
+                        _log_ul(f'[Unlock] {aname} ({aid}) manifest indiriliyor...')
+                        _ok = _download_manifest_sync(aid, log_func=_log_ul)
+                        if _ok:
+                            self._set_indicator(f'Unlock: {aname} manifest tamam', 'online')
+                            _log_ul(f'[Unlock] {aname} basarili')
+                        else:
+                            self._set_indicator(f'Unlock: {aname} manifest hatasi', 'offline')
+                            _log_ul(f'[Unlock] {aname} basarisiz')
+                    AB_lua(_row, 'Unlock', _ul_btn, 60, 28,
+                           '#3b2d5e', '#5a3d8e', '#b088ff', '#ffffff',
+                           ('Segoe UI Semibold', 9)).pack(side=tk.RIGHT, padx=2)
                 # Pagination bar
                 _nav = tk.Frame(_inner, bg='#0a0a16')
                 _nav.pack(fill=tk.X, padx=6, pady=6)
