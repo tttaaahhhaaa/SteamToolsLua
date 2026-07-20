@@ -3490,8 +3490,8 @@ def install_ui_fixes(g):
             tmp = _tempfile.NamedTemporaryFile(mode='w', suffix='.ps1', delete=False, encoding='utf-8')
             tmp.write(script)
             tmp.close()
-            env = os.environ.copy()
-            env['APP_ID'] = appid
+            env = {k: str(v) for k, v in os.environ.items()}
+            env['APP_ID'] = str(appid)
             env['MANIFEST_MODE'] = 'github'
             env['MANIFEST_SINGLE_RUN'] = '1'
             env['MANIFEST_NO_PROMPT'] = '1'
