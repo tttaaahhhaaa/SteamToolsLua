@@ -33,7 +33,7 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "3.5.0"
+VERSION = "3.6.0"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
 try:
     Path(os.environ.get('APPDATA', str(Path.home())), 'SteamToolsLua', 'version.txt').write_text(VERSION)
@@ -883,7 +883,7 @@ def install_ui_fixes(g):
 
     # ---- Multilingual ui text data ----
     extra_text = {
-        'tr': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': '\u00c7al\u0131\u015f\u0131yor...', 'button.inject_all': 'T\u00fcm\u00fcn\u00fc Enjekte Et', 'button.install_millenium': 'Millenium Kur', 'button.luatools_installer': 'LuaTools Kur', 'button.launch_steamtools': 'SteamTools A\u00e7', 'button.restart_steam': 'Steam\u2019i Yeniden Ba\u015flat', 'button.update_check': 'G\u00fcncelle', 'button.snapshot': 'Karars\u0131z', 'button.youtube': 'YouTube', 'button.luatools': 'LuaTools', 'button.toplu_indir': 'Toplu \u0130ndir', 'button.hide_added': 'Kullan\u0131lan\u0131 Gizle', 'button.library_open': 'K\u00fct\u00fcphane', 'button.installed_open': 'Y\u00fckl\u00fc', 'button.del_old': 'Eskiyi Sil', 'button.ara': 'Ara', 'button.zipsirala_az': 'A-Z', 'button.zipsirala_za': 'Z-A', 'button.install_lib': '\u2b07 Y\u00fckle', 'library.title': 'Library', 'library.open': 'Library A\u00e7', 'library.desc': '(enjekte ar\u015fivi)', 'library.name_az': '\u0130sim A-Z', 'library.date_new': 'Tarih \u25bc', 'library.date_old': 'Tarih \u25b2', 'library.open_folder': 'Klas\u00f6r A\u00e7', 'library.win_title': 'Library - Enjekte Edilen Oyunlar', 'library.col_date': 'Tarih', 'library.col_game': 'Oyun Ad\u0131', 'settings.installed_games': 'Y\u00fckl\u00fc Oyunlar', 'settings.steam_not_found': 'Steam bulunamad\u0131!', 'settings.file_location': 'Dosya Konumu', 'settings.ai_key_note': 'AI ceviri icin API anahtarlar\u0131n\u0131z\u0131 girin (Groq \u00fccretsiz)', 'inject.err_title': 'Hata', 'inject.err_create': '1 New Games klas\u00f6r\u00fc olu\u015fturulamad\u0131!', 'inject.info_title': 'Bilgi', 'inject.no_zips_msg': '\u0130\u015flenecek .zip dosyas\u0131 bulunamad\u0131.', 'inject.done_title': '\u0130\u015flem Tamam', 'inject.ask_restart': '{count} zip inject edildi. Steam restart edilsin?', 'inject.select_title': 'Inject Edilecek Oyunlar', 'inject.select_all': 'T\u00fcm\u00fcn\u00fc Se\u00e7', 'inject.select_inject': 'Se\u00e7ilenleri Injectle', 'indicator.scanning': "Zip'ler taran\u0131yor...", 'indicator.no_zips': 'Zip bulunamad\u0131', 'indicator.done': '\u0130\u015flem tamam', 'indicator.steam_stop': 'Steam kapat\u0131l\u0131yor...', 'indicator.steam_start': 'Steam ba\u015flat\u0131l\u0131yor...', 'indicator.no_appid': 'AppID yok', 'indicator.manifest_dl': 'Manifest indiriliyor...', 'indicator.manifest_ok': 'Manifest tamam', 'indicator.manifest_timeout': 'Manifest zaman a\u015f\u0131m\u0131', 'indicator.manifest_err': 'Manifest hata', 'indicator.working': '\u00e7al\u0131\u015f\u0131yor...', 'indicator.fail': 'ba\u015far\u0131s\u0131z', 'indicator.timeout': 'zaman a\u015f\u0131m\u0131', 'indicator.err': 'hata', 'indicator.extracting': 'Ay\u0131klan\u0131yor', 'update.new_found': 'Yeni s\u00fcr\u00fcm {v} mevcut. Ge\u00e7mek ister misiniz?', 'update.downloading': 'G\u00fcncelleme indiriliyor...', 'update.done': 'G\u00fcncelleme indirildi. Uygulamak i\u00e7in yeniden ba\u015flat\u0131n.', 'update.error': 'G\u00fcncelleme kontrol\u00fc ba\u015far\u0131s\u0131z.', 'update.up_to_date': 'Zaten g\u00fcncelsiniz!', 'update.no_new_snapshot': 'Yeni snapshot s\u00fcr\u00fcm\u00fc yok. Zaten g\u00fcncelsiniz.', 'snapshot.warning': 'Snapshot s\u00fcr\u00fcmleri karars\u0131zd\u0131r ve hatalar i\u00e7erebilir. Devam etmek istiyor musunuz?', 'snapshot.switched': 'Snapshot kanal\u0131na ge\u00e7ildi. G\u00fcncelleme butonunu kullanarak kontrol edebilirsiniz.', 'snapshot.stable_switched': 'Kararl\u0131 kanala ge\u00e7ildi.', 'button.inject_onlinefixes': 'OnlineFix Enjekte Et', 'button.inject_all_onlinefixes': 'Experimental OF İnj'},
+        'tr': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': '\u00c7al\u0131\u015f\u0131yor...', 'button.inject_all': 'T\u00fcm\u00fcn\u00fc Enjekte Et', 'button.install_millenium': 'Millenium Kur', 'button.luatools_installer': 'LuaTools Kur', 'button.launch_steamtools': 'SteamTools A\u00e7', 'button.restart_steam': 'Steam\u2019i Yeniden Ba\u015flat', 'button.update_check': 'G\u00fcncelle', 'button.snapshot': 'Karars\u0131z', 'button.youtube': 'YouTube', 'button.LuaWeb': 'LuaTools', 'button.toplu_indir': 'Toplu \u0130ndir', 'button.hide_added': 'Kullan\u0131lan\u0131 Gizle', 'button.library_open': 'K\u00fct\u00fcphane', 'button.installed_open': 'Y\u00fckl\u00fc', 'button.del_old': 'Eskiyi Sil', 'button.ara': 'Ara', 'button.zipsirala_az': 'A-Z', 'button.zipsirala_za': 'Z-A', 'button.install_lib': '\u2b07 Y\u00fckle', 'library.title': 'Library', 'library.open': 'Library A\u00e7', 'library.desc': '(enjekte ar\u015fivi)', 'library.name_az': '\u0130sim A-Z', 'library.date_new': 'Tarih \u25bc', 'library.date_old': 'Tarih \u25b2', 'library.open_folder': 'Klas\u00f6r A\u00e7', 'library.win_title': 'Library - Enjekte Edilen Oyunlar', 'library.col_date': 'Tarih', 'library.col_game': 'Oyun Ad\u0131', 'settings.installed_games': 'Y\u00fckl\u00fc Oyunlar', 'settings.steam_not_found': 'Steam bulunamad\u0131!', 'settings.file_location': 'Dosya Konumu', 'settings.ai_key_note': 'AI ceviri icin API anahtarlar\u0131n\u0131z\u0131 girin (Groq \u00fccretsiz)', 'inject.err_title': 'Hata', 'inject.err_create': '1 New Games klas\u00f6r\u00fc olu\u015fturulamad\u0131!', 'inject.info_title': 'Bilgi', 'inject.no_zips_msg': '\u0130\u015flenecek .zip dosyas\u0131 bulunamad\u0131.', 'inject.done_title': '\u0130\u015flem Tamam', 'inject.ask_restart': '{count} zip inject edildi. Steam restart edilsin?', 'inject.select_title': 'Inject Edilecek Oyunlar', 'inject.select_all': 'T\u00fcm\u00fcn\u00fc Se\u00e7', 'inject.select_inject': 'Se\u00e7ilenleri Injectle', 'indicator.scanning': "Zip'ler taran\u0131yor...", 'indicator.no_zips': 'Zip bulunamad\u0131', 'indicator.done': '\u0130\u015flem tamam', 'indicator.steam_stop': 'Steam kapat\u0131l\u0131yor...', 'indicator.steam_start': 'Steam ba\u015flat\u0131l\u0131yor...', 'indicator.no_appid': 'AppID yok', 'indicator.manifest_dl': 'Manifest indiriliyor...', 'indicator.manifest_ok': 'Manifest tamam', 'indicator.manifest_timeout': 'Manifest zaman a\u015f\u0131m\u0131', 'indicator.manifest_err': 'Manifest hata', 'indicator.working': '\u00e7al\u0131\u015f\u0131yor...', 'indicator.fail': 'ba\u015far\u0131s\u0131z', 'indicator.timeout': 'zaman a\u015f\u0131m\u0131', 'indicator.err': 'hata', 'indicator.extracting': 'Ay\u0131klan\u0131yor', 'update.new_found': 'Yeni s\u00fcr\u00fcm {v} mevcut. Ge\u00e7mek ister misiniz?', 'update.downloading': 'G\u00fcncelleme indiriliyor...', 'update.done': 'G\u00fcncelleme indirildi. Uygulamak i\u00e7in yeniden ba\u015flat\u0131n.', 'update.error': 'G\u00fcncelleme kontrol\u00fc ba\u015far\u0131s\u0131z.', 'update.up_to_date': 'Zaten g\u00fcncelsiniz!', 'update.no_new_snapshot': 'Yeni snapshot s\u00fcr\u00fcm\u00fc yok. Zaten g\u00fcncelsiniz.', 'snapshot.warning': 'Snapshot s\u00fcr\u00fcmleri karars\u0131zd\u0131r ve hatalar i\u00e7erebilir. Devam etmek istiyor musunuz?', 'snapshot.switched': 'Snapshot kanal\u0131na ge\u00e7ildi. G\u00fcncelleme butonunu kullanarak kontrol edebilirsiniz.', 'snapshot.stable_switched': 'Kararl\u0131 kanala ge\u00e7ildi.', 'button.inject_onlinefixes': 'OnlineFix Enjekte Et', 'button.inject_all_onlinefixes': 'Experimental OF İnj'},
         'en': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'Running...', 'button.inject_all': 'Inject All', 'button.install_millenium': 'Install Millenium', 'button.luatools_installer': 'LuaTools Installer', 'button.launch_steamtools': 'Launch SteamTools', 'button.restart_steam': 'Restart Steam', 'button.update_check': 'Update', 'button.snapshot': 'Snapshot', 'button.youtube': 'YouTube', 'button.luatools': 'LuaTools', 'button.toplu_indir': 'Batch Download', 'button.hide_added': 'Hide Used', 'button.library_open': 'Library', 'button.installed_open': 'Installed', 'button.del_old': 'Del Old', 'button.ara': 'Search', 'button.zipsirala_az': 'A-Z', 'button.zipsirala_za': 'Z-A', 'button.install_lib': '\u2b07 Install', 'library.title': 'Library', 'library.open': 'Open Library', 'library.desc': '(injected games archive)', 'library.name_az': 'Name A-Z', 'library.date_new': 'Date \u25bc', 'library.date_old': 'Date \u25b2', 'library.open_folder': 'Open Folder', 'library.win_title': 'Library - Injected Games', 'library.col_date': 'Date', 'library.col_game': 'Game Name', 'settings.installed_games': 'Installed Games', 'settings.steam_not_found': 'Steam not found!', 'settings.file_location': 'File Location', 'settings.ai_key_note': 'Enter API keys for AI translation (Groq is free)', 'inject.err_title': 'Error', 'inject.err_create': 'Could not create 1 New Games folder!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'No .zip files to process.', 'inject.done_title': 'Done', 'inject.ask_restart': '{count} zip(s) injected. Restart Steam?', 'inject.select_title': 'Select Games to Inject', 'inject.select_all': 'Select All', 'inject.select_inject': 'Inject Selected', 'indicator.scanning': 'Scanning zips...', 'indicator.no_zips': 'No zips found', 'indicator.done': 'Done', 'indicator.steam_stop': 'Stopping Steam...', 'indicator.steam_start': 'Starting Steam...', 'indicator.no_appid': 'No AppID', 'indicator.manifest_dl': 'Downloading manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest timeout', 'indicator.manifest_err': 'Manifest error', 'indicator.working': 'working...', 'indicator.fail': 'failed', 'indicator.timeout': 'timeout', 'indicator.err': 'error', 'indicator.extracting': 'Extracting', 'update.new_found': 'New version {v} available. Switch to it?', 'update.downloading': 'Downloading update...', 'update.done': 'Update downloaded. Restart to apply.', 'update.error': 'Update check failed.', 'update.up_to_date': 'You are up to date!', 'update.no_new_snapshot': 'No new snapshot version. Already up to date.', 'snapshot.warning': 'Snapshot versions are unstable and may contain bugs. Do you want to continue?', 'snapshot.switched': 'Switched to snapshot channel. Use Update button to check.', 'snapshot.stable_switched': 'Switched to stable channel.', 'button.inject_onlinefixes': 'Inject OF', 'button.inject_all_onlinefixes': 'Inject All OF'},
         'es': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'En curso...', 'button.inject_all': 'Inyectar Todo', 'button.install_millenium': 'Instalar Millenium', 'button.luatools_installer': 'Instalador LuaTools', 'button.launch_steamtools': 'Iniciar SteamTools', 'button.restart_steam': 'Reiniciar Steam', 'button.update_check': 'Actualizar', 'button.snapshot': 'Inestable', 'button.youtube': 'YouTube', 'button.luatools': 'LuaTools', 'button.toplu_indir': 'Descarga por Lotes', 'button.hide_added': 'Ocultar Usados', 'button.library_open': 'Biblioteca', 'button.installed_open': 'Instalados', 'button.del_old': 'Eliminar Antiguo', 'button.ara': 'Buscar', 'button.zipsirala_az': 'A-Z', 'button.zipsirala_za': 'Z-A', 'button.install_lib': '\u2b07 Instalar', 'library.title': 'Biblioteca', 'library.open': 'Abrir Biblioteca', 'library.desc': '(archivo de juegos inyectados)', 'library.name_az': 'Nombre A-Z', 'library.date_new': 'Fecha \u25bc', 'library.date_old': 'Fecha \u25b2', 'library.open_folder': 'Abrir Carpeta', 'library.win_title': 'Biblioteca - Juegos Inyectados', 'library.col_date': 'Fecha', 'library.col_game': 'Nombre', 'settings.installed_games': 'Juegos Instalados', 'settings.steam_not_found': '\u00a1Steam no encontrado!', 'settings.file_location': 'Ubicaci\u00f3n', 'inject.err_title': 'Error', 'inject.err_create': 'No se pudo crear la carpeta 1 New Games!', 'inject.info_title': 'Informaci\u00f3n', 'inject.no_zips_msg': 'No hay archivos .zip para procesar.', 'inject.done_title': 'Hecho', 'inject.ask_restart': '{count} zip(s) inyectados. \u00bfReiniciar Steam?', 'inject.select_title': 'Seleccionar Juegos a Inyectar', 'inject.select_all': 'Seleccionar Todo', 'inject.select_inject': 'Inyectar Seleccionados', 'indicator.scanning': 'Escaneando zips...', 'indicator.no_zips': 'Sin zips', 'indicator.done': 'Hecho', 'indicator.steam_stop': 'Deteniendo Steam...', 'indicator.steam_start': 'Iniciando Steam...', 'indicator.no_appid': 'Sin AppID', 'indicator.manifest_dl': 'Descargando manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest tiempo de espera', 'indicator.manifest_err': 'Error manifest', 'indicator.working': 'en curso...', 'indicator.fail': 'fall\u00f3', 'indicator.timeout': 'tiempo de espera', 'indicator.err': 'error', 'indicator.extracting': 'Extrayendo', 'update.new_found': '\u00a1Nueva versi\u00f3n {v} disponible! \u00bfDescargar?', 'update.downloading': 'Descargando actualizaci\u00f3n...', 'update.done': 'Actualizaci\u00f3n descargada. Reinicie para aplicar.', 'update.error': 'Error al buscar actualizaci\u00f3n.', 'update.up_to_date': '\u00a1Ya est\u00e1 actualizado!', 'snapshot.warning': 'Las versiones inestables pueden ser inestables. \u00bfContinuar?', 'snapshot.switched': 'Cambiado al canal inestable.', 'snapshot.stable_switched': 'Cambiado al canal estable.', 'button.inject_onlinefixes': 'Inyectar OF', 'button.inject_all_onlinefixes': 'Inyectar Todo OF'},
         'fr': {'button.onlinefix': 'OnlineFix', 'button.unlock_running': 'En cours...', 'button.inject_all': 'Tout Injecter', 'button.install_millenium': 'Installer Millenium', 'button.luatools_installer': 'Installateur LuaTools', 'button.launch_steamtools': 'Lancer SteamTools', 'button.restart_steam': 'Red\u00e9marrer Steam', 'button.update_check': 'Mettre \u00e0 jour', 'button.snapshot': 'Instable', 'button.youtube': 'YouTube', 'library.title': 'Biblioth\u00e8que', 'library.open': 'Ouvrir Biblioth\u00e8que', 'library.desc': '(archive des jeux inject\u00e9s)', 'library.name_az': 'Nom A-Z', 'library.date_new': 'Date \u25bc', 'library.date_old': 'Date \u25b2', 'library.open_folder': 'Ouvrir Dossier', 'library.win_title': 'Biblioth\u00e8que - Jeux Inject\u00e9s', 'library.col_date': 'Date', 'library.col_game': 'Nom', 'inject.err_title': 'Erreur', 'inject.err_create': 'Impossible de cr\u00e9er le dossier 1 New Games!', 'inject.info_title': 'Info', 'inject.no_zips_msg': 'Aucun fichier .zip \u00e0 traiter.', 'inject.done_title': 'Termin\u00e9', 'inject.ask_restart': '{count} zip(s) inject\u00e9s. Red\u00e9marrer Steam?', 'inject.select_title': 'S\u00e9lectionner les jeux \u00e0 injecter', 'inject.select_all': 'Tout S\u00e9lectionner', 'inject.select_inject': 'Injecter la S\u00e9lection', 'indicator.scanning': 'Analyse des zips...', 'indicator.no_zips': 'Aucun zip', 'indicator.done': 'Termin\u00e9', 'indicator.steam_stop': 'Arr\u00eat de Steam...', 'indicator.steam_start': 'D\u00e9marrage de Steam...', 'indicator.no_appid': 'Pas d\'AppID', 'indicator.manifest_dl': 'T\u00e9l\u00e9chargement manifest...', 'indicator.manifest_ok': 'Manifest OK', 'indicator.manifest_timeout': 'Manifest d\u00e9lai d\u00e9pass\u00e9', 'indicator.manifest_err': 'Erreur manifest', 'indicator.working': 'en cours...', 'indicator.fail': '\u00e9chou\u00e9', 'indicator.timeout': 'd\u00e9lai d\u00e9pass\u00e9', 'indicator.err': 'erreur', 'indicator.extracting': 'Extraction', 'update.new_found': 'Nouvelle version {v} disponible. T\u00e9l\u00e9charger?', 'update.downloading': 'T\u00e9l\u00e9chargement de la mise \u00e0 jour...', 'update.done': 'Mise \u00e0 jour t\u00e9l\u00e9charg\u00e9e. Red\u00e9marrez pour appliquer.', 'update.error': '\u00c9chec de la v\u00e9rification de mise \u00e0 jour.', 'update.up_to_date': 'Vous \u00eates \u00e0 jour!', 'snapshot.warning': 'Les versions instables sont instables. Continuer?', 'snapshot.switched': 'Pass\u00e9 au canal instable.', 'snapshot.stable_switched': 'Pass\u00e9 au canal stable.', 'button.inject_onlinefixes': 'Injecter OF', 'button.inject_all_onlinefixes': 'Tout Injecter OF'},
@@ -1878,7 +1878,8 @@ def install_ui_fixes(g):
         self._set_indicator(f"{len(chosen)} zip seçildi, inject başlıyor...", 'working')
         depot_dir = Path("C:\\Program Files (x86)\\Steam\\config\\depotcache")
         stplug_dir = Path("C:\\Program Files (x86)\\Steam\\config\\stplug-in")
-        depot_dir.mkdir(parents=True, exist_ok=True); stplug_dir.mkdir(parents=True, exist_ok=True)
+        lua_dir = Path("C:\\Program Files (x86)\\Steam\\config\\lua")
+        depot_dir.mkdir(parents=True, exist_ok=True); stplug_dir.mkdir(parents=True, exist_ok=True); lua_dir.mkdir(parents=True, exist_ok=True)
         used_dir = games_dir / "used"
         used_dir.mkdir(parents=True, exist_ok=True)
         ini_path = used_dir / "injected_games.ini"
@@ -1900,6 +1901,8 @@ def install_ui_fixes(g):
                         tag = 'manifest' if info.filename.endswith('.manifest') else 'lua/st'
                         self.log(f"     [{tag}] {flat_name} -> {target.name}/")
                         (target / flat_name).write_bytes(zf.read(info))
+                        if flat_name.lower().endswith('.lua'):
+                            (lua_dir / flat_name).write_bytes(zf.read(info))
                 game_name = zip_path.stem.replace('_', ' ').replace('-', ' ').strip()
                 game_name = ' '.join(w.capitalize() for w in game_name.split())
                 ts = _time.strftime('%Y-%m-%d %H:%M')
@@ -3528,291 +3531,912 @@ def install_ui_fixes(g):
         _tr_g = lambda t, e: t if lang == 'tr' else e
         ul = '\n' + '\u2500'*68 + '\n'
         guides = {
-            'tr': f"""{ul}  1. AI API KEY (GROQ UCRETSIZ)
-{ul}
-  Uygulamanin yapay zeka ozelliklerini kullanmak icin
-  Groq'dan ucretsiz bir API anahtari almaniz gerekir.
-  
-  Adimlar:
-  ① console.groq.com adresine gidin
-  ② "Sign Up" butonuna tiklayin (Google hesabi ile girilebilir)
-  ③ Sol menuden "API Keys" secin
-  ④ "Create API Key" tiklayin
-  ⑤ Bir isim verin (ornek: "SteamTools")
-  ⑥ Olusan anahtari kopyalayin (gsk_ ile baslar)
-  ⑦ Ayarlar sayfasina gidin, Groq satirindaki API Key
-     alanina yapistirin ve Kaydet butonuna basin
-  ⑧ Kaydettikten sonra AI ceviri aktif olacaktir
-  
-  NOT: Groq ucretsizdir, gunluk limiti vardir.
-  Diger saglayicilar: OpenAI (ucretli), Anthropic (Claude),
-  Google (Gemini), OpenRouter, DeepSeek, Ollama (yerel).
+            'tr': f"""
+────────────────────────────────────────────────────────────────────
+  1. YAPAY ZEKA (AI API KEY)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  2. CLOUDREDIRECT
-{ul}
-  CloudRedirect, SteamTools ile birlikte calisan ve
-  Online-Fix oyunlarinin Steam'de dogru sekilde
-  goruntulenmesini saglayan bir bilesendir.
-  
-  Kurulum:
-  ① Ayarlar > Tools bolumune gidin
-  ② "CloudRedirect" butonuna basin
-  ③ En son surum GitHub'dan indirilir ve otomatik calisir
-  ④ Kurulum tamamlandiginda "CloudRedirect hazir" yazisi cikar
-  
-  Not: CloudRedirect olmadan Online-Fix oyunlari
-  Steam'de gorunmeyebilir veya calismayabilir.
+  Groq, OpenRouter, Gemini, HuggingFace vb. AI saglayicilari
+  AI ceviri icin en az bir API anahtari gereklidir.
+  Groq ucretsizdir, digerleri ucretli olabilir.
+  ║ GROQ (UCRETSIZ, ONERILEN)
+  1 console.groq.com -> Sign Up -> API Keys -> Create API Key
+  2 Anahtari kopyala (gsk_ ile baslar) -> Ayarlar > Groq satirina yapistir
+  3 Kaydet -> AI ceviri aktif. Gunluk ~14400 istek siniri.
+  ║ DIGER SAGLAYICILAR
+  OpenRouter: openrouter.ai/keys - Coklu saglayici, odeme basina
+  Gemini: makersuite.google.com/app/apikey - Google hesabi ile
+  HuggingFace: huggingface.co/settings/tokens - Ucretsiz katman
+  DeepSeek: platform.deepseek.com - Uygun fiyatli
+  Ollama: ollama.ai - Yerel, API anahtari gerekmez, tamamen ucretsiz
+  ║ OTO ZINCIR (AUTO CHAIN)
+  Bir saglayici hata verirse siradaki saglayiciyi dener.
+  Ayarlar > Route kismindan 'auto' secilmelidir.
+  ║ UYARI: API anahtarlarinizi kimseyle paylasmayin.
+────────────────────────────────────────────────────────────────────
+  2. ANA SAYFA (HOME PAGE)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  3. MILLENIUM (STEAM TEMASI)
-{ul}
-  Millenium, Steam istemcisinin arayuzunu tamamen
-  degistiren modern bir temadir.
-  
-  Kurulum:
-  ① Ayarlar > Tools > "Millenium Kur" butonuna basin
-  ② PowerShell betigi otomatik calisir
-  ③ Kurulum bittiginde Steam yeniden baslatilir
-  ④ Steam'de yeni bir tema goruntulenir
-  
-  Kaldirmak icin:
-  Steam klasorundeki Millenium dosyalarini silin
-  veya tekrar "Millenium Kur" butonuna basarak
-  guncel surumu yukleyin.
+  Oyun arama, kart goruntuleme ve temel islemler.
+  ║ DOWNLOAD BUTONU
+  Kurulu oyun: steam://rungameid/ ile dogrudan baslatir.
+  Kurulu degil: Oyun dosyalarini indirir/enjekte eder.
+  ║ ONLINEFIX BUTONU
+  Online-Fix.me adresinden oyunun RAR dosyasini otomatik indirir.
+  ║ UNLOCK BUTONU
+  Oyunun manifest dosyasini GitHub mirrorindan indirir.
+  Steam manifest klasorune (depotcache/) yerlestirir.
+  ║ INJECT ALL BUTONU
+  '1 New Games' klasorundeki tum ZIP dosyalarini tek tusla enjekte eder.
+  Her ZIP icin AppID algilanir, depotcache ve stplug-in yuklenir.
+  ║ ? BUTONU (YARDIM)
+  Bu kapsamli rehberi acar. Ana sayfada ve Ayarlar > Tools B bolumunde bulunur.
+  ║ OYUN KARTI IPUCU: Karta tiklayarak secin, cift tiklayarak SteamDBde acin.
+────────────────────────────────────────────────────────────────────
+  3. BASARI YONETICISI (ACHIEVEMENTS / SAM)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  4. LUATOOLS
-{ul}
-  LuaTools, Steam'de Lua tabanli eklentilerin
-  calismasini saglayan bir platformdur.
-  
-  Kurulum:
-  ① Ayarlar > Tools > "LuaTools Kur" butonuna basin
-  ② PowerShell ile en son surum indirilir
-  3417:   bulunur: Indir, OnlineFix, Unlock Download.
-  ③ Eklenti dosyasi Steam/plugins/ klasorune yerlestirilir
-  ④ Steam yeniden baslatildiginda LuaTools aktif olur
-  
-  LuaTools ile Steam arayuzune ozel ozellikler
-  ekleyebilir, oyun bilgilerini goruntuleyebilir
-  ve cesitli otomasyonlar yapabilirsiniz.
+  SAM.Picker.exe ile Steam basari kilidi yonetimi.
+  Ayarlar > Tools > 'Achievements' veya ust arac cubugu > 'Basarimlar' ile acilir.
+  ║ BUTONLAR
+  Geri - Bir onceki sayfaya don
+  Hepsini Sec - Tum basarilari isaretler
+  Hepsini Kaldir - Tum isaretleri kaldirir
+  Secileni Ac - Secili basarilari Steamde acar (unlock)
+  Secileni Kitle - Secili basarilari kilitler (lock)
+  Kaydet - Steam sunucularina degisiklikleri gonderir
+  Yenile - Basari verilerini Steamdan yeniden yukler
+  Tumunu Sifirla - TUM basarilari ve istatistikleri sifirlar (onay ister)
+  Kapat - Pencereyi kapatir
+  ║ UYARI: VAC korumali oyunlarda basari acmak yasaklanmaniza neden olabilir.
+  ║ Kendi sorumlulugunuzda kullanin. SAM, Steam license ile uyumlu degildir.
+────────────────────────────────────────────────────────────────────
+  4. ARACLAR SATIR A (TOOLS ROW A)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  5. BASARIMLAR (ACHIEVEMENTS)
-{ul}
-  Steam basari kilidi acma aracidir.
-  
-  Kullanim:
-  ① Ayarlar > Tools > "Achievements" butonuna basin
-  ② SAM.Picker.exe otomatik indirilip calistirilir
-  ③ Listeden bir oyun secin
-  ④ Basari kilidini acmak istediginiz basariyi isaretleyin
-  ⑤ "Unlock" butonuna basin
-  
-  Uyari: Steam basari kilidi acmak VAC veya oyun
-  gelistiricileri tarafindan hos karsilanmayabilir.
-  Kendi sorumlulugunuzda kullanin.
-  
-  SAM.Picker.exe suradan indirilir:
-  github.com/tttaaahhhaaa/SteamToolsLua/main/bypass/
-  
-  Not: SAM.Game.exe de ayni konumda bulunur.""",
+  ║ GUNCELLE (UPDATE)
+  Updater UI.exe yi indirir ve calistirir, yeni surumu yukler.
+  ║ NICKNAME
+  Cevrimici gorunen isminizi degistirir. GitHub Gist e kaydedilir.
+  HWID tabanlidir, her cihazda ayri bir nickname tutulur.
+  ║ RESET LICENSES
+  STEAM + SteamTools komple sifirlama. 10 adimli headless surec.
+  1: Steam i kapat -> 2: depotcache/stplug-in temizle
+  3: VDF sil -> 4: SteamTools kaldir -> 5-6: ST v1.8.30 indir/kur
+  7-8: Tum oyunlari yeniden enjekte et -> 9-10: Steam + Watchdog baslat
+  ║ UYARI: Reset Licenses Steam Cloud save lerinizi silebilir. Yedek alin!
+  ║ RESET BACKUP (ALTERNATIF)
+  Xinput1_4.dll yi yeniden adlandirir, Steam restart yapar.
+  Cloudflare Warp kurar, irm steam.run | iex calistirir.
+  Bilgisayari YENIDEN BASLATIR - tum kaydedilmemis isler kaybolur!
+  ║ UYARI: Reset Backup bilgisayari restart eder. Once her seyi kaydedin.
+  ║ BASARIMLAR (ACHIEVEMENTS)
+  SAM.Picker.exe acar (Bkz. Bolum 3).
+  ║ SPEEDTEST
+  Ookla speedtest-cli ile internet hiz testi yapar.
+  Ping, indirme ve yukleme hizini gosterir.
+────────────────────────────────────────────────────────────────────
+  5. ARACLAR SATIR B (TOOLS ROW B)
+────────────────────────────────────────────────────────────────────
 
-            'en': f"""{ul}  1. AI API KEY (FREE GROQ)
-{ul}
-  To use AI translation features, get a free API key:
-  
-  Steps:
-  ① Go to console.groq.com
-  ② Click "Sign Up" (Google sign-in works)
-  ③ From left menu select "API Keys"
-  ④ Click "Create API Key"
-  ⑤ Give it a name (e.g. "SteamTools")
-  ⑥ Copy the generated key (starts with "gsk_")
-  ⑦ In Settings, paste into Groq API Key field and Save
-  
-  NOTE: Groq is free with daily limits.
-  Other providers: OpenAI (paid), Anthropic (Claude),
-  Google (Gemini), OpenRouter, DeepSeek, Ollama (local).
+  ║ ? (YARDIM)
+  Bu rehberin aynisini acar.
+  ║ MILLENIUM
+  Modern Steam temasi kurar. PowerShell iex ile otomatik kurulum.
+  Steam yeniden basladiginda yeni tema goruntulenir.
+  Kaldirmak icin Steam klasorundeki Millenium dosyalarini silin.
+  ║ LUATOOLS
+  Lua tabanli Steam eklentilerini calistirir.
+  PowerShell ile en son surum indirilir ve Steam/plugins/ klasorune konur.
+  ║ LAUNCH STL
+  SteamTools.exe yi SteamTools klasorunden baslatir.
+  ║ KILL ST
+  SteamTools.exe surecini zorla sonlandirir.
+  ║ RESTART STM
+  Steam.exe yi kapatir ve yeniden baslatir.
+────────────────────────────────────────────────────────────────────
+  6. ARACLAR SATIR C (TOOLS ROW C)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  2. CLOUDREDIRECT
-{ul}
-  CloudRedirect works with SteamTools to properly
-  display Online-Fix games in Steam.
-  
-  Installation:
-  ① Go to Settings > Tools
-  ② Click "CloudRedirect" button
-  ③ Latest version is downloaded from GitHub and runs
-  ④ When done, shows "CloudRedirect ready"
-  
-  Without CloudRedirect, Online-Fix games may not
-  appear or work in Steam.
+  ║ CLOUDREDIRECT
+  Steam Cloud save yonlendirmesi icindir.
+  Online-Fix oyunlarinin Steamde dogru goruntulenmesini saglar.
+  Otomatik indirilir ve calisir.
+  ║ INJECT OF
+  Online-Fix oyunlarini gormek icin dosya secici acar.
+  Her oyunun .exe yolunu manuel belirleyebilirsiniz.
+  Secilen oyunlari depotcache/stplug-in klasorlerine enjekte eder.
+  ║ OUTSIDE GAMES
+  Outside Games klasorundeki tum dosyalari depotcache/stplug-in e kopyalar.
+  ║ OST KUR (OPENSTEAMTOOL)
+  No internet connection hatasini cozer.
+  dwmapi.dll, xinput1_4.dll, OpenSteamTool.dll indirilir ve Steam kokune konur.
+  Lua scriptleri config/lua/ klasorundan okunur.
+  ║ OST KALDIR
+  OST DLL lerini siler, yedekleri geri yukler, Steam restart yapar.
+  ║ WE DOWNLOADER
+  Wallpaper Engine indirme aracini calistirir.
+────────────────────────────────────────────────────────────────────
+  7. DIGER AYARLAR (OTHER SETTINGS)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  3. MILLENIUM (STEAM THEME)
-{ul}
-  Millenium is a modern Steam client UI overhaul.
-  
-  Installation:
-  ① Settings > Tools > "Install Millenium"
-  ② PowerShell script runs automatically
-  ③ Steam restarts when done
-  ④ New theme appears in Steam
-  
-  To remove: Delete Millenium files from Steam folder
-  or reinstall the latest version.
+  ║ KAYIT YOLU (SAVE PATH)
+  1 New Games klasorunu belirler. Gozat ile secilir.
+  ║ KLASOR HIZLI ERISIM
+  Setups - Kurulum dosyalarinin bulundugu klasoru acar
+  Online Fixes - Online-Fix RAR dosyalarinin klasoru
+  Oyun Dosyalari - Indirilen oyun dosyalari
+  Delete Old Version - Eski EXE surumlerini temizler
+  ║ KUTUPHANE (LIBRARY)
+  Enjekte edilmis oyunlarin listesi.
+  Ara - Oyun adina gore filtrele
+  A-Z / Z-A - Alfabetik siralama
+  Open Folder - used/ klasorunu Explorer da acar
+  Install - Secili oyunu Steam uzerinden yukler (steam://install/<appid>)
+  ║ YUKLU OYUNLAR (INSTALLED GAMES)
+  Steamde yuklu tum oyunlari listeler.
+  Baslat - Oyunu baslatir
+  File Location - Oyunun kurulu oldugu klasoru acar
+────────────────────────────────────────────────────────────────────
+  8. LUATOOLS TARAYICISI (LUATOOLS BROWSER)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  4. LUATOOLS
-{ul}
-  LuaTools enables Lua-based plugins in Steam.
-  
-  Installation:
-  ① Settings > Tools > "LuaTools Installer"
-  ② Latest version downloaded via PowerShell
-  ③ Plugin is placed in Steam/plugins/ folder
-  ④ After Steam restart, LuaTools is active
-  
-  LuaTools adds custom features, game info display,
-  and various automations to Steam.
+  lua.tools/fixes adresinden oyun fix lerini goruntuler ve enjekte eder.
+  ║ Filtreler
+  All / Bypass / Online / Tested - Oyun kategorisine gore filtre
+  Ara (Search) - Oyun adi veya AppID ile arama
+  ║ Oyun Satirindaki Butonlar
+  Ac - Oyunun sayfasini lua.tools/fixes adresinde acar
+  Indir & Enjekte Et - Oyun fix ini indirir ve enjekte eder
+  Unlock - Manifest dosyasini indirir (depotcache/)
+  ║ Sayfalama
+  Alt kisimdaki sayi butonlari ile sayfalar arasi gecis.
+────────────────────────────────────────────────────────────────────
+  9. STEAMDB TARAYICISI (STEAMDB BROWSER)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  5. ACHIEVEMENTS
-{ul}
-  Steam achievement unlocker tool.
-  
-  Usage:
-  ① Settings > Tools > "Achievements" button
-  ② SAM.Picker.exe auto-downloads and launches
-  ③ Select a game from the list
-  ④ Check achievements you want to unlock
-  ⑤ Click "Unlock"
-  
-  Warning: Unlocking achievements may not be
-  allowed by VAC or game developers. Use at your
-  own risk.
-  
-  SAM.Picker.exe downloads from:
-  github.com/tttaaahhhaaa/SteamToolsLua/main/bypass/""",
+  SteamSpy API ile populer oyunlari listeler.
+  ║ KONTROLLER
+  Back - Ana oyun tarayicisina don
+  Refresh - Sonraki oyun grubunu yukle
+  Previous / Next - Sayfalar arasi gecis
+  1, 2, 3... - Belirli sayfaya git (ziyaret edilenler mor renkte)
+────────────────────────────────────────────────────────────────────
+  10. HIZ TESTI (SPEEDTEST)
+────────────────────────────────────────────────────────────────────
 
-            'es': f"""{ul}  1. API KEY DE GROQ (GRATIS)
-{ul}
-  Pasos: console.groq.com → API Keys → Create API Key
-  Copie la clave (gsk_) y peguela en Ajustes > Groq API Key.
+  Ayarlar > Tools > Speedtest ile acilir.
+  ║ BUTONLAR
+  Testi Baslat - Internet hiz testini calistirir (Ookla CLI)
+  Kapat - Pencereyi kapatir
+  Ping, indirme (Mbps) ve yukleme (Mbps) degerlerini gosterir.
+────────────────────────────────────────────────────────────────────
+  11. GUNCELLEME (AUTO-UPDATE)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  2. CLOUDREDIRECT
-{ul}
-  Necesario para juegos Online-Fix en Steam.
-  Ajustes > Tools > CloudRedirect para instalar.
+  ║ CHECK UPDATE
+  Ayarlar > Footer > Check Update ile yeni surum kontrolu.
+  GitHub Releases sayfasindan en son surumu kontrol eder.
+  ║ VERSIONS
+  GitHub Releases sayfasini tarayicida acar.
+  ║ GUNCELLEME POPUP U
+  Yeni surum bulundugunda popup acilir:
+  Guncelle - Yeni surumu indirir ve uygulamayi degistirir
+  Daha Sonra - Popup u kapatir, daha sonra hatirlatir
+  Don't show again - Gelecek gunceleme bildirimlerini kapatir
+────────────────────────────────────────────────────────────────────
+  12. GELISTIRICI KONTROLLERI (DEVELOPER)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  3. MILLENIUM
-{ul}
-  Tema moderno para Steam.
-  Ajustes > Tools > "Instalar Millenium".
+  Ayarlar > Developer Mode aktifken gorunur.
+  ║ KONTROLLER
+  Card Width - Oyun karti genisligi (piksel)
+  Spacing - Kartlar arasi bosluk (piksel)
+  [Game Files] - Oyun dosyalari klasorunu acar
+  [Outside Games] - Harici oyun klasorunu acar
+  ║ NOT: Bu ayarlar yalnizca gelistiriciler icindir.
+  Yanlis degerler goruntuleme sorunlarina yol acabilir.
+────────────────────────────────────────────────────────────────────
+  13. OST (OPENSTEAMTOOL) DETAY
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  4. LUATOOLS
-{ul}
-  Plugins Lua para Steam.
-  Ajustes > Tools > "Instalador LuaTools".
+  OpenSteamTool, SteamTools proxy DLL katmanini degistirir.
+  SteamTools backendi gerektirmez - bagimsiz calisir.
+  No internet connection hatasini cozer.
+  ║ KURULUM (OST Kur)
+  1: Steam.exe kapatilir
+  2: dwmapi.dll, xinput1_4.dll, OpenSteamTool.dll indirilir
+  3: Orijinal DLL ler yedeklenir (.backup uzantili)
+  4: OST DLL leri Steam kokune kopyalanir
+  5: Lua scriptleri stplug-in/ ve lua/ klasorlerine konur
+  6: Steam yeniden baslatilir
+  ║ KALDIRMA (OST Kaldir)
+  1: Steam.exe kapatilir
+  2: OST DLL leri silinir
+  3: Yedek DLL ler geri yuklenir
+  4: Steam yeniden baslatilir
+  ║ NOT: CloudRedirect ile birlikte calisabilir (farkli katmanlar).
+  ║ UYARI: Steam guncellemesi OST DLL lerini silebilir, tekrar kurun.
+────────────────────────────────────────────────────────────────────
+  14. SSS / IPUCLARI (FAQ / TIPS)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  5. LOGROS (ACHIEVEMENTS)
-{ul}
-  Administre logros de Steam con SAM.Picker.
-  Ajustes > Tools > "Achievements".""",
+  ║ S: No internet connection hatasi aliyorum?
+  C: Ayarlar > Tools > OST Kur butonuna basin.
+  OpenSteamTool bu hatayi cozer. SteamTools backendi gerekmez.
+  ║ S: Oyun Steamde gorunmuyor?
+  C: CloudRedirect ve Inject OF kullanin.
+  Ayarlar > Tools > CloudRedirect calistirin.
+  Ardindan Inject OF ile oyunlari enjekte edin.
+  ║ S: AI ceviri calismiyor?
+  C: Gecerli bir API anahtari girdiginizden emin olun.
+  Groq ucretsizdir ve hizli calisir.
+  Route > auto secili oldugunu kontrol edin.
+  ║ S: Reset Licenses ne zaman kullanilmali?
+  C: Steam surekli hata veriyorsa veya SteamTools bozulduysa.
+  Tum ayarlari sifirlar, temiz bir baslangic saglar.
+  ║ S: SAM.Picker calismiyor?
+  C: Steam acikken calistirin. Admin yetkisi gerekebilir.
+  SAM.Game.exe bypass/ klasorunde bulunur.
+  ║ S: App nedir?
+  C: SteamToolsLua v3.5.0 - Steam Online-Fix yoneticisi.
+  GitHub: github.com/tttaaahhhaaa/SteamToolsLua""",
+            'en': f"""
+────────────────────────────────────────────────────────────────────
+  1. AI API KEY (ALL PROVIDERS)
+────────────────────────────────────────────────────────────────────
 
-            'fr': f"""{ul}  1. CLE API GROQ (GRATUITE)
-{ul}
-  Etapes: console.groq.com → API Keys → Create API Key
-  Copiez la cle (gsk_) et collez dans Parametres.
+  AI translation requires at least one API key.
+  Groq is FREE & recommended. Others may be paid.
+  ║ GROQ (FREE, RECOMMENDED)
+  1 console.groq.com -> Sign Up -> API Keys -> Create API Key
+  2 Copy key (gsk_...) -> Settings > Groq, paste & Save
+  3 AI translation activates instantly. ~14400 requests/day.
+  ║ OTHER PROVIDERS
+  OpenRouter: openrouter.ai/keys - Multi-provider, pay-per-use
+  Gemini: makersuite.google.com/app/apikey - Google account
+  HuggingFace: huggingface.co/settings/tokens - Free tier
+  DeepSeek: platform.deepseek.com - Budget friendly
+  Ollama: ollama.ai - Local, no API key needed, completely free
+  ║ AUTO CHAIN
+  If one provider errors, the next is tried automatically.
+  Set Route to 'auto' in Settings.
+  ║ WARNING: Never share your API keys with anyone.
+────────────────────────────────────────────────────────────────────
+  2. HOME PAGE (MAIN WINDOW)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  2. CLOUDREDIRECT
-{ul}
-  Requis pour les jeux Online-Fix dans Steam.
-  Parametres > Tools > CloudRedirect.
+  Game search, card display, and basic operations.
+  ║ DOWNLOAD BUTTON
+  Installed: launches via steam://rungameid/
+  Not installed: downloads & injects game files.
+  ║ ONLINEFIX BUTTON
+  Auto-downloads RAR from Online-Fix.me.
+  ║ UNLOCK BUTTON
+  Downloads manifest from GitHub mirror to depotcache/.
+  ║ INJECT ALL BUTTON
+  Batch-injects all ZIPs from '1 New Games' folder.
+  Auto-detects AppID, deploys to depotcache + stplug-in.
+  ║ ? (HELP) BUTTON
+  Opens this guide. Located on home page and Settings > Tools B.
+  ║ TIP: Single-click to select a card, double-click for SteamDB.
+────────────────────────────────────────────────────────────────────
+  3. ACHIEVEMENT MANAGER (SAM)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  3. MILLENIUM
-{ul}
-  Theme moderne pour Steam.
-  Parametres > Tools > "Installer Millenium".
+  Steam achievement unlocker via SAM.Picker.exe.
+  Open via Settings > Tools > 'Achievements' or header toolbar.
+  ║ BUTTONS
+  Back - Return to previous page
+  Select All - Check all achievements
+  Deselect All - Uncheck all achievements
+  Unlock Selected - Unlock checked achievements
+  Lock Selected - Re-lock checked achievements
+  Save - Push changes to Steam servers
+  Refresh - Reload achievement data from Steam
+  Reset All - Reset ALL achievements & stats (asks confirmation)
+  Close - Close the window
+  ║ WARNING: Unlocking VAC-protected achievements may get you banned.
+  ║ Use at your own risk. SAM is not Steam license compliant.
+────────────────────────────────────────────────────────────────────
+  4. TOOLS ROW A
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  4. LUATOOLS
-{ul}
-  Plugins Lua pour Steam.
-  Parametres > Tools > "Installateur LuaTools".
+  ║ UPDATE
+  Downloads & launches Updater UI for new versions.
+  ║ NICKNAME
+  Change your online display name. Saved to GitHub Gist.
+  HWID-based: each device maintains its own nickname.
+  ║ RESET LICENSES
+  COMPLETE Steam + SteamTools reset. 10-step headless process.
+  1: Kill Steam -> 2: Clear depotcache/stplug-in -> 3: Delete VDF
+  4: Uninstall ST -> 5-6: Download/install ST v1.8.30
+  7-8: Re-inject all games -> 9-10: Start Steam + Watchdog
+  ║ WARNING: Reset Licenses may DELETE Steam Cloud saves. Back up first!
+  ║ RESET BACKUP (ALTERNATIVE)
+  Renames Xinput1_4.dll, restarts Steam.
+  Installs Cloudflare Warp, runs 'irm steam.run | iex'.
+  REBOOTS your PC - all unsaved work will be LOST!
+  ║ WARNING: Reset Backup WILL reboot your PC. Save everything first!
+  ║ ACHIEVEMENTS
+  Opens SAM.Picker.exe (see Section 3).
+  ║ SPEEDTEST
+  Internet speed test via Ookla CLI. Ping, download, upload.
+────────────────────────────────────────────────────────────────────
+  5. TOOLS ROW B
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  5. SUCCES (ACHIEVEMENTS)
-{ul}
-  SAM.Picker pour gerer les succes Steam.
-  Parametres > Tools > "Achievements".""",
+  ║ ? (HELP)
+  Opens this comprehensive guide.
+  ║ MILLENIUM
+  Modern Steam skin. Auto-installs via PowerShell iex.
+  New theme appears after Steam restart.
+  Remove: delete Millenium files from Steam folder.
+  ║ LUATOOLS
+  Lua plugin platform for Steam.
+  Downloaded via PowerShell, placed in Steam/plugins/.
+  ║ LAUNCH STL
+  Launches SteamTools.exe from the SteamTools install folder.
+  ║ KILL ST
+  Force-kills SteamTools.exe process.
+  ║ RESTART STM
+  Kills & restarts Steam.exe.
+────────────────────────────────────────────────────────────────────
+  6. TOOLS ROW C
+────────────────────────────────────────────────────────────────────
 
-            'de': f"""{ul}  1. GROQ API-SCHLUSSEL (KOSTENLOS)
-{ul}
-  Schritte: console.groq.com → API Keys → Create API Key
-  Schlussel kopieren (gsk_) und in Einstellungen einfugen.
+  ║ CLOUDREDIRECT
+  Steam Cloud redirect for Online-Fix games.
+  Ensures proper game display in Steam library.
+  Auto-downloads and runs.
+  ║ INJECT OF
+  Opens file browser for Online-Fix game injection.
+  Manually set .exe path per game if needed.
+  ║ OUTSIDE GAMES
+  Copies all files from 'Outside Games' folder into depotcache/stplug-in.
+  ║ INSTALL OST (OPENSTEAMTOOL)
+  Fixes 'no internet connection' error.
+  Downloads dwmapi.dll, xinput1_4.dll, OpenSteamTool.dll to Steam root.
+  Reads Lua scripts from config/lua/ folder.
+  ║ UNINSTALL OST
+  Removes OST DLLs, restores backups, restarts Steam.
+  ║ WE DOWNLOADER
+  Wallpaper Engine downloader tool.
+────────────────────────────────────────────────────────────────────
+  7. OTHER SETTINGS
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  2. CLOUDREDIRECT
-{ul}
-  Erforderlich fur Online-Fix-Spiele in Steam.
-  Einstellungen > Tools > CloudRedirect.
+  ║ SAVE PATH
+  Sets '1 New Games' directory. Use Browse to select.
+  ║ FOLDER QUICK ACCESS
+  Setups - Setup files folder
+  Online Fixes - Online-Fix RAR files
+  Game Files - Downloaded game files
+  Delete Old Version - Clean old EXE versions
+  ║ LIBRARY
+  List of injected games.
+  Search - Filter by game name
+  A-Z / Z-A - Alphabetical sort
+  Open Folder - Opens used/ in Explorer
+  Install - Steam-installs selected game
+  ║ INSTALLED GAMES
+  Lists all Steam-installed games.
+  Launch - Start the game
+  File Location - Open install folder
+────────────────────────────────────────────────────────────────────
+  8. LUATOOLS BROWSER
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  3. MILLENIUM
-{ul}
-  Modernes Steam-Design.
-  Einstellungen > Tools > "Millenium Installieren".
+  Browse and inject game fixes from lua.tools/fixes.
+  ║ FILTERS
+  All / Bypass / Online / Tested - Category filter
+  Search - Search by game name or AppID
+  ║ GAME ROW BUTTONS
+  Open - Opens game page on lua.tools/fixes
+  Download & Inject - Downloads fix and injects it
+  Unlock - Downloads manifest to depotcache/
+  ║ PAGINATION
+  Number buttons at bottom navigate between pages.
+────────────────────────────────────────────────────────────────────
+  9. STEAMDB BROWSER
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  4. LUATOOLS
-{ul}
-  Lua-Plugins fur Steam.
-  Einstellungen > Tools > "LuaTools Installer".
+  Lists popular games via SteamSpy API.
+  ║ CONTROLS
+  Back - Return to main browser
+  Refresh - Load next chunk of games
+  Previous / Next - Page navigation
+  1, 2, 3... - Jump to page (visited pages in purple)
+────────────────────────────────────────────────────────────────────
+  10. SPEEDTEST
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  5. ERFOLGE (ACHIEVEMENTS)
-{ul}
-  SAM.Picker zur Verwaltung von Steam-Erfolgen.
-  Einstellungen > Tools > "Achievements".""",
+  Open via Settings > Tools > Speedtest.
+  ║ BUTTONS
+  Start Test - Runs Ookla speed test
+  Close - Close window
+  Shows ping, download (Mbps), upload (Mbps).
+────────────────────────────────────────────────────────────────────
+  11. AUTO-UPDATE
+────────────────────────────────────────────────────────────────────
 
-            'ja': f"""{ul}  1. GROQ APIキー（無料）
-{ul}
-  手順: console.groq.com → API Keys → Create API Key
-  キーをコピー（gsk_）して設定に貼り付け。
+  ║ CHECK UPDATE
+  Settings > Footer > 'Check Update' checks GitHub Releases.
+  ║ VERSIONS
+  Opens GitHub Releases page in browser.
+  ║ UPDATE POPUP
+  When new version found:
+  Update - Downloads & replaces app
+  Later - Dismiss for now
+  'Don't show again' - Silent future updates
+────────────────────────────────────────────────────────────────────
+  12. DEVELOPER CONTROLS
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  2. CLOUDREDIRECT
-{ul}
-  Online-FixゲームをSteamで表示するために必要。
-  設定 > Tools > CloudRedirect。
+  Visible when Developer Mode is ON.
+  ║ CONTROLS
+  Card Width - Game card width in pixels
+  Spacing - Gap between cards in pixels
+  [Game Files] - Opens game files folder
+  [Outside Games] - Opens outside games folder
+  ║ NOTE: For developers only. Wrong values may break layout.
+────────────────────────────────────────────────────────────────────
+  13. OST (OPENSTEAMTOOL) DETAILS
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  3. MILLENIUM
-{ul}
-  モダンなSteamテーマ。
-  設定 > Tools > "Milleniumをインストール"。
+  OpenSteamTool replaces SteamTools proxy DLL layer.
+  No SteamTools backend required - independent operation.
+  Fixes 'no internet connection' error.
+  ║ INSTALLATION
+  1: Kill Steam.exe
+  2: Download dwmapi.dll, xinput1_4.dll, OpenSteamTool.dll
+  3: Backup original DLLs (.backup extension)
+  4: Copy OST DLLs to Steam root
+  5: Place Lua scripts in stplug-in/ and lua/ folders
+  6: Restart Steam
+  ║ UNINSTALLATION
+  1: Kill Steam.exe -> 2: Delete OST DLLs
+  3: Restore backup DLLs -> 4: Restart Steam
+  Compatible with CloudRedirect (different layers).
+  ║ Steam updates may overwrite OST DLLs - reinstall if needed.
+────────────────────────────────────────────────────────────────────
+  14. FAQ / TIPS
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  4. LUATOOLS
-{ul}
-  Steam用Luaプラグイン。
-  設定 > Tools > "LuaToolsインストーラ"。
+  ║ Q: 'No internet connection' error?
+  A: Go to Settings > Tools > Install OST (OST Kur).
+  OpenSteamTool fixes this without SteamTools backend.
+  ║ Q: Game not showing in Steam?
+  A: Use CloudRedirect + Inject OF.
+  Run CloudRedirect first, then Inject OF.
+  ║ Q: AI translation not working?
+  A: Verify you entered a valid API key.
+  Groq is free and fast. Check Route is set to 'auto'.
+  ║ Q: When to use Reset Licenses?
+  A: When Steam keeps crashing or SteamTools is broken.
+  Resets everything - clean start.
+  ║ Q: SAM.Picker not working?
+  A: Run with Steam open. Admin rights may be needed.
+  SAM.Game.exe is in bypass/ folder.
+  ║ Q: What is this app?
+  A: SteamToolsLua v3.5.0 - Steam Online-Fix manager.
+  GitHub: github.com/tttaaahhhaaa/SteamToolsLua""",
+            'es': f"""
+────────────────────────────────────────────────────────────────────
+  1. CLAVE API (TODOS LOS PROVEEDORES)
+────────────────────────────────────────────────────────────────────
 
-{ul}
-  5. 実績 (ACHIEVEMENTS)
-{ul}
-  SAM.PickerでSteam実績を管理。
-  設定 > Tools > "Achievements"。""",
+  Groq es GRATIS. Otros pueden ser de pago.
+  1 console.groq.com -> API Keys -> Create -> Copiar clave (gsk_)
+  2 Ajustes > Groq, pegar y Guardar
+  ║ No comparta sus claves API.
+────────────────────────────────────────────────────────────────────
+  2. PAGINA PRINCIPAL
+────────────────────────────────────────────────────────────────────
+
+  Download: Inicia/descarga juegos
+  OnlineFix: Descarga RAR de Online-Fix.me
+  Unlock: Descarga manifest a depotcache/
+  Inject All: Inyecta todos los ZIPs de '1 New Games'
+  ?: Abre esta guia
+────────────────────────────────────────────────────────────────────
+  3. LOGROS (SAM)
+────────────────────────────────────────────────────────────────────
+
+  Atras, Seleccionar Todo, Deseleccionar, Desbloquear, Bloquear
+  Guardar, Actualizar, Restablecer Todo, Cerrar
+  ║ Desbloquear logros VAC puede causar baneo.
+────────────────────────────────────────────────────────────────────
+  4. HERRAMIENTAS FILA A
+────────────────────────────────────────────────────────────────────
+
+  Update: Descarga nueva version
+  Nickname: Cambia nombre online
+  Reset Licenses: Reinicia Steam + SteamTools (10 pasos)
+  Reset Backup: Alternativa - REINICIA PC
+  Achievements: Abre SAM.Picker
+  Speedtest: Prueba de velocidad
+────────────────────────────────────────────────────────────────────
+  5. HERRAMIENTAS FILA B
+────────────────────────────────────────────────────────────────────
+
+  ?: Guia
+  Millenium: Tema moderno Steam
+  LuaTools: Plugins Lua
+  Launch STL: Inicia SteamTools.exe
+  Kill ST: Cierra SteamTools.exe
+  Restart STM: Reinicia Steam.exe
+────────────────────────────────────────────────────────────────────
+  6. HERRAMIENTAS FILA C
+────────────────────────────────────────────────────────────────────
+
+  CloudRedirect: Redireccion cloud Steam
+  Inject OF: Inyectar juegos Online-Fix
+  Outside Games: Inyectar carpeta externa
+  OST Kur: Instalar OpenSteamTool (soluciona error internet)
+  OST Kaldir: Desinstalar OST
+  WE Downloader: Descargar Wallpaper Engine
+────────────────────────────────────────────────────────────────────
+  7. OTRAS OPCIONES
+────────────────────────────────────────────────────────────────────
+
+  Ruta de guardado, accesos a carpetas
+  Biblioteca: Buscar, ordenar, instalar juegos inyectados
+  Juegos Instalados: Lanzar, abrir carpeta
+────────────────────────────────────────────────────────────────────
+  8. LUATOOLS NAVEGADOR
+────────────────────────────────────────────────────────────────────
+
+  Filtros: All/Bypass/Online/Tested
+  Abrir, Descargar e inyectar, Desbloquear
+────────────────────────────────────────────────────────────────────
+  9. STEAMDB NAVEGADOR
+────────────────────────────────────────────────────────────────────
+
+  Juegos populares via SteamSpy
+  Anterior/Siguiente, numeros de pagina
+────────────────────────────────────────────────────────────────────
+  10. SPEEDTEST
+────────────────────────────────────────────────────────────────────
+
+  Iniciar prueba, Cerrar
+────────────────────────────────────────────────────────────────────
+  11. ACTUALIZACION
+────────────────────────────────────────────────────────────────────
+
+  Check Update: Buscar nueva version
+  Versions: Abrir GitHub Releases
+────────────────────────────────────────────────────────────────────
+  12. CONTROL DESARROLLADOR
+────────────────────────────────────────────────────────────────────
+
+  Ancho de tarjeta, Espaciado
+────────────────────────────────────────────────────────────────────
+  13. OST DETALLES
+────────────────────────────────────────────────────────────────────
+
+  OpenSteamTool reemplaza DLLs proxy de SteamTools
+  Soluciona 'no internet connection'
+  ║ Actualizaciones Steam pueden sobrescribir OST DLLs
+────────────────────────────────────────────────────────────────────
+  14. FAQ
+────────────────────────────────────────────────────────────────────
+
+  Error 'no internet connection'? -> OST Kur
+  Juego no aparece? -> CloudRedirect + Inject OF
+  AI no funciona? -> Verifique API key y Route auto""",
+            'fr': f"""
+────────────────────────────────────────────────────────────────────
+  1. CLE API (TOUS LES FOURNISSEURS)
+────────────────────────────────────────────────────────────────────
+
+  Groq est GRATUIT. Les autres peuvent etre payants.
+  1 console.groq.com -> API Keys -> Create -> Copier cle (gsk_)
+  2 Parametres > Groq, coller et Enregistrer
+  ║ Ne partagez pas vos cles API.
+────────────────────────────────────────────────────────────────────
+  2. PAGE PRINCIPALE
+────────────────────────────────────────────────────────────────────
+
+  Download: Lance/telecharge des jeux
+  OnlineFix: Telecharge RAR depuis Online-Fix.me
+  Unlock: Telecharge manifest dans depotcache/
+  Inject All: Injecte tous les ZIPs de '1 New Games'
+  ?: Ouvre ce guide
+────────────────────────────────────────────────────────────────────
+  3. SUCCES (SAM)
+────────────────────────────────────────────────────────────────────
+
+  Retour, Tout selectionner, Deselectionner, Debloquer, Verrouiller
+  Enregistrer, Actualiser, Reinitialiser, Fermer
+  ║ Debloquer des succes VAC peut causer un bannissement.
+────────────────────────────────────────────────────────────────────
+  4. OUTILS LIGNE A
+────────────────────────────────────────────────────────────────────
+
+  Update: Telecharge nouvelle version
+  Nickname: Change nom en ligne
+  Reset Licenses: Reinitialise Steam + SteamTools (10 etapes)
+  Reset Backup: Alternative - REDEMARRE PC
+  Achievements: Ouvre SAM.Picker
+  Speedtest: Test de vitesse
+────────────────────────────────────────────────────────────────────
+  5. OUTILS LIGNE B
+────────────────────────────────────────────────────────────────────
+
+  ?: Guide
+  Millenium: Theme Steam moderne
+  LuaTools: Plugins Lua
+  Launch STL: Lance SteamTools.exe
+  Kill ST: Ferme SteamTools.exe
+  Restart STM: Redemarre Steam.exe
+────────────────────────────────────────────────────────────────────
+  6. OUTILS LIGNE C
+────────────────────────────────────────────────────────────────────
+
+  CloudRedirect: Redirection cloud Steam
+  Inject OF: Injecter jeux Online-Fix
+  Outside Games: Injecter dossier externe
+  OST Kur: Installer OpenSteamTool (corrige erreur internet)
+  OST Kaldir: Desinstaller OST
+  WE Downloader: Telecharger Wallpaper Engine
+────────────────────────────────────────────────────────────────────
+  7. AUTRES PARAMETRES
+────────────────────────────────────────────────────────────────────
+
+  Chemin de sauvegarde, acces rapide dossiers
+  Bibliotheque: Chercher, trier, installer jeux injectes
+  Jeux Installes: Lancer, ouvrir dossier
+────────────────────────────────────────────────────────────────────
+  8. LUATOOLS NAVIGATEUR
+────────────────────────────────────────────────────────────────────
+
+  Filtres: All/Bypass/Online/Tested
+  Ouvrir, Telecharger & Injecter, Debloquer
+────────────────────────────────────────────────────────────────────
+  9. STEAMDB NAVIGATEUR
+────────────────────────────────────────────────────────────────────
+
+  Jeux populaires via SteamSpy
+  Precedent/Suivant, pages numerotees
+────────────────────────────────────────────────────────────────────
+  10. SPEEDTEST
+────────────────────────────────────────────────────────────────────
+
+  Lancer test, Fermer
+────────────────────────────────────────────────────────────────────
+  11. MISE A JOUR
+────────────────────────────────────────────────────────────────────
+
+  Check Update: Chercher nouvelle version
+  Versions: Ouvrir GitHub Releases
+────────────────────────────────────────────────────────────────────
+  12. CONTROLE DEVELOPPEUR
+────────────────────────────────────────────────────────────────────
+
+  Largeur carte, Espacement
+────────────────────────────────────────────────────────────────────
+  13. DETAILS OST
+────────────────────────────────────────────────────────────────────
+
+  OpenSteamTool remplace les DLLs proxy de SteamTools
+  Corrige 'no internet connection'
+  ║ Les mises a jour Steam peuvent ecraser les DLLs OST
+────────────────────────────────────────────────────────────────────
+  14. FAQ
+────────────────────────────────────────────────────────────────────
+
+  Erreur 'no internet connection'? -> OST Kur
+  Jeu n'apparait pas? -> CloudRedirect + Inject OF
+  AI ne fonctionne pas? -> Verifiez cle API et Route auto""",
+            'de': f"""
+────────────────────────────────────────────────────────────────────
+  1. API-SCHLUSSEL (ALLE ANBIETER)
+────────────────────────────────────────────────────────────────────
+
+  Groq ist KOSTENLOS. Andere konnen kostenpflichtig sein.
+  1 console.groq.com -> API Keys -> Create -> Schlussel kopieren (gsk_)
+  2 Einstellungen > Groq, einfugen und Speichern
+  ║ Geben Sie Ihre API-Schlussel niemals weiter.
+────────────────────────────────────────────────────────────────────
+  2. STARTSEITE
+────────────────────────────────────────────────────────────────────
+
+  Download: Startet/ladt Spiele herunter
+  OnlineFix: Ladt RAR von Online-Fix.me
+  Unlock: Ladt Manifest nach depotcache/
+  Inject All: Injiziert alle ZIPs aus '1 New Games'
+  ?: Offnet diese Anleitung
+────────────────────────────────────────────────────────────────────
+  3. ERFOLGE (SAM)
+────────────────────────────────────────────────────────────────────
+
+  Zuruck, Alle auswahlen, Auswahl aufheben, Entsperren, Sperren
+  Speichern, Aktualisieren, Zurucksetzen, SchlieBen
+  ║ Das Entsperren von VAC-Erfolgen kann zu Sperrung fuhren.
+────────────────────────────────────────────────────────────────────
+  4. WERKZEUGE REIHE A
+────────────────────────────────────────────────────────────────────
+
+  Update: Neue Version herunterladen
+  Nickname: Online-Namen andern
+  Reset Licenses: Steam + SteamTools zurucksetzen (10 Schritte)
+  Reset Backup: Alternative - STARTET PC NEU
+  Achievements: Offnet SAM.Picker
+  Speedtest: Geschwindigkeitstest
+────────────────────────────────────────────────────────────────────
+  5. WERKZEUGE REIHE B
+────────────────────────────────────────────────────────────────────
+
+  ?: Anleitung
+  Millenium: Modernes Steam-Design
+  LuaTools: Lua-Plugins
+  Launch STL: Startet SteamTools.exe
+  Kill ST: Beendet SteamTools.exe
+  Restart STM: Startet Steam.exe neu
+────────────────────────────────────────────────────────────────────
+  6. WERKZEUGE REIHE C
+────────────────────────────────────────────────────────────────────
+
+  CloudRedirect: Steam-Cloud-Umleitung
+  Inject OF: Online-Fix-Spiele injizieren
+  Outside Games: Externen Ordner injizieren
+  OST Kur: OpenSteamTool installieren (behebt Internetfehler)
+  OST Kaldir: OST deinstallieren
+  WE Downloader: Wallpaper Engine Downloader
+────────────────────────────────────────────────────────────────────
+  7. WEITERE EINSTELLUNGEN
+────────────────────────────────────────────────────────────────────
+
+  Speicherpfad, Schnellzugriffsordner
+  Bibliothek: Suchen, sortieren, injizierte Spiele installieren
+  Installierte Spiele: Starten, Ordner offnen
+────────────────────────────────────────────────────────────────────
+  8. LUATOOLS BROWSER
+────────────────────────────────────────────────────────────────────
+
+  Filter: All/Bypass/Online/Tested
+  Offnen, Herunterladen & Injizieren, Entsperren
+────────────────────────────────────────────────────────────────────
+  9. STEAMDB BROWSER
+────────────────────────────────────────────────────────────────────
+
+  Beliebte Spiele via SteamSpy
+  Zuruck/Vor, Seitenzahlen
+────────────────────────────────────────────────────────────────────
+  10. SPEEDTEST
+────────────────────────────────────────────────────────────────────
+
+  Test starten, SchlieBen
+────────────────────────────────────────────────────────────────────
+  11. AKTUALISIERUNG
+────────────────────────────────────────────────────────────────────
+
+  Check Update: Neue Version suchen
+  Versions: GitHub Releases offnen
+────────────────────────────────────────────────────────────────────
+  12. ENTWICKLERSTEUERUNG
+────────────────────────────────────────────────────────────────────
+
+  Kartenbreite, Abstand
+────────────────────────────────────────────────────────────────────
+  13. OST DETAILS
+────────────────────────────────────────────────────────────────────
+
+  OpenSteamTool ersetzt SteamTools-Proxy-DLLs
+  Behebt 'no internet connection'
+  ║ Steam-Updates konnen OST-DLLs uberschreiben
+────────────────────────────────────────────────────────────────────
+  14. FAQ
+────────────────────────────────────────────────────────────────────
+
+  Fehler 'no internet connection'? -> OST Kur
+  Spiel erscheint nicht? -> CloudRedirect + Inject OF
+  KI funktioniert nicht? -> API-Schlussel und Route auto prufen""",
+            'ja': f"""
+────────────────────────────────────────────────────────────────────
+  1. APIキー（全プロバイダー）
+────────────────────────────────────────────────────────────────────
+
+  Groqは無料です。他は有料の場合があります。
+  1 console.groq.com -> API Keys -> Create -> キーをコピー (gsk_)
+  2 設定 > Groqに貼り付けて保存
+  ║ APIキーを他人と共有しないでください。
+────────────────────────────────────────────────────────────────────
+  2. ホームページ
+────────────────────────────────────────────────────────────────────
+
+  Download: ゲームを起動/ダウンロード
+  OnlineFix: Online-Fix.meからRARを自動ダウンロード
+  Unlock: depotcache/にマニフェストをダウンロード
+  Inject All: '1 New Games'の全ZIPを一括注入
+  ?: このガイドを開く
+────────────────────────────────────────────────────────────────────
+  3. 実績 (SAM)
+────────────────────────────────────────────────────────────────────
+
+  戻る、すべて選択、選択解除、ロック解除、ロック
+  保存、更新、すべてリセット、閉じる
+  ║ VAC保護ゲームの実績解除はBANされる可能性があります。
+────────────────────────────────────────────────────────────────────
+  4. ツール行A
+────────────────────────────────────────────────────────────────────
+
+  Update: 新しいバージョンをダウンロード
+  Nickname: オンライン名を変更
+  Reset Licenses: Steam + SteamToolsをリセット（10ステップ）
+  Reset Backup: 代替方法 - PCを再起動
+  Achievements: SAM.Pickerを開く
+  Speedtest: インターネット速度テスト
+────────────────────────────────────────────────────────────────────
+  5. ツール行B
+────────────────────────────────────────────────────────────────────
+
+  ?: ガイド
+  Millenium: モダンなSteamテーマ
+  LuaTools: Luaプラグイン
+  Launch STL: SteamTools.exeを起動
+  Kill ST: SteamTools.exeを強制終了
+  Restart STM: Steam.exeを再起動
+────────────────────────────────────────────────────────────────────
+  6. ツール行C
+────────────────────────────────────────────────────────────────────
+
+  CloudRedirect: Steamクラウドリダイレクト
+  Inject OF: Online-Fixゲームを注入
+  Outside Games: 外部フォルダーを注入
+  OST Kur: OpenSteamToolをインストール（インターネットエラー修正）
+  OST Kaldir: OSTをアンインストール
+  WE Downloader: Wallpaper Engineダウンローダー
+────────────────────────────────────────────────────────────────────
+  7. その他の設定
+────────────────────────────────────────────────────────────────────
+
+  保存パス、フォルダーショートカット
+  ライブラリ: 注入済みゲームを検索、並べ替え、インストール
+  インストール済みゲーム: 起動、フォルダーを開く
+────────────────────────────────────────────────────────────────────
+  8. LUATOOLSブラウザー
+────────────────────────────────────────────────────────────────────
+
+  フィルター: All/Bypass/Online/Tested
+  開く、ダウンロード＆注入、ロック解除
+────────────────────────────────────────────────────────────────────
+  9. STEAMDBブラウザー
+────────────────────────────────────────────────────────────────────
+
+  SteamSpy APIで人気ゲームを表示
+  前へ/次へ、ページ番号
+────────────────────────────────────────────────────────────────────
+  10. SPEEDTEST
+────────────────────────────────────────────────────────────────────
+
+  テスト開始、閉じる
+────────────────────────────────────────────────────────────────────
+  11. アップデート
+────────────────────────────────────────────────────────────────────
+
+  Check Update: 新しいバージョンを確認
+  Versions: GitHub Releasesを開く
+────────────────────────────────────────────────────────────────────
+  12. 開発者コントロール
+────────────────────────────────────────────────────────────────────
+
+  カード幅、間隔
+────────────────────────────────────────────────────────────────────
+  13. OST詳細
+────────────────────────────────────────────────────────────────────
+
+  OpenSteamToolがSteamToolsプロキシDLLを置き換え
+  'no internet connection'エラーを修正
+  ║ SteamアップデートがOST DLLを上書きする場合があります
+────────────────────────────────────────────────────────────────────
+  14. FAQ
+────────────────────────────────────────────────────────────────────
+
+  'no internet connection'エラー? -> OST Kur
+  ゲームが表示されない? -> CloudRedirect + Inject OF
+  AI翻訳が動作しない? -> APIキーとRoute autoを確認""",
         }
         guide = guides.get(lang, guides['en'])
         guide_title = {'tr': 'KAPSAMLI KULLANIM REHBERI',
@@ -3847,9 +4471,9 @@ def install_ui_fixes(g):
         for i, line in enumerate(guide.split('\n')):
             stripped = line.strip()
             idx = f'{i+1}.0'
-            if stripped.startswith('{ul}') or stripped.startswith('1.') or stripped.startswith('2.') or stripped.startswith('3.') or stripped.startswith('4.') or stripped.startswith('5.'):
+            if any(stripped.startswith(f'{n}.') for n in range(1, 21)):
                 text.tag_add('section', idx, f'{i+1}.end')
-            if stripped.startswith('①') or stripped.startswith('Uyar') or stripped.startswith('Warning'):
+            if any(stripped.startswith(s) for s in ('①', '②', '③', '④', '⑤', 'Uyar', 'Warning', '⚠', 'UYARI', 'WARNING', 'NOT', 'NOTE', 'ℹ')):
                 text.tag_add('warn', idx, f'{i+1}.end')
         text.config(state=tk.DISABLED)
         btn_frame = tk.Frame(win, bg='#0d1724')
@@ -4262,6 +4886,21 @@ def install_ui_fixes(g):
                         try: _subprocess.Popen([str(_st_exe)], startupinfo=_si)
                         except: pass
                     _time.sleep(2)
+                # OST: Lua dosyalarini stplug-in -> config/lua/ kopyala
+                _log('[Reset] OST Lua kopyalaniyor (stplug-in -> lua)...')
+                _ost_lua = _steam_root / 'config' / 'lua'
+                _ost_stplug = _steam_root / 'config' / 'stplug-in'
+                if _ost_stplug.is_dir() and _ost_lua.is_dir():
+                    _copied = 0
+                    for _lf in _ost_stplug.iterdir():
+                        if _lf.suffix.lower() == '.lua':
+                            try:
+                                _shutil.copy2(str(_lf), str(_ost_lua / _lf.name))
+                                _copied += 1
+                            except: pass
+                    _log(f'[Reset] {_copied} Lua dosyasi kopyalandi')
+                else:
+                    _log('[Reset] stplug-in veya lua klasoru yok, atlandi')
                 # 10 Steam baslat + watchdog
                 _log('[Reset] Steam baslatiliyor + watchdog aciliyor...')
                 _pb_set(100, 'Steam baslatiliyor...')
@@ -4315,8 +4954,10 @@ def install_ui_fixes(g):
                         return
                     _depot = Path('C:\\Program Files (x86)\\Steam\\config\\depotcache')
                     _stplug = Path('C:\\Program Files (x86)\\Steam\\config\\stplug-in')
+                    _lua_dir = Path('C:\\Program Files (x86)\\Steam\\config\\lua')
                     _depot.mkdir(parents=True, exist_ok=True)
                     _stplug.mkdir(parents=True, exist_ok=True)
+                    _lua_dir.mkdir(parents=True, exist_ok=True)
                     if not _used.is_dir():
                         _used.mkdir(parents=True, exist_ok=True)
                     _ini_path = _used / 'injected_games.ini'
@@ -4335,7 +4976,10 @@ def install_ui_fixes(g):
                                     if _info.is_dir(): continue
                                     _target = _depot if _info.filename.endswith('.manifest') else _stplug
                                     try:
-                                        (_target / Path(_info.filename).name).write_bytes(_zf.read(_info))
+                                        _fname = Path(_info.filename).name
+                                        (_target / _fname).write_bytes(_zf.read(_info))
+                                        if _fname.lower().endswith('.lua'):
+                                            (_lua_dir / _fname).write_bytes(_zf.read(_info))
                                         _extracted += 1
                                     except Exception as _ex2:
                                         _log(f'[Reset] Inject: {_zp.name}/{_info.filename} hata: {_ex2}')
@@ -4487,6 +5131,15 @@ def install_ui_fixes(g):
         AB(_trow_b, 'LuaTools', _run_lua, _btn_w, 36,
            '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        _stlfix_light = tk.Label(_trow_b, text="\u25cf", fg='#666666', bg='#152238', font=('Segoe UI', 14))
+        _stlfix_light.pack(side=tk.LEFT, padx=(0, 2))
+        def _run_stlfix():
+            self._run_headless_powershell(
+                'irm "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua-Millennium-Fix/main/install.ps1" | iex',
+                "STL Fix Installer", _stlfix_light)
+        AB(_trow_b, 'STL Fix', _run_stlfix, _btn_w, 36,
+           '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
         _launch_light = tk.Label(_trow_b, text="\u25cf", fg='#666666', bg='#152238', font=('Segoe UI', 14))
         _launch_light.pack(side=tk.LEFT, padx=(0, 2))
         def _run_launch():
@@ -4502,8 +5155,6 @@ def install_ui_fixes(g):
         AB(_trow_b, 'Kill ST', _run_kill_st, _btn_w, 36,
            '#8b0000', '#b22222', '#f56565', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
-        _restart_light = tk.Label(_trow_b, text="\u25cf", fg='#666666', bg='#152238', font=('Segoe UI', 14))
-        _restart_light.pack(side=tk.LEFT, padx=(0, 2))
         def _run_restart():
             def _task():
                 try:
@@ -4531,9 +5182,7 @@ def install_ui_fixes(g):
                     _play_sound('error')
             threading.Thread(target=_task, daemon=True).start()
             _play_sound('start')
-        AB(_trow_b, 'Restart STM', _run_restart, _btn_w, 36,
-           '#244363', '#315f8e', '#66c0f4', '#ffffff',
-           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        # Restart STM moved to Row D (next to WE Downloader)
 
         # Tools Row C: CloudRedirect, Inject OF, Outside Games, WEDownloader
         _trow_c = tk.Frame(_t_inner, bg='#152238')
@@ -4648,95 +5297,16 @@ def install_ui_fixes(g):
                 except Exception as _ex:
                     self._set_indicator('WE Downloader hata: ' + str(_ex), 'offline')
             _we_thr.Thread(target=_task, daemon=True).start()
-        _ost_dlls = ['dwmapi.dll', 'xinput1_4.dll', 'OpenSteamTool.dll']
-        def _install_ost():
-            threading.Thread(target=lambda: _install_ost_thread(), daemon=True).start()
-        def _install_ost_thread():
-            _log_ost = lambda m: window.after(0, lambda: (self.log(m), _pb_lbl.config(text=m)))
-            _log_ost('[OST] OpenSteamTool kuruluyor...')
-            _steam = Path('C:\\Program Files (x86)\\Steam')
-            _ost_dir = Path(_os.environ['APPDATA']) / 'SteamToolsLua' / 'OpenSteamTool'
-            _ost_dir.mkdir(parents=True, exist_ok=True)
-            _zip_path = _ost_dir / 'OpenSteamTool-Release.zip'
-            try:
-                _log_ost('[OST] Indiriliyor...')
-                _r = requests.get(
-                    'https://github.com/OpenSteam001/OpenSteamTool/releases/download/1.4.8/OpenSteamTool-1.4.8-Release.zip',
-                    timeout=60)
-                if _r.status_code != 200:
-                    _log_ost(f'[OST] Indirme hatasi HTTP {_r.status_code}'); return
-                _zip_path.write_bytes(_r.content)
-                _log_ost(f'[OST] Indirildi ({len(_r.content)//1024}KB)')
-            except Exception as _ex:
-                _log_ost(f'[OST] Indirme hatasi: {_ex}'); return
-            try:
-                import zipfile as _zf
-                with _zf.ZipFile(str(_zip_path), 'r') as _z:
-                    for _m in _z.namelist():
-                        if any(d in _m for d in _ost_dlls):
-                            (_ost_dir / Path(_m).name).write_bytes(_z.read(_m))
-                            _log_ost(f'[OST] Ayiklandi: {Path(_m).name}')
-            except Exception as _ex:
-                _log_ost(f'[OST] Zip acma hatasi: {_ex}'); return
-            try:
-                _log_ost('[OST] Steam kapatiliyor...')
-                _subprocess.run(['taskkill','/f','/im','steam.exe'],
-                    startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW),
-                    capture_output=True, creationflags=0x08000000)
-                _time.sleep(2)
-                for _dll in _ost_dlls:
-                    _src, _dst = _ost_dir / _dll, _steam / _dll
-                    if _dst.exists():
-                        _bak = _ost_dir / f'{_dll}.backup'
-                        if not _bak.exists(): _dst.rename(_bak); _log_ost(f'[OST] Yedeklendi: {_dll}')
-                    _shutil.copy2(str(_src), str(_dst)); _log_ost(f'[OST] Kopyalandi: {_dll}')
-                _lua_dir = _steam / 'config' / 'lua'
-                _stplug = _steam / 'config' / 'stplug-in'
-                if _stplug.is_dir():
-                    _lua_dir.mkdir(parents=True, exist_ok=True)
-                    for _lf in _stplug.iterdir():
-                        if _lf.suffix.lower() == '.lua':
-                            _shutil.copy2(str(_lf), str(_lua_dir / _lf.name))
-                            _log_ost(f'[OST] Lua kopyalandi: {_lf.name}')
-                _log_ost('[OST] Steam baslatiliyor...')
-                _subprocess.Popen([str(_steam / 'steam.exe')],
-                    startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
-                window.after(0, lambda: tk.messagebox.showinfo('OpenSteamTool',
-                    'OpenSteamTool basariyla kuruldu!\nSteam yeniden baslatildi.\nGeri almak icin OST Kaldir.', parent=window))
-            except Exception as _ex:
-                _log_ost(f'[OST] Kurulum hatasi: {_ex}')
-        def _uninstall_ost():
-            threading.Thread(target=lambda: _uninstall_ost_thread(), daemon=True).start()
-        def _uninstall_ost_thread():
-            _log_ost = lambda m: window.after(0, lambda: (self.log(m), _pb_lbl.config(text=m)))
-            _log_ost('[OST] OpenSteamTool kaldiriliyor...')
-            _steam = Path('C:\\Program Files (x86)\\Steam')
-            _ost_dir = Path(_os.environ['APPDATA']) / 'SteamToolsLua' / 'OpenSteamTool'
-            try:
-                _subprocess.run(['taskkill','/f','/im','steam.exe'],
-                    startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW),
-                    capture_output=True, creationflags=0x08000000)
-                _time.sleep(2)
-                for _dll in _ost_dlls:
-                    _dst = _steam / _dll
-                    if _dst.exists(): _dst.unlink(); _log_ost(f'[OST] Silindi: {_dll}')
-                    _bak = _ost_dir / f'{_dll}.backup'
-                    if _bak.exists(): _shutil.move(str(_bak), str(_dst)); _log_ost(f'[OST] Geri yuklendi: {_dll}')
-                _log_ost('[OST] Steam baslatiliyor...')
-                _subprocess.Popen([str(_steam / 'steam.exe')],
-                    startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
-                window.after(0, lambda: tk.messagebox.showinfo('OpenSteamTool',
-                    'OpenSteamTool kaldirildi.\nSteam yeniden baslatildi.', parent=window))
-            except Exception as _ex:
-                _log_ost(f'[OST] Kaldirma hatasi: {_ex}')
-        AB(_trow_c, 'OST Kur', _install_ost, _btn_w, 36,
-           '#3b2d5e', '#5a3d8e', '#b088ff', '#ffffff',
-           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
-        AB(_trow_c, 'OST Kaldir', _uninstall_ost, _btn_w, 36,
-           '#5e2d3b', '#8e3d5a', '#ff88b0', '#ffffff',
-           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
-        AB(_trow_c, 'WE Downloader', _run_wedownloader, _btn_w, 36,
+        # ---- Tools Row D ----
+        _trow_d = tk.Frame(_t_inner, bg='#152238')
+        _trow_d.pack(fill=tk.X, pady=2)
+        AB(_trow_d, 'WE Downloader', _run_wedownloader, _btn_w, 36,
            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        _restart_light = tk.Label(_trow_d, text="\u25cf", fg='#666666', bg='#152238', font=('Segoe UI', 14))
+        _restart_light.pack(side=tk.LEFT, padx=(0, 2))
+        AB(_trow_d, 'Restart STM', _run_restart, _btn_w, 36,
+           '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
 
         # ---- Save Path ----
@@ -5375,11 +5945,11 @@ def install_ui_fixes(g):
         # ---- LuaTools Browser Button ----
         _lt_row = tk.Frame(_p, bg='#0d1724')
         _lt_row.pack(fill=tk.X, padx=16, pady=(0, 2))
-        AB(_lt_row, 'LuaTools', _open_luatools_browser, 130, 30,
+        AB(_lt_row, 'LuaWebFix', _open_luatools_browser, 130, 30,
            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
-           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(4, 0))
+           ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=(0, 0))
         tk.Label(_lt_row, text='lua.tools/fixes (512+ oyun)', fg='#686880',
-                 bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=(6, 0))
+                 bg='#0d1724', font=('Segoe UI', 9)).pack(side=tk.LEFT, padx=(4, 0))
 
         # ---- User info section ----
         _fn = self.settings.get('firstname', '')
