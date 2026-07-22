@@ -33,11 +33,13 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "3.6.0"
+VERSION = "3.7.0"
 VERSION_NAME = "All-in-One Injector + CloudRedirect"
 try:
     Path(os.environ.get('APPDATA', str(Path.home())), 'SteamToolsLua', 'version.txt').write_text(VERSION)
 except: pass
+# Embedded version_proxy.dll (WinHTTP hook) — deployed as Steam\version.dll during Deep Fix
+VERSION_PROXY_DLL_B64 = "TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAA4fug4AtAnNIbgBTM0hVGhpcyBwcm9ncmFtIGNhbm5vdCBiZSBydW4gaW4gRE9TIG1vZGUuDQ0KJAAAAAAAAABQRQAAZIYLAK2TX2oAAAAAAAAAAPAALiILAgIuACAAAAAmAAAAAgAA7xIAAAAQAAAAAJZ7AwAAAAAQAAAAAgAABAAAAAAAAAAFAAIAAAAAAADQAAAABAAAHGUAAAMAYAEAACAAAAAAAAAQAAAAAAAAAAAQAAAAAAAAEAAAAAAAAAAAAAAQAAAAAJAAAFsEAAAAoAAAUAcAAAAAAAAAAAAAAGAAACgCAAAAAAAAAAAAAADAAABUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEMAACgAAAAAAAAAAAAAAAAAAAAAAAAA+KEAAGgBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAudGV4dAAAACAeAAAAEAAAACAAAAAEAAAAAAAAAAAAAAAAAAAgAABgLmRhdGEAAABwAAAAADAAAAACAAAAJAAAAAAAAAAAAAAAAAAAQAAAwC5yZGF0YQAAWAcAAABAAAAACAAAACYAAAAAAAAAAAAAAAAAAEAAAEAuZWhfZnJhbQQAAAAAUAAAAAIAAAAuAAAAAAAAAAAAAAAAAABAAADALnBkYXRhAAAoAgAAAGAAAAAEAAAAMAAAAAAAAAAAAAAAAAAAQAAAQC54ZGF0YQAABAIAAABwAAAABAAAADQAAAAAAAAAAAAAAAAAAEAAAEAuYnNzAAAAAHABAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAADALmVkYXRhAABbBAAAAJAAAAAGAAAAOAAAAAAAAAAAAAAAAAAAQAAAQC5pZGF0YQAAUAcAAACgAAAACAAAAD4AAAAAAAAAAAAAAAAAAEAAAEAudGxzAAAAABAAAAAAsAAAAAIAAABGAAAAAAAAAAAAAAAAAABAAADALnJlbG9jAABUAAAAAMAAAAACAAAASAAAAAAAAAAAAAAAAAAAQAAAQgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVIieVIgezAAAAASIlNEIlVGEyJRSCDfRgAdSWLBd5vAACFwH4RiwXUbwAAg+gBiQXLbwAA6wq4AAAAAOmlAgAAg30YAQ+FlAEAAEjHRdgAAAAAx0XMMAAAAItFzGVnSIsASIlFwEiLRcBIi0AISIlF0MdF/AAAAADHRfgAAAAA6yFIi0XYSDtF0HUJx0X8AQAAAOtFuegDAABIiwXXkQAA/9BIiwWWNAAASIlFuEiLRdBIiUWwSMdFqAAAAABIi02wSItFqEiLVbjwSA+xCkiJRdhIg33YAHWoSIsFbzQAAIsAhcB0CrkfAAAA6I8bAABIiwVYNAAAxwABAAAA6H0RAABIjQUGbwAASInB6A4cAACJRfiDffgAdUlIixVuNAAASIsFVzQAAEiJwej/GwAAiUX4g334AHUtSIsVLzQAAEiLBRg0AABIicHo2BsAAOgiCAAASIsF9DMAAMcAAgAAAOsEkOsBkIN9/AB1HkiLBcszAABIiUWgSMdFmAAAAABIi1WYSItFoEiHEIN9+AB0CrgAAAAA6UoBAABIiwVtMwAASIsASIXAdCBIiwVeMwAATIsISItVIEiLRRBJidC6AgAAAEiJwUH/0YsFL24AAIPAAYkFJm4AAOkCAAAPQ0c6AP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAAAAAAAMAAAAAAAAAAwAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwAAAAAAAAA8AAAAFAAAIAwAAAAAAAAAAAAAACAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAAMAAAAEAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAAAAAAAAAAAAAIAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4AAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 UPDATE_URL = "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua/master/latest_version.txt"
 DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download"
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"
@@ -752,11 +754,6 @@ def main():
                 ]
                 _base_dir_n = Path(sys.argv[0]).resolve().parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
                 _paths.append(_base_dir_n / "1 New Games")
-                _paths.append(_base_dir_n / "CloudRedirect")
-                _paths.append(_base_dir_n / "cloud_redirect.dll")
-                _paths.append(_base_dir_n / "CloudRedirect.exe")
-                _appdata_cr = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / "CloudRedirect"
-                if _appdata_cr.exists(): _paths.append(_appdata_cr)
                 _steam_root = Path("C:\\Program Files (x86)\\Steam")
                 if _steam_root.exists():
                     for _f in _steam_root.rglob('*.lua'): _paths.append(_f)
@@ -892,6 +889,15 @@ def install_ui_fixes(g):
     }
     for _sam_lang, _sam_text in {'tr':'Basarimlar','en':'Achievements','es':'Logros','fr':'Succes','de':'Erfolge','ja':'実績'}.items():
         extra_text.setdefault(_sam_lang, {})['button.achievements'] = _sam_text
+    for _btn_lang, _btn_vals in {
+        'tr': {'button.nickname': 'Nickname', 'button.nickname_change': 'Nickname Değiştir', 'button.reset_licenses': 'Reset Licenses', 'button.speedtest': 'Speedtest', 'button.save': 'Kaydet', 'button.fix_all': 'Fix All: Tüm Sorunları Çöz'},
+        'en': {'button.nickname': 'Nickname', 'button.nickname_change': 'Change Nickname', 'button.reset_licenses': 'Reset Licenses', 'button.speedtest': 'Speedtest', 'button.save': 'Save', 'button.fix_all': 'Fix All: Solve All Issues'},
+        'es': {'button.nickname': 'Apodo', 'button.nickname_change': 'Cambiar Apodo', 'button.reset_licenses': 'Restablecer Licencias', 'button.speedtest': 'Speedtest', 'button.save': 'Guardar', 'button.fix_all': 'Fix All: Solucionar Todo'},
+        'fr': {'button.nickname': 'Surnom', 'button.nickname_change': 'Changer le Pseudo', 'button.reset_licenses': 'Réinitialiser les Licences', 'button.speedtest': 'Test de Débit', 'button.save': 'Enregistrer', 'button.fix_all': 'Fix All: Tout Réparer'},
+        'de': {'button.nickname': 'Spitzname', 'button.nickname_change': 'Spitzname Ändern', 'button.reset_licenses': 'Lizenzen Zurücksetzen', 'button.speedtest': 'Geschwindigkeitstest', 'button.save': 'Speichern', 'button.fix_all': 'Fix All: Alles Reparieren'},
+        'ja': {'button.nickname': 'ニックネーム', 'button.nickname_change': 'ニックネーム変更', 'button.reset_licenses': 'ライセンスリセット', 'button.speedtest': 'スピードテスト', 'button.save': '保存', 'button.fix_all': 'Fix All: すべて修正'},
+    }.items():
+        extra_text.setdefault(_btn_lang, {}).update(_btn_vals)
 
     for _rl_lang, _rl_msg in {
         'tr': 'Tum dosyalari used klasorunden cikarilacak, Steam enjeksiyon dosyalari temizlenecek.\n\nDevam edilsin mi?',
@@ -911,6 +917,15 @@ def install_ui_fixes(g):
         'ja': '!!! 警告 !!!\n以下の手順を完了するまでOKをクリックしないでください！\n\n1. Ctrl+Aですべてのファイルを選択\n2. SteamToolsアイコンにドラッグ\n3. OKをクリック\n\nSteamが再起動され、すべてのZIPが自動的に注入されます。',
     }.items():
         extra_text.setdefault(_rl_lang, {})['reset_licenses.drag_msg'] = _rl_msg
+    for _fa_lang, _fa_msg in {
+        'tr': 'Fix All baslatilacak (20 ADIM):\n\n1. Reset Licenses (ST kaldir/kur/inject)\n2. Network reset (DNS/Winsock/Firewall/Proxy)\n3. Appcache deep clean\n4. Download/Depot cache temizligi\n5. Manifest guncelleme (Morrenus+GitHub)\n6. xinput proxy DLL fix\n7. SteamService onar\n8. SSL sertifika guncelleme\n9. Hosts dosyasi engel taramasi\n10. Steam WebHelper + browser cache (PURCHASE FIX)\n11. Windows Proxy + Time sync (PURCHASE FIX)\n12. Credential Manager + Registry reset (PURCHASE FIX)\n13. Steam --repair + --validate (PURCHASE FIX)\n14. IPv6 disable + adapter tweaks (PURCHASE FIX)\n15. DISM + SFC sistem onarimi (canli takip)\n16. Steam config repair (flushconfig)\n17. Chkdsk disk taramasi\n18. Firewall kurallari\n19. Deep Fix: Lua multi-endpoint + DLL patch + proxy + hosts + WinHTTP hook\n20. Steam restart\n\nTum Steam oyunlar kapanacak, DISM/SFC 10-15dk surebilir.\nDevam edilsin mi?',
+        'en': 'Fix All will run (20 STEPS):\n\n1. Reset Licenses (ST remove/install/inject)\n2. Network reset (DNS/Winsock/Firewall/Proxy)\n3. Appcache deep clean\n4. Download/Depot cache cleanup\n5. Manifest update (Morrenus+GitHub)\n6. xinput proxy DLL fix\n7. SteamService repair\n8. SSL certificate update\n9. Hosts file block scan\n10. Steam WebHelper + browser cache (PURCHASE FIX)\n11. Windows Proxy + Time sync (PURCHASE FIX)\n12. Credential Manager + Registry reset (PURCHASE FIX)\n13. Steam --repair + --validate (PURCHASE FIX)\n14. IPv6 disable + adapter tweaks (PURCHASE FIX)\n15. DISM + SFC system repair (live tracking)\n16. Steam config repair (flushconfig)\n17. Chkdsk disk scan\n18. Firewall rules\n19. Deep Fix: Lua multi-endpoint + DLL patch + proxy + hosts + WinHTTP hook\n20. Steam restart\n\nAll games will close, DISM/SFC may take 10-15min.\nContinue?',
+        'es': 'Fix All ejecutara (20 PASOS):\n\n1. Reset Licenses (ST eliminar/instalar/inyectar)\n2. Reinicio red (DNS/Winsock/Firewall/Proxy)\n3. Limpieza profunda appcache\n4. Limpieza cache descargas/depot\n5. Actualizar manifests (Morrenus+GitHub)\n6. Arreglo DLL proxy xinput\n7. Reparar SteamService\n8. Actualizar certificados SSL\n9. Escanear hosts (bloqueos)\n10. WebHelper + cache navegador (FIX COMPRA)\n11. Proxy Windows + sincronizar hora (FIX COMPRA)\n12. Admin. credenciales + Registry (FIX COMPRA)\n13. Steam --repair + --validate (FIX COMPRA)\n14. Deshabilitar IPv6 + ajustes (FIX COMPRA)\n15. DISM + SFC reparacion sistema (seguimiento)\n16. Reparar config Steam (flushconfig)\n17. Chkdsk escanear disco\n18. Reglas Firewall\n19. Deep Fix: Lua multi-endpoint + DLL patch + proxy + hosts + WinHTTP hook\n20. Reiniciar Steam\n\nTodos los juegos se cerraran, DISM/SFC puede tomar 10-15min.\nContinuar?',
+        'fr': 'Fix All va executer (20 ETAPES):\n\n1. Reset Licenses (ST supprimer/installer/injecter)\n2. Reinit reseau (DNS/Winsock/Firewall/Proxy)\n3. Nettoyage profond appcache\n4. Nettoyage cache telech/depot\n5. Mise a jour manifest (Morrenus+GitHub)\n6. Correctif DLL proxy xinput\n7. Reparer SteamService\n8. Mise a jour certificats SSL\n9. Scan hosts (blocages)\n10. WebHelper + cache navigateur (FIX ACHAT)\n11. Proxy Windows + synchro heure (FIX ACHAT)\n12. Gestionnaire identifiants + Registre (FIX ACHAT)\n13. Steam --repair + --validate (FIX ACHAT)\n14. Desactiver IPv6 + reglages (FIX ACHAT)\n15. DISM + SFC reparations systeme (direct)\n16. Reparer config Steam (flushconfig)\n17. Chkdsk analyser disque\n18. Regles Firewall\n19. Deep Fix: Lua multi-endpoint + DLL patch + proxy + hosts + WinHTTP hook\n20. Redemarrer Steam\n\nTous les jeux fermeront, DISM/SFC peut prendre 10-15min.\nContinuer?',
+        'de': 'Fix All fuehrt aus (20 SCHRITTE):\n\n1. Reset Licenses (ST entfernen/installieren/injizieren)\n2. Netzwerk Reset (DNS/Winsock/Firewall/Proxy)\n3. Appcache Tiefenreinigung\n4. Download/Depot Cache Reinigung\n5. Manifest Update (Morrenus+GitHub)\n6. xinput Proxy DLL Fix\n7. SteamService Reparatur\n8. SSL Zertifikat Update\n9. Hosts Datei Blockade Scan\n10. Steam WebHelper + Browser Cache (KAUF FIX)\n11. Windows Proxy + Zeit sync (KAUF FIX)\n12. AnmeldedatenManager + Registry (KAUF FIX)\n13. Steam --repair + --validate (KAUF FIX)\n14. IPv6 deaktivieren + Adapter (KAUF FIX)\n15. DISM + SFC Systemreparatur (Live)\n16. Steam Config Reparatur (flushconfig)\n17. Chkdsk Festplattenscan\n18. Firewall Regeln\n19. Deep Fix: Lua multi-endpoint + DLL patch + proxy + hosts + WinHTTP hook\n20. Steam Neustart\n\nAlle Spiele schliessen, DISM/SFC kann 10-15Min dauern.\nFortfahren?',
+        'ja': 'Fix Allを実行します（20ステップ）:\n\n1. Reset Licenses (ST削除/インストール/注入)\n2. ネットワークリセット (DNS/Winsock/ファイアウォール/プロキシ)\n3. Appcacheディープクリーン\n4. ダウンロード/デポキャッシュクリーン\n5. マニフェスト更新 (Morrenus+GitHub)\n6. xinputプロキシDLL修正\n7. SteamService修復\n8. SSL証明書更新\n9. hostsファイルブロックスキャン\n10. Steam WebHelper + ブラウザキャッシュ (購入FIX)\n11. Windowsプロキシ + 時刻同期 (購入FIX)\n12. 資格情報マネージャー + レジストリ (購入FIX)\n13. Steam --repair + --validate (購入FIX)\n14. IPv6無効化 + アダプター調整 (購入FIX)\n15. DISM + SFCシステム修復 (ライブ追跡)\n16. Steam設定修復 (flushconfig)\n17. Chkdskディスクスキャン\n18. ファイアウォールルール\n19. Deep Fix: Lua multi-endpoint + DLL patch + proxy + hosts + WinHTTP hook\n20. Steam再起動\n\nゲームはすべて閉じられ、DISM/SFCに10-15分かかる場合があります。\n続行しますか？',
+    }.items():
+        extra_text.setdefault(_fa_lang, {})['fix_all.confirm'] = _fa_msg
 
     settings_text = {
         'tr': {'settings.rate_status': 'Limit Durumu', 'settings.not_queried': 'Sorgulanmadi', 'settings.no_limit_info': 'Limit bilgisi yok', 'settings.unlimited_local': 'Yerel, limitsiz', 'settings.rate_error': 'Sorgulanamadi', 'settings.requests': 'Istek', 'settings.remaining': 'Kalan', 'settings.daily_usage': 'Gunluk Kullanim: {tokens} token | {requests} istek', 'button.query_limits': 'Limitleri Sorgula'},
@@ -4495,14 +4510,12 @@ def install_ui_fixes(g):
 
     # ---- Tool buttons for settings window ----
     def _add_tools_section(_w, _self):
-        _lang = _self.settings.get('language', 'tr')
-        _is_tr = _lang == 'tr'
-        _t = lambda tr, en: tr if _is_tr else en
+        _tr2 = lambda k: _tr(_self, k)
         def _change_nickname():
             _hw2 = _get_hwid().lower()
             _cur = _MY_NICKNAME.get('nickname', '')
             _dlg2 = tk.Toplevel(_w)
-            _dlg2.title(_t('Nickname Degistir', 'Change Nickname'))
+            _dlg2.title(_tr2('button.nickname_change'))
             _dlg2.geometry('380x200')
             _dlg2.configure(bg='#0d1724')
             _dlg2.resizable(False, False)
@@ -4510,7 +4523,7 @@ def install_ui_fixes(g):
             _dlg2.grab_set()
             _dlg2.protocol('WM_DELETE_WINDOW', _dlg2.destroy)
             _dlg2.bind('<Escape>', lambda e: _dlg2.destroy())
-            tk.Label(_dlg2, text=_t('Yeni nickname:', 'New nickname:'),
+            tk.Label(_dlg2, text=f'{_tr2("button.nickname")}:',
                      fg='#f7fafc', bg='#0d1724', font=('Segoe UI', 14, 'bold')).pack(pady=(20, 4))
             tk.Label(_dlg2, text=f'HWID: {_hw2[:16]}...  ({_cur})',
                      fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(pady=(0, 8))
@@ -4524,7 +4537,7 @@ def install_ui_fixes(g):
             def _submit2():
                 _v = _entry2.get().strip()
                 if not _v:
-                    _err_lbl2.config(text=_t('Nickname bos gecilemez!', 'Nickname cannot be empty!'))
+                    _err_lbl2.config(text=f'{_tr2("button.nickname")} boş geçilemez!')
                     return
                 _err_lbl2.config(text='')
                 _new_val[0] = _v
@@ -4549,22 +4562,22 @@ def install_ui_fixes(g):
                 threading.Thread(target=_save_nick, args=(_new_val[0],), daemon=True).start()
             _entry2.bind('<Return>', lambda e: _submit2())
             AB3 = g.get('AnimatedButton', AnimatedButton)
-            AB3(_dlg2, _t('Kaydet', 'Save'), _submit2, 120, 34,
+            AB3(_dlg2, _tr2('button.save'), _submit2, 120, 34,
                 '#244363', '#315f8e', '#66c0f4', '#ffffff',
                 ('Segoe UI Semibold', 10)).pack(pady=6)
         _btnf = tk.Frame(_w, bg='#0d1724')
         _btnf.pack(fill=tk.X, padx=16, pady=(4, 8))
         AB2 = g.get('AnimatedButton', AnimatedButton)
-        AB2(_btnf, _t('Guncelle', 'Update'), _launch_updater_ui, 100, 30,
+        AB2(_btnf, _tr2('button.update_check'), _launch_updater_ui, 100, 30,
             '#244363', '#315f8e', '#66c0f4', '#ffffff',
             ('Segoe UI Semibold', 10)).pack(side=tk.LEFT, padx=2)
-        AB2(_btnf, _t('Nickname Degistir', 'Change Nickname'), _change_nickname, 140, 30,
+        AB2(_btnf, _tr2('button.nickname_change'), _change_nickname, 140, 30,
             '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=2)
-        AB2(_btnf, _t('Basarimlar', 'Achievements'), _self._open_game_picker, 120, 30,
+        AB2(_btnf, _tr2('button.achievements'), _self._open_game_picker, 120, 30,
             '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=2)
-        AB2(_btnf, '\u26a1 Speedtest', lambda: _open_speedtest_window(_self), 110, 30,
+        AB2(_btnf, f'\u26a1 {_tr2("button.speedtest")}', lambda: _open_speedtest_window(_self), 110, 30,
             '#3b2d5e', '#5a3d8e', '#b088ff', '#ffffff',
             ('Segoe UI Semibold', 9)).pack(side=tk.LEFT, padx=2)
     # ---- open_settings_window_from_pyw (the big one) ----
@@ -4587,10 +4600,6 @@ def install_ui_fixes(g):
 
         _p = tk.Frame(window, bg='#0d1724')
         _p.pack(fill=tk.BOTH, expand=True)
-
-        _lang = self.settings.get('language', 'tr')
-        _is_tr = _lang == 'tr'
-        _t = lambda tr, en: tr if _is_tr else en
 
         AB = g.get('AnimatedButton', AnimatedButton)
 
@@ -4690,7 +4699,7 @@ def install_ui_fixes(g):
             _hw2 = _get_hwid().lower()
             _cur = _MY_NICKNAME.get('nickname', '')
             _dlg2 = tk.Toplevel(window)
-            _dlg2.title(_t('Nickname Degistir', 'Change Nickname'))
+            _dlg2.title(_tr(self, 'button.nickname_change'))
             _dlg2.geometry('380x200')
             _dlg2.configure(bg='#0d1724')
             _dlg2.resizable(False, False)
@@ -4698,7 +4707,7 @@ def install_ui_fixes(g):
             _dlg2.grab_set()
             _dlg2.protocol('WM_DELETE_WINDOW', _dlg2.destroy)
             _dlg2.bind('<Escape>', lambda e: _dlg2.destroy())
-            tk.Label(_dlg2, text=_t('Yeni nickname:', 'New nickname:'),
+            tk.Label(_dlg2, text=f'{_tr(self, "button.nickname")}:',
                      fg='#f7fafc', bg='#0d1724', font=('Segoe UI', 14, 'bold')).pack(pady=(20, 4))
             tk.Label(_dlg2, text=f'HWID: {_hw2[:16]}...  ({_cur})',
                      fg='#686880', bg='#0d1724', font=('Segoe UI', 9)).pack(pady=(0, 8))
@@ -4712,7 +4721,7 @@ def install_ui_fixes(g):
             def _submit2():
                 _v = _entry2.get().strip()
                 if not _v:
-                    _err_lbl2.config(text=_t('Nickname bos gecilemez!', 'Nickname cannot be empty!'))
+                    _err_lbl2.config(text=f'{_tr(self, "button.nickname")} boş geçilemez!')
                     return
                 _err_lbl2.config(text='')
                 _new_val[0] = _v
@@ -4737,7 +4746,7 @@ def install_ui_fixes(g):
                 threading.Thread(target=_save_nick, args=(_new_val[0],), daemon=True).start()
             _entry2.bind('<Return>', lambda e: _submit2())
             AB3 = g.get('AnimatedButton', AnimatedButton)
-            AB3(_dlg2, _t('Kaydet', 'Save'), _submit2, 120, 34,
+            AB3(_dlg2, _tr(self, 'button.save'), _submit2, 120, 34,
                 '#244363', '#315f8e', '#66c0f4', '#ffffff',
                 ('Segoe UI Semibold', 10)).pack(pady=6)
         _pb_frame = tk.Frame(_t_inner, bg='#152238')
@@ -4788,11 +4797,11 @@ def install_ui_fixes(g):
                 _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'],
                                 startupinfo=_si, capture_output=True, creationflags=_subprocess.CREATE_NO_WINDOW)
                 _time.sleep(1)
-                # 3 Steam temizligi (depotcache/stplug-in/VDF) - used/ zipleri inject fonunda taranir
-                _log('[Reset] Depotcache/stplug-in/VDF siliniyor...')
-                _pb_set(40, 'Depotcache/stplug-in/VDF siliniyor...')
+                # 3 Steam temizligi (depotcache/VDF) - stplug-in korunur (oyunlar satin al dusmesin)
+                _log('[Reset] Depotcache/VDF siliniyor...')
+                _pb_set(40, 'Depotcache/VDF siliniyor...')
                 try:
-                    for _dir in ('config\\depotcache', 'config\\stplug-in'):
+                    for _dir in ('config\\depotcache',):
                         _p = _steam_root / _dir
                         if _p.exists():
                             try: _shutil.rmtree(str(_p))
@@ -5000,110 +5009,892 @@ def install_ui_fixes(g):
                 except Exception as _ex:
                     _log(f'[Reset] Inject hatasi: {_ex}')
             threading.Thread(target=_task, daemon=True).start()
-        def _reset_licenses_backup():
-            if not tk.messagebox.askyesno('Reset Licenses Backup',
-                'Bu islem:\n'
-                '1. Xinput1_4.dll -> DWM API.dll (indir/yeniden adlandir)\n'
-                '2. Steam kapa/ac\n'
-                '3. Cloudflare Warp indir/kur\n'
-                '4. VPN baglan\n'
-                '5. PowerShell: irm steam.run | iex\n'
-                '6. Bilgisayari yeniden baslat\n\n'
-                'Devam edilsin mi?',
+        def _fix_all():
+            if not tk.messagebox.askyesno('Fix All',
+                _tr(self, 'fix_all.confirm'),
                 parent=window): return
-            def _task_bak():
-                _log = lambda m: window.after(0, lambda: self.log(m))
-                _si_bak = _subprocess.STARTUPINFO()
-                _si_bak.dwFlags = _subprocess.STARTF_USESHOWWINDOW
-                _nw = _subprocess.CREATE_NO_WINDOW
-                _steam_root = Path('C:\\Program Files (x86)\\Steam')
-                _desktop_bak = Path(_os.environ['USERPROFILE']) / 'Desktop'
-                # 1 Xinput1_4.dll islemleri
-                _log('[RLB] Xinput1_4.dll kontrol ediliyor...')
-                _dll_path = _steam_root / 'Xinput1_4.dll'
-                if _dll_path.exists():
-                    try:
-                        _dll_path.rename(_steam_root / 'DWM API.dll')
-                        _log('[RLB] Xinput1_4.dll -> DWM API.dll olarak yeniden adlandirildi')
-                    except Exception as _ex:
-                        _log(f'[RLB] Yeniden adlandirma hatasi: {_ex}')
-                else:
-                    _log('[RLB] Xinput1_4.dll bulunamadi, indiriliyor...')
-                    try:
-                        _r = requests.get('https://www.dll-files.com/download/2f11c2213a4d60a347b53a50277cd131/xinput1_4.dll.html?c=L2tMN1FQZTBhU04wbjB1c05FYmpjZz09', timeout=30)
-                        if _r.status_code == 200:
-                            _dll_path.write_bytes(_r.content)
-                            _log(f'[RLB] Xinput1_4.dll indirildi ({len(_r.content)//1024}KB)')
-                            try: _dll_path.rename(_steam_root / 'DWM API.dll')
-                            except: pass
-                        else:
-                            _log(f'[RLB] Indirme hatasi HTTP {_r.status_code}')
-                    except Exception as _ex:
-                        _log(f'[RLB] Indirme hatasi: {_ex}')
-                # 2 Steam kapa/ac
-                _log('[RLB] Steam kapatiliyor...')
-                _subprocess.run(['taskkill', '/f', '/im', 'steam.exe'], startupinfo=_si_bak, capture_output=True, creationflags=_nw)
-                _time.sleep(3)
-                _subprocess.Popen(['C:\\Program Files (x86)\\Steam\\steam.exe'],
-                                  startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
-                _log('[RLB] Steam yeniden baslatildi')
-                # 3 Cloudflare Warp indir/kur
-                _log('[RLB] Cloudflare Warp indiriliyor...')
-                _cf_path = _desktop_bak / 'Cloudflare_WARP.exe'
+            _pb_frame.pack(fill=tk.X, pady=(0, 2))
+            _log = lambda m: window.after(0, lambda: self.log(m))
+            _si = _subprocess.STARTUPINFO(); _si.dwFlags = _subprocess.STARTF_USESHOWWINDOW
+            _steam_root = Path('C:\\Program Files (x86)\\Steam')
+            _st_dir = Path('C:\\Program Files\\SteamTools')
+            _st_exe = _st_dir / 'SteamTools.exe'
+            _uninst = _st_dir / 'uninstall.exe'
+            _desktop = Path(_os.environ['USERPROFILE']) / 'Desktop'
+            _hosts = Path(os.environ.get('SystemRoot', 'C:\\Windows')) / 'System32' / 'drivers' / 'etc' / 'hosts'
+            def _run_admin_ps(_script):
+                _ps_cmd = f'Start-Process -FilePath "powershell" -ArgumentList "-NoProfile -Command ""{_script}""" -Wait -Verb RunAs -WindowStyle Hidden'
+                _subprocess.run(['powershell', '-Command', _ps_cmd], startupinfo=_si, capture_output=True, timeout=600, creationflags=_subprocess.CREATE_NO_WINDOW)
+            def _run_admin_ps_monitor(_script, _log_path):
+                _ps_launcher = f'$p = Start-Process -FilePath "powershell" -ArgumentList "-NoProfile -Command ""{_script}"" *> ""{_log_path}""" -Verb RunAs -PassThru -WindowStyle Hidden; $p.Id | Out-File ""{_log_path}.pid"" -Encoding ascii; Wait-Process -Id $p.Id'
+                _subprocess.run(['powershell', '-Command', _ps_launcher], startupinfo=_si, capture_output=True, timeout=600, creationflags=_subprocess.CREATE_NO_WINDOW)
+                if _log_path.exists():
+                    try: return _log_path.read_text(encoding='utf-8', errors='replace')
+                    except: return ''
+                return ''
+            def _task():
+                _bk = {}
+                _ts = str(int(_time.time()))
+                _tmp = Path(os.environ.get('TEMP', 'C:\\Windows\\Temp'))
                 try:
-                    _r = requests.get('https://developers.cloudflare.com/cloudflare-one/team-and-resources/devices/cloudflare-one-client/download/', timeout=30, allow_redirects=True)
-                    if _r.status_code == 200:
-                        _cf_path.write_bytes(_r.content)
-                        _log(f'[RLB] Cloudflare Warp indirildi ({len(_r.content)//1024}KB)')
+                    _roam = Path(os.environ.get('APPDATA', str(Path.home() / 'AppData' / 'Roaming'))) / 'Steam' / 'config'
+                    _steam_cfg = _steam_root / 'config'
+                    for _name, _src in [('loginusers', _roam / 'loginusers.vdf'), ('config_vdf', _steam_cfg / 'config.vdf'), ('steamapps_config', _roam / 'config.vdf')]:
+                        if _src.exists():
+                            _dst = _tmp / f'fixall_bk_{_ts}_{_name}.vdf'
+                            _shutil.copy2(str(_src), str(_dst))
+                            _bk[_name] = str(_dst)
+                            _log(f'[FixAll] Yedek: {_name}.vdf')
+                    # Backup ssfn files (Steam Guard)
+                    for _sf in _steam_root.glob('ssfn*'):
+                        _sf_dst = _tmp / f'fixall_bk_{_ts}_{_sf.name}'
                         try:
-                            _subprocess.run([str(_cf_path), '/S'], startupinfo=_si_bak, capture_output=True, timeout=120, creationflags=_nw)
-                            _time.sleep(5)
-                        except Exception as _ex:
-                            _log(f'[RLB] Warp kurulum hatasi: {_ex}')
+                            _shutil.copy2(str(_sf), str(_sf_dst))
+                            _log(f'[FixAll] Yedek: {_sf.name}')
+                        except: pass
+                    _reg_bk = _tmp / f'fixall_bk_{_ts}_steam_reg.reg'
+                    _subprocess.run(['reg', 'export', 'HKCU\\Software\\Valve\\Steam', str(_reg_bk), '/y'], capture_output=True, timeout=10, creationflags=_subprocess.CREATE_NO_WINDOW)
+                    if _reg_bk.exists(): _bk['registry'] = str(_reg_bk)
+                    _cred_ps = _tmp / f'fixall_bk_{_ts}_cred.ps1'
+                    _subprocess.run(['powershell', '-Command',
+                        f'$c = cmdkey /list | Select-String "steam|valve" -SimpleMatch; '
+                        f'if ($c) {{ $c.Matches | % {{ $_.Value }} }} | Out-File "{_cred_ps}"'],
+                        capture_output=True, timeout=10, creationflags=_subprocess.CREATE_NO_WINDOW)
+                    if _cred_ps.exists(): _bk['cred_file'] = str(_cred_ps)
+                    if _bk: _log(f'[FixAll] {len(_bk)} yedek alindi, FixAll sonunda geri yuklenecek')
+                except Exception as _ex: _log(f'[FixAll] Yedekleme hatasi: {_ex}')
+
+                _log('[FixAll] ===== ADIM 1/20: Reset Licenses =====')
+                _pb_set(0, '[1/22] Reset Licenses...')
+                _st_watchdog_active[0] = False
+                for _exe in ('steam.exe', 'SteamTools.exe', 'steamservice.exe', 'steamwebhelper.exe'):
+                    _subprocess.run(['taskkill', '/f', '/im', _exe], startupinfo=_si, capture_output=True, creationflags=_subprocess.CREATE_NO_WINDOW)
+                _time.sleep(2)
+                _pb_set(4, 'Depotcache/VDF siliniyor...')
+                try:
+                    for _dir in ('config\\depotcache', 'config\\stUI', 'config\\htmlcache', 'config\\friends'):
+                        _p = _steam_root / _dir
+                        if _p.exists():
+                            try: _shutil.rmtree(str(_p))
+                            except: _subprocess.run(['cmd', '/c', f'rd /s /q "{_p}"'], startupinfo=_si, capture_output=True, timeout=10, creationflags=_subprocess.CREATE_NO_WINDOW)
+                    _ac = _steam_root / 'appcache'
+                    for _f in ('appinfo.vdf', 'packageinfo.vdf', 'packcode.vdf', 'steamapps.vdf', 'shortcuts.vdf', 'config.vdf', 'localconfig.vdf', 'steam.cache'):
+                        _fp = _ac / _f
+                        if _fp.exists(): _fp.unlink()
+                except Exception as _ex: _log(f'[FixAll] Adim1 hata: {_ex}')
+                _subprocess.run(['taskkill', '/f', '/im', 'SteamTools.exe'], startupinfo=_si, capture_output=True); _time.sleep(1)
+                if _uninst.exists():
+                    try: _subprocess.run(['powershell', '-Command', f'Start-Process -FilePath "{_uninst}" -ArgumentList "/S" -Wait -Verb RunAs'], startupinfo=_si, capture_output=True, timeout=60, creationflags=_subprocess.CREATE_NO_WINDOW); _time.sleep(2)
+                    except: pass
+                if _st_dir.is_dir():
+                    try: _subprocess.run(['powershell', '-Command', f'Start-Process -FilePath "cmd" -ArgumentList "/c rd /s /q ""{_st_dir}""" -Wait -Verb RunAs -WindowStyle Hidden'], startupinfo=_si, capture_output=True, timeout=30, creationflags=_subprocess.CREATE_NO_WINDOW); _time.sleep(2)
+                    except: pass
+                _setup_path = None
+                for _url in ('https://up.woforu.com/2025/st-setup-1.8.30.exe', 'https://steamtools.net/res/st-setup-1.8.30.exe'):
+                    try:
+                        _sp = _desktop / 'st-setup-1.8.30.exe'
+                        _r = requests.get(_url, timeout=60)
+                        if _r.status_code == 200: _sp.write_bytes(_r.content); _setup_path = _sp; break
+                    except: pass
+                if _setup_path and _setup_path.exists():
+                    _log('[FixAll] SteamTools kuruluyor...')
+                    _pb_set(5, 'SteamTools kuruluyor...')
+                    try: _subprocess.run(['powershell', '-Command', f'Start-Process -FilePath "{_setup_path}" -ArgumentList "/S" -Wait -Verb RunAs'], startupinfo=_si, capture_output=True, timeout=180, creationflags=_subprocess.CREATE_NO_WINDOW); _time.sleep(3); _setup_path.unlink(missing_ok=True)
+                    except: pass
+                if _st_exe.exists():
+                    _subprocess.Popen([str(_st_exe)], startupinfo=_si); _time.sleep(3)
+                _pb_set(5, 'Tum oyunlar inject ediliyor...')
+                _gd = Path(self.settings.get('save_path', '') or self.settings.get('new_games_folder', '') or '')
+                def _inj_all(_pdir):
+                    if not _pdir or str(_pdir) == '.' or not _pdir.exists():
+                        for _d in _desktop.iterdir():
+                            if _d.is_dir():
+                                _u = _d / 'used'
+                                if _u.is_dir():
+                                    for _f in _u.iterdir():
+                                        if _f.suffix.lower() == '.zip': _pdir = _f.parent.parent; break
+                        if not _pdir or str(_pdir) == '.' or not _pdir.exists(): return
+                    _zips = [f for f in _pdir.iterdir() if f.suffix.lower() == '.zip']
+                    _used = _pdir / 'used'
+                    if _used.is_dir(): _zips += [f for f in _used.iterdir() if f.suffix.lower() == '.zip']
+                    _zips.sort()
+                    _depot = Path('C:\\Program Files (x86)\\Steam\\config\\depotcache'); _stplug = Path('C:\\Program Files (x86)\\Steam\\config\\stplug-in'); _lua_dir = Path('C:\\Program Files (x86)\\Steam\\config\\lua')
+                    _depot.mkdir(parents=True, exist_ok=True); _stplug.mkdir(parents=True, exist_ok=True); _lua_dir.mkdir(parents=True, exist_ok=True)
+                    _used.mkdir(parents=True, exist_ok=True)
+                    _ini_path = _used / 'injected_games.ini'
+                    _cfg = _configparser.ConfigParser()
+                    if _ini_path.exists():
+                        try: _cfg.read(str(_ini_path), encoding='utf-8')
+                        except: pass
+                    if 'Games' not in _cfg: _cfg['Games'] = {}
+                    for _i, _zp in enumerate(_zips):
+                        try:
+                            with _zipfile.ZipFile(str(_zp), 'r') as _zf:
+                                for _info in _zf.infolist():
+                                    if _info.is_dir(): continue
+                                    _target = _depot if _info.filename.endswith('.manifest') else _stplug
+                                    _fname = Path(_info.filename).name
+                                    (_target / _fname).write_bytes(_zf.read(_info))
+                                    if _fname.lower().endswith('.lua'): (_lua_dir / _fname).write_bytes(_zf.read(_info))
+                            _gname = _zp.stem.replace('_', ' ').replace('-', ' ').strip()
+                            _gname = ' '.join(w.capitalize() for w in _gname.split())
+                            _cfg['Games'][_gname] = _time.strftime('%Y-%m-%d %H:%M')
+                            if _zp.parent != _used: _shutil.move(str(_zp), str(_used / _zp.name))
+                        except: pass
+                    with open(str(_ini_path), 'w', encoding='utf-8') as _f: _cfg.write(_f)
+                _inj_all(_gd)
+                _time.sleep(1)
+                _ost_stplug = _steam_root / 'config' / 'stplug-in'
+                _ost_lua = _steam_root / 'config' / 'lua'
+                if _ost_stplug.is_dir() and _ost_lua.is_dir():
+                    for _lf in _ost_stplug.iterdir():
+                        if _lf.suffix.lower() == '.lua':
+                            try: _shutil.copy2(str(_lf), str(_ost_lua / _lf.name))
+                            except: pass
+                # 2) Deep Network reset
+                _log('[FixAll] ===== ADIM 2/20: Network sifirlama =====')
+                _pb_set(10, '[2/22] Network sifirlaniyor...')
+                for _cmd in ('ipconfig /flushdns', 'ipconfig /registerdns',
+                             'netsh int ip reset C:\\Windows\\Temp\\ipreset.log',
+                             'netsh winsock reset', 'netsh advfirewall reset',
+                             'netsh branchcache reset', 'netsh dnscache clear',
+                             'netsh winhttp reset proxy',
+                             'netsh int tcp set global autotuninglevel=normal',
+                             'netsh int tcp set global chimney=disabled',
+                             'netsh int tcp set global rss=enabled'):
+                    try: _run_admin_ps(_cmd)
+                    except: pass
+                _time.sleep(2)
+                _log('[FixAll] Network reset tamam')
+                # 3) Appcache deep clean
+                _log('[FixAll] ===== ADIM 3/20: Appcache deep clean =====')
+                _pb_set(15, '[3/22] Appcache deep clean...')
+                try:
+                    _ac = _steam_root / 'appcache'
+                    for _item in list(_ac.iterdir()):
+                        if _item.name not in ('stats', 'httpcache'):
+                            try: _shutil.rmtree(str(_item)) if _item.is_dir() else _item.unlink()
+                            except: pass
+                except Exception as _ex: _log(f'[FixAll] Appcache hatasi: {_ex}')
+                # 4) Download/Depot cache
+                _log('[FixAll] ===== ADIM 4/20: Cache temizligi =====')
+                _pb_set(20, '[4/22] Cache temizleniyor...')
+                try:
+                    for _d in ('downloading', 'temp', 'depotcache', 'librarycache'):
+                        _p = _steam_root / 'steamapps' / _d
+                        if _p.is_dir():
+                            for _sub in _p.iterdir():
+                                try: _shutil.rmtree(str(_sub)) if _sub.is_dir() else _sub.unlink()
+                                except: pass
+                    for _d in ('htmlcache',):
+                        _p = _steam_root / 'config' / _d
+                        if _p.is_dir():
+                            try: _shutil.rmtree(str(_p))
+                            except: pass
+                    _logdir = Path(os.environ.get('LOCALAPPDATA', str(Path.home() / 'AppData' / 'Local'))) / 'Steam' / 'htmlcache'
+                    if _logdir.is_dir():
+                        try: _shutil.rmtree(str(_logdir))
+                        except: pass
+                except Exception as _ex: _log(f'[FixAll] Cache hatasi: {_ex}')
+                # 5) Manifest update
+                _log('[FixAll] ===== ADIM 5/20: Manifest guncelleme (Morrenus+GitHub) =====')
+                _pb_set(25, '[5/22] Manifest guncelleniyor...')
+                for _m_url in ('https://luatools.vercel.app/manifest-update.ps1',
+                               'https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua-Millennium-Fix/main/update_manifests.ps1',
+                               'https://luatools.vercel.app/manifests.ps1'):
+                    try: _run_admin_ps(f'$env:MANIFEST_MODE="github+morrenus"; try {{ $r = irm "{_m_url}" -ErrorAction Stop; iex $r }} catch {{ }}')
+                    except: pass
+                _time.sleep(1)
+                # 6) xinput proxy DLL fix
+                _log('[FixAll] ===== ADIM 6/20: xinput proxy DLL fix =====')
+                _pb_set(30, '[6/22] xinput proxy fix...')
+                try:
+                    _xi, _dwm = _steam_root / 'xinput1_4.dll', _steam_root / 'dwmapi.dll'
+                    _xi_bak = _steam_root / 'xinput1_4.dll.steamtools_bak'
+                    if _xi.exists():
+                        if not _xi_bak.exists(): _shutil.copy2(str(_xi), str(_xi_bak))
+                        _shutil.move(str(_xi), str(_dwm))
+                        _log('[FixAll] xinput1_4.dll -> dwmapi.dll')
                     else:
-                        _log(f'[RLB] Warp indirme hatasi HTTP {_r.status_code}')
-                except Exception as _ex:
-                    _log(f'[RLB] Warp indirme hatasi: {_ex}')
-                # 4 PowerShell irm steam.run | iex
-                _log('[RLB] PowerShell ile irm steam.run | iex calistiriliyor...')
-                _log('[RLB] Bu islem uzun surebilir...')
+                        _log('[FixAll] xinput1_4.dll yok, atlandi')
+                except Exception as _ex: _log(f'[FixAll] xinput hatasi: {_ex}')
+                # 7) SteamService repair
+                _log('[FixAll] ===== ADIM 7/20: SteamService repair =====')
+                _pb_set(35, '[7/22] SteamService onariliyor...')
+                try: _run_admin_ps('sc stop SteamService 2>$null; sc delete SteamService 2>$null; Start-Sleep 1')
+                except: pass
                 try:
-                    _ps_code = 'irm steam.run | iex'
-                    _ps_cmd = f'Start-Process -FilePath "powershell" -ArgumentList "-Command {_ps_code}" -Wait -Verb RunAs -WindowStyle Hidden'
-                    _subprocess.run(['powershell', '-Command', _ps_cmd], startupinfo=_si_bak, capture_output=True, timeout=600, creationflags=_nw)
-                    _log('[RLB] PowerShell komutu tamamlandi')
-                except Exception as _ex:
-                    _log(f'[RLB] PowerShell hatasi: {_ex}')
-                # 5 Uyari + restart
-                _log('[RLB] Islemler tamamlandi! Bilgisayar yeniden baslatiliyor...')
-                window.after(0, lambda: tk.messagebox.showwarning('Yeniden Baslatma',
-                    'Islemler basariyla tamamlandi.\n\nBilgisayar 10 saniye icinde yeniden baslatilacak.',
-                    parent=window))
-                _time.sleep(10)
+                    _st_svc = _steam_root / 'bin' / 'SteamService.exe'
+                    if _st_svc.exists():
+                        _run_admin_ps(f'Start-Process -FilePath "{_st_svc}" -ArgumentList "/repair" -Wait -Verb RunAs -WindowStyle Hidden')
+                        _time.sleep(2)
+                    _run_admin_ps('sc start SteamService 2>$null')
+                except Exception as _ex: _log(f'[FixAll] SteamService hatasi: {_ex}')
+                # 8) SSL certificate update
+                _log('[FixAll] ===== ADIM 8/20: SSL sertifika =====')
+                _pb_set(40, '[8/22] SSL sertifikalari...')
                 try:
-                    _subprocess.run(['shutdown', '/r', '/t', '0', '/f'], startupinfo=_si_bak, capture_output=True, creationflags=_nw)
-                except:
-                    pass
-            threading.Thread(target=_task_bak, daemon=True).start()
+                    _run_admin_ps('certutil -generateSSTFromWU C:\\Windows\\Temp\\roots_sst.sst 2>$null')
+                    _run_admin_ps('certutil -addstore Root C:\\Windows\\Temp\\roots_sst.sst 2>$null')
+                    _run_admin_ps('certutil -addstore AuthRoot C:\\Windows\\Temp\\roots_sst.sst 2>$null')
+                    _run_admin_ps('certutil -setreg chain\\minRSAPubKeyBitLength 1024 2>$null')
+                except Exception as _ex: _log(f'[FixAll] SSL hatasi: {_ex}')
+                _time.sleep(1)
+                # 9) Hosts scan
+                _log('[FixAll] ===== ADIM 9/20: Hosts taramasi =====')
+                _pb_set(45, '[9/22] Hosts dosyasi...')
+                try:
+                    _blocked = ['steam', 'steamtools', 'valve', 'steampowered', 'steamcdn', 'steamcommunity', 'steamstore', 'steamuserstyles', 'steamapihack']
+                    if _hosts.exists():
+                        _bak = _hosts.with_suffix('.hosts.bak_fixall')
+                        if not _bak.exists(): _shutil.copy2(str(_hosts), str(_bak))
+                        _lines = _hosts.read_text(encoding='utf-8', errors='replace').splitlines()
+                        _new_l, _found = [], 0
+                        for _line in _lines:
+                            _lower = _line.lower().strip()
+                            if any(_d in _lower for _d in _blocked) and not _lower.startswith('#'):
+                                _log(f'[FixAll] Engellendi: {_line.strip()}')
+                                _new_l.append(f'# FIXALL-REMOVED: {_line}'); _found += 1
+                            else:
+                                _new_l.append(_line)
+                        if _found > 0:
+                            _hosts.write_text('\n'.join(_new_l), encoding='utf-8')
+                            _log(f'[FixAll] {_found} engel kaldirildi'); _run_admin_ps('ipconfig /flushdns')
+                        else:
+                            _log('[FixAll] Hosts temiz')
+                except Exception as _ex: _log(f'[FixAll] Hosts hatasi: {_ex}')
+                # 10) PURCHASE FIX: WebHelper + browser cache
+                _log('[FixAll] ===== ADIM 10/20: WebHelper + Browser cache (PURCHASE FIX) =====')
+                _pb_set(50, '[10/22] WebHelper kill + cache...')
+                _subprocess.run(['taskkill', '/f', '/im', 'steamwebhelper.exe'], startupinfo=_si, capture_output=True, creationflags=_subprocess.CREATE_NO_WINDOW)
+                _time.sleep(1)
+                _subprocess.run(['taskkill', '/f', '/im', 'steam.exe'], startupinfo=_si, capture_output=True, creationflags=_subprocess.CREATE_NO_WINDOW)
+                _time.sleep(1)
+                try:
+                    _steam_local = Path(os.environ.get('LOCALAPPDATA', str(Path.home() / 'AppData' / 'Local'))) / 'Steam'
+                    for _sub in ('htmlcache', 'config'):
+                        _p = _steam_local / _sub
+                        if _p.is_dir():
+                            try: _shutil.rmtree(str(_p))
+                            except: pass
+                    _steam_roaming = Path(os.environ.get('APPDATA', str(Path.home() / 'AppData' / 'Roaming'))) / 'Steam'
+                    for _sub in ('config',):
+                        _p = _steam_roaming / _sub
+                        if _p.is_dir():
+                            for _item in _p.iterdir():
+                                if _item.suffix.lower() in ('.vdf', '.bin', '.dat'):
+                                    try: _item.unlink()
+                                    except: pass
+                    _log('[FixAll] Steam browser cache temizlendi')
+                except Exception as _ex: _log(f'[FixAll] Browser cache hatasi: {_ex}')
+                # 11) PURCHASE FIX: Windows Proxy + Time sync
+                _log('[FixAll] ===== ADIM 11/20: Proxy + Time sync (PURCHASE FIX) =====')
+                _pb_set(55, '[11/22] Proxy + Time sync...')
+                try: _run_admin_ps('netsh winhttp reset proxy')
+                except: pass
+                try:
+                    _run_admin_ps('reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" /v ProxyEnable /f 2>$null')
+                    _run_admin_ps('reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" /v ProxyServer /f 2>$null')
+                except: pass
+                try: _run_admin_ps('w32tm /resync /nowait 2>$null')
+                except: pass
+                try: _run_admin_ps('w32tm /config /manualpeerlist:"time.windows.com,pool.ntp.org" /syncfromflags:manual /update 2>$null; w32tm /resync /nowait 2>$null')
+                except: pass
+                _log('[FixAll] Proxy sifirlandi, saat senkronize edildi')
+                # 12) PURCHASE FIX: Credential Manager + Registry
+                _log('[FixAll] ===== ADIM 12/20: Credential Manager + Registry (PURCHASE FIX) =====')
+                _pb_set(60, '[12/22] Credentials + Registry...')
+                try:
+                    _run_admin_ps('$creds = cmdkey /list | Select-String "steam" -SimpleMatch; '
+                                  'if ($creds) { $creds -match "Target: (.*)" | % { cmdkey /delete:$($_.Groups[1].Value) 2>$null } }')
+                except: pass
+                try:
+                    _run_admin_ps('$p = "HKCU:\\Software\\Valve\\Steam\\Users"; '
+                                  'if (Test-Path $p) { Remove-Item -Path "$p\\*\\Personalization" -Recurse -Force -ErrorAction SilentlyContinue }')
+                except: pass
+                try:
+                    _run_admin_ps('reg delete "HKCU\\Software\\Valve\\Steam" /v "LastTicket" /f 2>$null; '
+                                  'reg delete "HKCU\\Software\\Valve\\Steam" /v "AccountName" /f 2>$null; '
+                                  'reg delete "HKCU\\Software\\Valve\\Steam" /v "AutoLoginUser" /f 2>$null')
+                except: pass
+                try:
+                    _run_admin_ps('reg delete "HKLM\\SOFTWARE\\Wow6432Node\\Valve\\Steam" /v "Restart" /f 2>$null; '
+                                  'reg delete "HKLM\\SOFTWARE\\Valve\\Steam" /v "Restart" /f 2>$null')
+                except: pass
+                _log('[FixAll] Steam credential/registry girdileri temizlendi')
+                # 13) PURCHASE FIX: Steam --repair + --validate
+                _log('[FixAll] ===== ADIM 13/20: Steam --repair/--validate (PURCHASE FIX) =====')
+                _pb_set(63, '[13/22] Steam --repair...')
+                try:
+                    _run_admin_ps(f'Start-Process -FilePath "{_steam_root}/steam.exe" -ArgumentList "--repair" -Wait -WindowStyle Hidden')
+                    _time.sleep(3)
+                except Exception as _ex: _log(f'[FixAll] --repair hatasi: {_ex}')
+                try:
+                    _run_admin_ps(f'Start-Process -FilePath "{_steam_root}/steam.exe" -ArgumentList "--validate" -Wait -WindowStyle Hidden')
+                    _time.sleep(3)
+                except Exception as _ex: _log(f'[FixAll] --validate hatasi: {_ex}')
+                # 14) PURCHASE FIX: IPv6
+                _log('[FixAll] ===== ADIM 14/20: IPv6 + adapter tweaks (PURCHASE FIX) =====')
+                _pb_set(66, '[14/22] IPv6 + adapter...')
+                try:
+                    _run_admin_ps('Disable-NetAdapterBinding -Name "*" -ComponentID ms_tcpip6 -ErrorAction SilentlyContinue')
+                except: pass
+                try:
+                    _run_admin_ps('Set-NetIPv6Protocol -RandomizeIdentifiers Disabled -ErrorAction SilentlyContinue')
+                except: pass
+                try:
+                    _run_admin_ps('Set-NetTCPSetting -SettingName InternetCustom -EcnCapability Disabled -ErrorAction SilentlyContinue')
+                except: pass
+                _log('[FixAll] IPv6 devre disi, TCP ayarlari yapildi')
+                # 15) DISM + SFC with live progress tracking
+                _log('[FixAll] ===== ADIM 15/20: DISM + SFC (canli takip) =====')
+                _pb_set(68, '[15/22] DISM calisiyor...')
+                _ts = str(int(_time.time()))
+                _dism_log = Path(os.environ.get('TEMP', 'C:\\Windows\\Temp')) / f'fixall_dism_{_ts}.log'
+                _dism_pid = Path(os.environ.get('TEMP', 'C:\\Windows\\Temp')) / f'fixall_dism_{_ts}.pid'
+                _dism_ps = Path(os.environ.get('TEMP', 'C:\\Windows\\Temp')) / f'fixall_dism_{_ts}.ps1'
+                try:
+                    _dism_ps.write_text(f'''$logfile = "{_dism_log}"
+$pidfile = "{_dism_pid}"
+$PID | Out-File $pidfile -Force
+Write-Output "=== DISM basladi: $(Get-Date) ===" >> $logfile
+try {{
+    $result = dism /online /cleanup-image /restorehealth 2>&1
+    $result | Out-File $logfile -Append
+    Write-Output "=== DISM bitti: $(Get-Date) ===" >> $logfile
+}} catch {{
+    Write-Output "=== DISM HATASI: $_ ===" >> $logfile
+}}
+Start-Sleep 2
+Remove-Item $pidfile -Force -ErrorAction SilentlyContinue
+''', encoding='utf-8')
+                    _run_admin_ps(f'Start-Process -FilePath "powershell" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File \\"{_dism_ps}\\" -WindowStyle Hidden" -Verb RunAs')
+                    _log('[FixAll] DISM baslatildi, canli takip basliyor...')
+                    _dism_done = False; _dism_wait = 0; _dism_max_wait = 7200
+                    _last_dism_size = 0
+                    while not _dism_done and _dism_wait < _dism_max_wait:
+                        _time.sleep(5); _dism_wait += 5
+                        try:
+                            if _dism_pid.exists():
+                                _pid = int(_dism_pid.read_text().strip())
+                                _chk = _subprocess.run(['tasklist', '/fi', f'PID eq {_pid}'], capture_output=True, text=True, timeout=5, startupinfo=_si, creationflags=_subprocess.CREATE_NO_WINDOW)
+                                if str(_pid) not in _chk.stdout:
+                                    _time.sleep(3)
+                                    _dism_done = True; _log('[FixAll] DISM tamamlandi')
+                                    break
+                            else:
+                                if _dism_wait > 60:
+                                    _log('[FixAll] DISM PID dosyasi bulunamadi, process check...')
+                                    _chk = _subprocess.run('tasklist /fi "imagename eq DISM.exe"', capture_output=True, text=True, timeout=5, shell=True, startupinfo=_si, creationflags=_subprocess.CREATE_NO_WINDOW)
+                                    if 'DISM.exe' not in _chk.stdout:
+                                        _dism_done = True; _log('[FixAll] DISM tamamlandi (PID check)')
+                                        break
+                        except: pass
+                        try:
+                            if _dism_log.exists():
+                                _size = _dism_log.stat().st_size
+                                if _size > _last_dism_size:
+                                    _last_dism_size = _size
+                                    with open(_dism_log, 'r', encoding='utf-8', errors='replace') as _df:
+                                        _df.seek(max(0, _size - 4096))
+                                        for _line in _df.read().splitlines():
+                                            _l = _line.lower()
+                                            if any(w in _l for w in ['progress:', '% ', '%%', 'completed', 'success', 'error', 'hata', 'bitti', 'hatasi']):
+                                                _log(f'[DISM] {_line.strip()[:120]}')
+                                                if 'progress:' in _l or '% ' in _l:
+                                                    _m = __import__('re').search(r'(\d+\.?\d*)\s*%', _l)
+                                                    if _m:
+                                                        _pct = int(float(_m.group(1)))
+                                                        _pb = 68 + (_pct * 5 // 100)
+                                                        if 68 <= _pb <= 72: _pb_set(_pb, f'[15/22] DISM %{_pct}...')
+                        except: pass
+                    if not _dism_done: _log(f'[FixAll] DISM timeout ({_dism_max_wait//60}dk), devam ediliyor...')
+                except Exception as _ex: _log(f'[FixAll] DISM baslatma hatasi: {_ex}')
+                _pb_set(73, '[15/22] SFC calisiyor...')
+                _sfc_log = Path(os.environ.get('TEMP', 'C:\\Windows\\Temp')) / f'fixall_sfc_{_ts}.log'
+                _sfc_pid = Path(os.environ.get('TEMP', 'C:\\Windows\\Temp')) / f'fixall_sfc_{_ts}.pid'
+                _sfc_ps = Path(os.environ.get('TEMP', 'C:\\Windows\\Temp')) / f'fixall_sfc_{_ts}.ps1'
+                try:
+                    _sfc_ps.write_text(f'''$logfile = "{_sfc_log}"
+$pidfile = "{_sfc_pid}"
+$PID | Out-File $pidfile -Force
+Write-Output "=== SFC basladi: $(Get-Date) ===" >> $logfile
+try {{
+    $result = sfc /scannow 2>&1
+    $result | Out-File $logfile -Append
+    Write-Output "=== SFC bitti: $(Get-Date) ===" >> $logfile
+}} catch {{
+    Write-Output "=== SFC HATASI: $_ ===" >> $logfile
+}}
+Start-Sleep 2
+Remove-Item $pidfile -Force -ErrorAction SilentlyContinue
+''', encoding='utf-8')
+                    _run_admin_ps(f'Start-Process -FilePath "powershell" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File \\"{_sfc_ps}\\" -WindowStyle Hidden" -Verb RunAs')
+                    _log('[FixAll] SFC baslatildi, canli takip basliyor...')
+                    _sfc_done = False; _sfc_wait = 0; _sfc_max_wait = 3600
+                    _last_sfc_size = 0
+                    while not _sfc_done and _sfc_wait < _sfc_max_wait:
+                        _time.sleep(5); _sfc_wait += 5
+                        try:
+                            if _sfc_pid.exists():
+                                _pid = int(_sfc_pid.read_text().strip())
+                                _chk = _subprocess.run(['tasklist', '/fi', f'PID eq {_pid}'], capture_output=True, text=True, timeout=5, startupinfo=_si, creationflags=_subprocess.CREATE_NO_WINDOW)
+                                if str(_pid) not in _chk.stdout:
+                                    _time.sleep(3)
+                                    _sfc_done = True; _log('[FixAll] SFC tamamlandi')
+                                    break
+                            else:
+                                if _sfc_wait > 60:
+                                    _chk = _subprocess.run('tasklist /fi "imagename eq SFC.exe"', capture_output=True, text=True, timeout=5, shell=True, startupinfo=_si, creationflags=_subprocess.CREATE_NO_WINDOW)
+                                    if 'SFC.exe' not in _chk.stdout:
+                                        _sfc_done = True; _log('[FixAll] SFC tamamlandi (PID check)')
+                                        break
+                        except: pass
+                        try:
+                            if _sfc_log.exists():
+                                _size = _sfc_log.stat().st_size
+                                if _size > _last_sfc_size:
+                                    _last_sfc_size = _size
+                                    with open(_sfc_log, 'r', encoding='utf-8', errors='replace') as _sf:
+                                        _sf.seek(max(0, _size - 2048))
+                                        for _line in _sf.read().splitlines():
+                                            _l = _line.strip()
+                                            if _l: _log(f'[SFC] {_l[:120]}')
+                        except: pass
+                    if not _sfc_done: _log(f'[FixAll] SFC timeout ({_sfc_max_wait//60}dk), devam ediliyor...')
+                except Exception as _ex: _log(f'[FixAll] SFC baslatma hatasi: {_ex}')
+                # 16) Steam config repair (flushconfig)
+                _log('[FixAll] ===== ADIM 16/20: Steam config repair =====')
+                _pb_set(80, '[16/22] Steam config onariliyor...')
+                try:
+                    _run_admin_ps(f'Start-Process -FilePath "{_steam_root}/steam.exe" -ArgumentList "--config" -Wait -WindowStyle Hidden')
+                    _time.sleep(2)
+                except: pass
+                try:
+                    _cfgs = _steam_root / 'config'
+                    for _f in ('loginusers.vdf', 'SteamAppData.vdf', 'config.vdf'):
+                        _fp = _cfgs / _f
+                        if _fp.exists():
+                            try: _fp.unlink()
+                            except: pass
+                except: pass
+                # 17) Chkdsk scan
+                _log('[FixAll] ===== ADIM 17/20: Chkdsk disk taramasi =====')
+                _pb_set(85, '[17/20] Chkdsk...')
+                try:
+                    _chk_log = Path(os.environ.get('TEMP', 'C:\\Windows\\Temp')) / f'fixall_chkdsk_{_ts}.log'
+                    _run_admin_ps_monitor(f'chkdsk C: /scan', str(_chk_log))
+                    if _chk_log.exists():
+                        _chk_out = _chk_log.read_text(encoding='utf-8', errors='replace')
+                        for _line in _chk_out.splitlines():
+                            _l = _line.strip()
+                            if _l and ('stage' in _l.lower() or 'percent' in _l.lower() or 'hata' in _l.lower() or 'error' in _l.lower() or 'bad' in _l.lower()):
+                                _log(f'[Chkdsk] {_l[:120]}')
+                except Exception as _ex: _log(f'[FixAll] Chkdsk hatasi: {_ex}')
+                # 18) Firewall rules
+                _log('[FixAll] ===== ADIM 18/20: Firewall kurallari =====')
+                _pb_set(88, '[18/20] Firewall kurallari...')
+                try:
+                    _se = str(_steam_root / 'steam.exe')
+                    _ste = str(_st_exe)
+                    _run_admin_ps(f'netsh advfirewall firewall add rule name="Steam-Allow-In" dir=in program="{_se}" action=allow profile=any 2>$null')
+                    _run_admin_ps(f'netsh advfirewall firewall add rule name="Steam-Allow-Out" dir=out program="{_se}" action=allow profile=any 2>$null')
+                    if _st_exe.exists():
+                        _run_admin_ps(f'netsh advfirewall firewall add rule name="SteamTools-Allow-In" dir=in program="{_ste}" action=allow profile=any 2>$null')
+                        _run_admin_ps(f'netsh advfirewall firewall add rule name="SteamTools-Allow-Out" dir=out program="{_ste}" action=allow profile=any 2>$null')
+                except Exception as _ex: _log(f'[FixAll] Firewall hatasi: {_ex}')
+                # Restore login tokens (to BOTH Roaming and Steam root)
+                _log('[FixAll] Kullanici tokenlari geri yukleniyor...')
+                try:
+                    _roam_cfg = Path(os.environ.get('APPDATA', str(Path.home() / 'AppData' / 'Roaming'))) / 'Steam' / 'config'
+                    _steam_cfg = _steam_root / 'config'
+                    if 'loginusers' in _bk:
+                        _src = Path(_bk['loginusers'])
+                        if _src.exists():
+                            _roam_cfg.mkdir(parents=True, exist_ok=True)
+                            _shutil.copy2(str(_src), str(_roam_cfg / 'loginusers.vdf'))
+                            _steam_cfg.mkdir(parents=True, exist_ok=True)
+                            try: _shutil.copy2(str(_src), str(_steam_cfg / 'loginusers.vdf'))
+                            except: pass
+                            _log('[FixAll] loginusers.vdf geri yuklendi (Roaming + Steam root)')
+                    # Restore config.vdf to Steam root (--flushconfig siler)
+                    if 'config_vdf' in _bk:
+                        _src = Path(_bk['config_vdf'])
+                        if _src.exists():
+                            _steam_cfg.mkdir(parents=True, exist_ok=True)
+                            _shutil.copy2(str(_src), str(_steam_cfg / 'config.vdf'))
+                            _log('[FixAll] config.vdf (Steam) geri yuklendi')
+                    if 'steamapps_config' in _bk:
+                        _src = Path(_bk['steamapps_config'])
+                        if _src.exists():
+                            _roam_cfg.mkdir(parents=True, exist_ok=True)
+                            _shutil.copy2(str(_src), str(_roam_cfg / 'config.vdf'))
+                            _log('[FixAll] config.vdf (Roaming) geri yuklendi')
+                    if 'registry' in _bk:
+                        _reg_src = Path(_bk['registry'])
+                        if _reg_src.exists():
+                            _subprocess.run(['reg', 'import', str(_reg_src)], capture_output=True, timeout=10, creationflags=_subprocess.CREATE_NO_WINDOW)
+                            _log('[FixAll] Registry anahtarlari geri yuklendi')
+                    # Restore ssfn files (Steam Guard) if backed up
+                    for _sf in _steam_root.glob('ssfn*'):
+                        _sf_bak = _tmp / f'fixall_bk_{_ts}_{_sf.name}'
+                        if _sf_bak.exists():
+                            try: _shutil.copy2(str(_sf_bak), str(_sf))
+                            except: pass
+                    _log('[FixAll] Token geri yukleme tamam')
+                except Exception as _ex: _log(f'[FixAll] Geri yukleme hatasi: {_ex}')
+                # 19) SteamTools Deep Fix (OST install + manifest.lua + proxy + WinHTTP hook)
+                _log('[FixAll] ===== ADIM 19/20: SteamTools Deep Fix =====')
+                _pb_set(88, '[19/20] Steam kapatiliyor...')
+                _subprocess.run(['taskkill','/f','/im','steam.exe'],
+                    startupinfo=_si, capture_output=True, timeout=15)
+                _time.sleep(2)
+                try:
+                    _lua_cfg = _steam_root / 'config' / 'lua'
+                    _lua_cfg.mkdir(parents=True, exist_ok=True)
+                    _stplug_dir = _steam_root / 'config' / 'stplug-in'
+                    _stplug_dir.mkdir(parents=True, exist_ok=True)
+
+                    # ---- PART 1: Install OpenSteamTool (FIXES "No Internet Connection") ----
+                    _pb_set(89, '[19/20] OpenSteamTool kuruluyor...')
+                    _log('[FixAll] OpenSteamTool indirilip kuruluyor...')
+                    _ost_dir = Path(_os.environ['APPDATA']) / 'SteamToolsLua' / 'OpenSteamTool'
+                    _ost_dir.mkdir(parents=True, exist_ok=True)
+                    _ost_installed = False
+                    # Check if OST DLLs already exist
+                    _ost_dlls_needed = ['dwmapi.dll', 'xinput1_4.dll', 'OpenSteamTool.dll']
+                    if all((_steam_root / d).exists() for d in _ost_dlls_needed):
+                        _log('[FixAll] OST zaten kurulu, atlaniyor')
+                        _ost_installed = True
+                    else:
+                        _zip_path = _ost_dir / 'OpenSteamTool-Release.zip'
+                        for _try_url in (
+                            'https://github.com/OpenSteam001/OpenSteamTool/releases/download/1.4.8/OpenSteamTool-1.4.8-Release.zip',
+                            'https://github.com/OpenSteam001/OpenSteamTool/releases/latest/download/OpenSteamTool-Release.zip',
+                        ):
+                            try:
+                                _r = requests.get(_try_url, timeout=60)
+                                if _r.status_code == 200:
+                                    _zip_path.write_bytes(_r.content)
+                                    _log(f'[FixAll] OST indirildi ({len(_r.content)//1024}KB)')
+                                    break
+                            except: continue
+                        if _zip_path.exists():
+                            try:
+                                import zipfile as _zf
+                                with _zf.ZipFile(_zip_path) as _z:
+                                    for _m in _z.namelist():
+                                        _name = Path(_m).name
+                                        if any(d in _m for d in _ost_dlls_needed):
+                                            (_ost_dir / _name).write_bytes(_z.read(_m))
+                                            _log(f'[FixAll] OST ayiklandi: {_name}')
+                                _zip_path.unlink(missing_ok=True)
+                                # Backup original DLLs and deploy OST DLLs
+                                for _dll in _ost_dlls_needed:
+                                    _src, _dst = _ost_dir / _dll, _steam_root / _dll
+                                    if _src.exists():
+                                        if _dst.exists():
+                                            _bak = _ost_dir / f'{_dll}.backup'
+                                            if not _bak.exists():
+                                                _shutil.copy2(str(_dst), str(_bak))
+                                                _log(f'[FixAll] Yedeklendi: {_dll}')
+                                        _shutil.copy2(str(_src), str(_dst))
+                                        _log(f'[FixAll] OST DLL kopyalandi: {_dll}')
+                                _ost_installed = True
+                                _log('[FixAll] OpenSteamTool basariyla kuruldu')
+                            except Exception as _zex:
+                                _log(f'[FixAll] OST zip hatasi: {_zex}')
+                        else:
+                            _log('[FixAll] OST indirilemedi, proxy yontemine geciliyor...')
+
+                    # ---- PART 2: Write multi-endpoint manifest.lua (for OST) ----
+                    _pb_set(91, '[19/20] manifest.lua yaziliyor...')
+                    _mf = _lua_cfg / 'manifest.lua'
+                    _mf.write_text('''-- SteamTools manifest fix - multi-endpoint fallback
+-- OST reads this from config/lua/manifest.lua
+-- API: http_get(url [, headers]) -> body, status_code
+
+local endpoints = {
+    { url = "https://20770407.xyz/manifest/%llu",          parse = "plain" },
+    { url = "https://manifest.opensteamtool.com/%llu",     parse = "plain" },
+    { url = "https://manifest.steam.run/api/manifest/%llu", parse = "json" },
+    { url = "http://gmrc.wudrm.com/manifest/%llu",          parse = "plain" },
+}
+
+function fetch_manifest_code(gid)
+    if not gid then return nil end
+    for _, ep in ipairs(endpoints) do
+        local url = string.format(ep.url, gid)
+        local ok, body, status = pcall(http_get, url, { timeout = 10000 })
+        if ok and status == 200 and body and body ~= "" then
+            if ep.parse == "plain" then
+                local code = tonumber(body:match("^%s*(.-)%s*$"))
+                if code and code > 0 then return code end
+            elseif ep.parse == "json" then
+                local ok2, data = pcall(http_from_json, body)
+                if ok2 and data and data.content then
+                    local code = tonumber(data.content)
+                    if code and code > 0 then return code end
+                end
+            end
+        end
+    end
+    return nil
+end
+
+function fetch_manifest_code_ex(app_id, depot_id, gid)
+    local code = fetch_manifest_code(gid)
+    if code then return code end
+    if app_id and app_id > 0 then
+        local ok, body, status = pcall(http_get,
+            "https://steamtools.games/api/manifest/" .. tostring(app_id),
+            { timeout = 15000 })
+        if ok and status == 200 and body and body ~= "" then
+            local c = tonumber(body:match("^%s*(.-)%s*$"))
+            if c and c > 0 then return c end
+        end
+    end
+    return nil
+end
+''', encoding='utf-8')
+                    _log('[FixAll] manifest.lua yazildi')
+                    _shutil.copy2(str(_mf), str(_stplug_dir / 'manifest.lua'))
+                    _log('[FixAll] manifest.lua -> stplug-in/ kopyalandi')
+
+                    _me = _lua_cfg / 'manifest_endpoint.lua'
+                    _me.write_text('''-- Multi-endpoint fallback chain
+local _http = http or require("http")
+
+local _endpoints = {
+    "https://20770407.xyz/manifest/%s",
+    "https://manifest.opensteamtool.com/%s",
+    "https://manifest.steam.run/api/manifest/%s",
+    "http://gmrc.wudrm.com/manifest/%s",
+}
+
+function resolve_manifest(gid, app_id)
+    for _, template in ipairs(_endpoints) do
+        local url = string.format(template, tostring(gid))
+        local ok, resp = pcall(_http.get, url, { timeout = 8 })
+        if ok and resp and resp.status == 200 and resp.body then
+            local body = resp.body:match("^%s*(.-)%s*$")
+            if body and body ~= "" then return body end
+        end
+    end
+    if app_id and app_id > 0 then
+        local ok, resp = pcall(_http.get,
+            "https://steamtools.games/api/manifest/" .. tostring(app_id),
+            { timeout = 15 })
+        if ok and resp and resp.status == 200 and resp.body then
+            local body = resp.body:match("^%s*(.-)%s*$")
+            if body and body ~= "" then return body end
+        end
+    end
+    return nil
+end
+manifest_endpoint = resolve_manifest
+''', encoding='utf-8')
+                    _log('[FixAll] manifest_endpoint.lua yazildi')
+
+                    # ---- PART 3: Create persistent proxy service + hosts redirect ----
+                    _pb_set(93, '[19/20] Proxy + hosts...')
+                    _proxy_dir = Path(os.environ.get('TEMP', _temp)) / 'stfix_proxy'
+                    _proxy_dir.mkdir(parents=True, exist_ok=True)
+                    _proxy_script = _proxy_dir / 'manifest_proxy.py'
+                    _proxy_script.write_text('''# SteamTools Manifest Proxy + OST fallback server
+# Auto-started, proxies GID resolution to online backends
+import http.server, urllib.request, json, os, sys, ssl, subprocess, threading, time
+
+BACKENDS = [
+    "https://20770407.xyz/manifest/{gid}",
+    "https://manifest.opensteamtool.com/{gid}",
+    "https://manifest.steam.run/api/manifest/{gid}",
+    "http://gmrc.wudrm.com/manifest/{gid}",
+]
+class PH(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        p = self.path.strip("/")
+        if p.isdigit() or (p.startswith("manifest/") and p.split("/")[-1].isdigit()):
+            gid = p.split("/")[-1] if "/" in p else p
+            for t in BACKENDS:
+                try:
+                    r = urllib.request.Request(t.replace("{gid}", gid),
+                        headers={"User-Agent": "SteamToolsLua/1.0"})
+                    resp = urllib.request.urlopen(r, timeout=10)
+                    if resp.status == 200:
+                        b = resp.read().decode()
+                        c = ""
+                        for l in b.splitlines():
+                            l = l.strip()
+                            if l and l.isdigit(): c = l; break
+                        if not c:
+                            try: import re; m = re.search('"content"\\\\s*:\\\\s*"(\\\\d+)"', b)
+                            if m: c = m.group(1)
+                            except: pass
+                        if c:
+                            self.send_response(200)
+                            self.send_header("Content-Type", "text/plain")
+                            self.end_headers()
+                            self.wfile.write(c.encode())
+                            return
+                except: continue
+        self.send_response(404); self.end_headers(); self.wfile.write(b"0")
+    def log_message(self, f, *a): pass
+
+if __name__ == "__main__":
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8443
+    http.server.HTTPServer(("127.0.0.1", port), PH).serve_forever()
+''', encoding='utf-8')
+                    _log('[FixAll] Proxy script yazildi')
+
+                    # Kill old proxy + start new one
+                    _proxy_pid = _proxy_dir / 'proxy.pid'
+                    if _proxy_pid.exists():
+                        try:
+                            _old_pid = int(_proxy_pid.read_text().strip())
+                            _subprocess.run(['taskkill', '/f', '/pid', str(_old_pid)], capture_output=True, timeout=5)
+                        except: pass
+                    _pyw = _shutil.which('pythonw') or _shutil.which('python') or 'python'
+                    _proxy_proc = _subprocess.Popen(
+                        [_pyw, str(_proxy_script), '8443'],
+                        creationflags=_subprocess.CREATE_NO_WINDOW)
+                    _log(f'[FixAll] Proxy baslatildi (PID: {_proxy_proc.pid})')
+
+                    # Register proxy as Windows scheduled task for persistence
+                    try:
+                        _task_name = 'SteamToolsManifestProxy'
+                        _run_admin_ps(f'unregister-scheduledtask -TaskName "{_task_name}" -Confirm:$false 2>$null')
+                        _run_admin_ps(
+                            f'$a = New-ScheduledTaskAction -Execute "{_pyw}" -Argument "{_proxy_script} 8443"; '
+                            f'$t = New-ScheduledTaskTrigger -AtStartup; '
+                            f'$s = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable; '
+                            f'$p = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest; '
+                            f'Register-ScheduledTask -TaskName "{_task_name}" -Action $a -Trigger $t -Settings $s -Principal $p -Force')
+                        _log('[FixAll] Proxy gorevi baslangica eklendi (Scheduled Task)')
+                    except Exception as _tex:
+                        _log(f'[FixAll] Gorev ekleme hatasi: {_tex}')
+
+                    # Modify hosts to redirect ST update domains -> local proxy
+                    _hosts_path = Path(os.environ.get('SystemRoot', 'C:\\Windows')) / 'System32' / 'drivers' / 'etc' / 'hosts'
+                    try:
+                        if _hosts_path.exists():
+                            _bak = _proxy_dir / 'hosts.bak'
+                            if not _bak.exists():
+                                _shutil.copy2(str(_hosts_path), str(_bak))
+                            _domains = ['update.tnkjmec.com', 'update.wudrm.com', 'update.steamcdn.com']
+                            _lines = _hosts_path.read_text(encoding='utf-8').splitlines()
+                            _new = []
+                            _added = set()
+                            for _l in _lines:
+                                _s = _l.strip()
+                                _skip = False
+                                for _d in _domains:
+                                    if _d in _s:
+                                        _skip = True; _added.add(_d)
+                                if not _skip: _new.append(_l)
+                            for _d in _domains:
+                                if _d not in _added:
+                                    _new.append(f'127.0.0.1 {_d} # st proxy')
+                            _hosts_path.write_text('\n'.join(_new) + '\n', encoding='utf-8')
+                            _log('[FixAll] hosts yonlendirildi (ST -> 127.0.0.1:8443)')
+                    except Exception as _hex:
+                        _log(f'[FixAll] hosts hatasi: {_hex}')
+
+                    # ---- PART 4: Deploy version_proxy.dll as Steam\version.dll (WinHTTP hook) ----
+                    _pb_set(95, '[19/20] WinHTTP hook DLL...')
+                    try:
+                        _vdll_dst = _steam_root / 'version.dll'
+                        if _vdll_dst.exists():
+                            _bak = _vdll_dst.with_suffix('.dll.stbak')
+                            if not _bak.exists():
+                                _shutil.copy2(str(_vdll_dst), str(_bak))
+                        _vdll_src = _proxy_dir / 'version.dll'
+                        _vdll_src.write_bytes(__import__('base64').b64decode(VERSION_PROXY_DLL_B64))
+                        _shutil.copy2(str(_vdll_src), str(_vdll_dst))
+                        _log('[FixAll] version_proxy.dll -> Steam\\version.dll')
+                    except Exception as _vdex:
+                        _log(f'[FixAll] version.dll deploy hatasi: {_vdex}')
+
+                    # ---- PART 5: Run LuaTools manifest updater for all games ----
+                    _pb_set(97, '[19/20] Manifest updater...')
+                    for _m_url in ('irm "https://luatools.vercel.app/manifests.ps1" | iex',
+                                   'irm "https://raw.githubusercontent.com/tttaaahhhaaa/SteamToolsLua-Millennium-Fix/main/update_manifests.ps1" | iex'):
+                        try:
+                            _run_admin_ps(f'$env:MANIFEST_MODE="github+morrenus"; $env:MANIFEST_SINGLE_RUN="1"; {_m_url}')
+                        except: pass
+                    _log('[FixAll] Manifest updater calisti')
+
+                    # ---- PART 6: Try direct manifest download for installed games via steamtools.games ----
+                    _pb_set(96, '[19/20] steamtools.games manifest...')
+                    try:
+                        _acf_dir = _steam_root / 'steamapps'
+                        for _acf in _acf_dir.glob('appmanifest_*.acf'):
+                            try:
+                                _txt = _acf.read_text(encoding='utf-8', errors='replace')
+                                _m = __import__('re').search(r'"appid"\s*"(\d+)"', _txt)
+                                if _m:
+                                    _aid = _m.group(1)
+                                    _depot = _steam_root / 'config' / 'depotcache'
+                                    _depot.mkdir(parents=True, exist_ok=True)
+                                    _existing = list(_depot.glob(f'*{_aid}*'))
+                                    if not _existing:
+                                        try:
+                                            _r = requests.post('https://steamtools.games/api/generate',
+                                                json={"appId": _aid, "branch": "public"},
+                                                headers={'User-Agent': 'SteamToolsLua/1.0'},
+                                                timeout=30)
+                                            if _r.status_code == 200:
+                                                _ct = _r.headers.get('Content-Type', '')
+                                                if 'zip' in _ct:
+                                                    import io, zipfile
+                                                    with zipfile.ZipFile(io.BytesIO(_r.content)) as _zf:
+                                                        for _info in _zf.infolist():
+                                                            if _info.is_dir(): continue
+                                                            _fn = Path(_info.filename).name
+                                                            if _fn.endswith('.manifest'):
+                                                                (_depot / _fn).write_bytes(_zf.read(_info))
+                                                                _log(f'[FixAll] steamtools.games: {_aid} manifest indirildi')
+                                                else:
+                                                    _log(f'[FixAll] steamtools.games: {_aid} -> {_r.text[:100]}')
+                                        except Exception as _gex:
+                                            _log(f'[FixAll] steamtools.games {_aid}: {_gex}')
+                            except: pass
+                    except Exception as _sex:
+                        _log(f'[FixAll] steamtools.games scan hatasi: {_sex}')
+
+                except Exception as _ex:
+                    _log(f'[FixAll] Deep fix hatasi: {_ex}')
+                    import traceback
+                    _log(traceback.format_exc())
+                _log('[FixAll] ADIM 19/20 tamam - OST kuruldu + manifest.lua + proxy aktif')
+                # 20) Steam restart
+                _log('[FixAll] ===== ADIM 20/20: Steam restart =====')
+                _pb_set(98, '[20/20] Steam baslatiliyor...')
+                _st_chk = _subprocess.run(['tasklist', '/fi', 'imagename eq SteamTools.exe'], capture_output=True, text=True, timeout=5, startupinfo=_si, creationflags=_subprocess.CREATE_NO_WINDOW)
+                if 'SteamTools.exe' not in _st_chk.stdout and _st_exe.exists():
+                    _subprocess.Popen([str(_st_exe)], startupinfo=_si); _time.sleep(2)
+                _subprocess.Popen(['C:\\Program Files (x86)\\Steam\\steam.exe'], startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
+                _st_watchdog_active[0] = True
+                _time.sleep(2)
+                window.after(0, lambda: _pb_frame.pack_forget())
+                _log('[FixAll] ===== 20/20 TUM ADIMLAR BASARIYLA TAMAMLANDI =====')
+            threading.Thread(target=_task, daemon=True).start()
         _trow_a = tk.Frame(_t_inner, bg='#152238')
         _trow_a.pack(fill=tk.X, pady=2)
         _btn_w = 120
-        AB(_trow_a, _t('Guncelle', 'Update'), _launch_updater_ui, _btn_w, 36,
+        AB(_trow_a, _tr(self, 'button.update_check'), _launch_updater_ui, _btn_w, 36,
            '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
-        AB(_trow_a, _t('Nickname', 'Nickname'), _change_nickname, _btn_w, 36,
+        AB(_trow_a, _tr(self, 'button.nickname'), _change_nickname, _btn_w, 36,
            '#1f3348', '#2b4b68', '#66c0f4', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
-        AB(_trow_a, _t('Reset Licenses', 'Reset Licenses'), _reset_licenses, _btn_w, 36,
+        AB(_trow_a, _tr(self, 'button.reset_licenses'), _reset_licenses, _btn_w, 36,
            '#8b0000', '#b22222', '#f56565', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
-        AB(_trow_a, _t('Reset Backup', 'Reset Backup'), _reset_licenses_backup, _btn_w, 36,
-           '#6b3a2e', '#8b4a3e', '#e8927c', '#ffffff',
-           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
-        AB(_trow_a, _t('Basarimlar', 'Achievements'), self._open_game_picker, _btn_w, 36,
+        AB(_trow_a, _tr(self, 'button.achievements'), self._open_game_picker, _btn_w, 36,
            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
-        AB(_trow_a, '\u26a1 Speedtest', lambda: _open_speedtest_window(self), _btn_w, 36,
+        AB(_trow_a, f'\u26a1 {_tr(self, "button.speedtest")}', lambda: _open_speedtest_window(self), _btn_w, 36,
            '#3b2d5e', '#5a3d8e', '#b088ff', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
 
@@ -5232,6 +6023,7 @@ def install_ui_fixes(g):
         AB(_trow_c, 'CloudRedirect', _run_cloudredirect, _btn_w, 36,
            '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+
         AB(_trow_c, 'Inject OF', self._inject_of_browser, _btn_w, 36,
            '#2d4a3e', '#3d6b56', '#48bb78', '#f7fafc',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
@@ -5242,6 +6034,95 @@ def install_ui_fixes(g):
         AB(_trow_c, 'Outside Games', _og_inject, _btn_w, 36,
            '#244363', '#315f8e', '#66c0f4', '#f7fafc',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+
+        # OST (OpenSteamTool) Install/Remove
+        _ost_dlls = ['dwmapi.dll', 'xinput1_4.dll', 'OpenSteamTool.dll']
+        def _install_ost():
+            threading.Thread(target=lambda: _install_ost_thread(), daemon=True).start()
+        def _install_ost_thread():
+            _log_ost = lambda m: window.after(0, lambda: (self.log(m), _pb_lbl.config(text=m)))
+            _log_ost('[OST] OpenSteamTool kuruluyor...')
+            _steam = Path('C:\\Program Files (x86)\\Steam')
+            _ost_dir = Path(_os.environ['APPDATA']) / 'SteamToolsLua' / 'OpenSteamTool'
+            _ost_dir.mkdir(parents=True, exist_ok=True)
+            _zip_path = _ost_dir / 'OpenSteamTool-Release.zip'
+            try:
+                _log_ost('[OST] Indiriliyor...')
+                _r = requests.get(
+                    'https://github.com/OpenSteam001/OpenSteamTool/releases/download/1.4.8/OpenSteamTool-1.4.8-Release.zip',
+                    timeout=60)
+                if _r.status_code != 200:
+                    _log_ost(f'[OST] Indirme hatasi HTTP {_r.status_code}'); return
+                _zip_path.write_bytes(_r.content)
+                _log_ost(f'[OST] Indirildi ({len(_r.content)//1024}KB)')
+            except Exception as _ex:
+                _log_ost(f'[OST] Indirme hatasi: {_ex}'); return
+            try:
+                import zipfile as _zf
+                with _zf.ZipFile(_zip_path) as _z:
+                    for _m in _z.namelist():
+                        if any(d in _m for d in _ost_dlls):
+                            (_ost_dir / Path(_m).name).write_bytes(_z.read(_m))
+                            _log_ost(f'[OST] Ayiklandi: {Path(_m).name}')
+            except Exception as _ex:
+                _log_ost(f'[OST] Zip acma hatasi: {_ex}'); return
+            try:
+                _log_ost('[OST] Steam kapatiliyor...')
+                _subprocess.run(['taskkill','/f','/im','steam.exe'],
+                    startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW),
+                    capture_output=True, timeout=15)
+                for _dll in _ost_dlls:
+                    _src, _dst = _ost_dir / _dll, _steam / _dll
+                    if _dst.exists():
+                        _bak = _ost_dir / f'{_dll}.backup'
+                        if not _bak.exists(): _dst.rename(_bak); _log_ost(f'[OST] Yedeklendi: {_dll}')
+                    _shutil.copy2(str(_src), str(_dst)); _log_ost(f'[OST] Kopyalandi: {_dll}')
+                _lua_dir = _steam / 'config' / 'lua'
+                _stplug = _steam / 'config' / 'stplug-in'
+                if _stplug.is_dir() and _lua_dir.is_dir():
+                    for _lf in _stplug.iterdir():
+                        if _lf.suffix.lower() == '.lua':
+                            try:
+                                _shutil.copy2(str(_lf), str(_lua_dir / _lf.name))
+                                _log_ost(f'[OST] Lua kopyalandi: {_lf.name}')
+                            except: pass
+                _log_ost('[OST] Steam baslatiliyor...')
+                _subprocess.Popen([str(_steam / 'steam.exe')],
+                    startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
+                window.after(0, lambda: tk.messagebox.showinfo('OpenSteamTool',
+                    'OpenSteamTool basariyla kuruldu!\nSteam yeniden baslatildi.\nGeri almak icin OST Kaldir.', parent=window))
+            except Exception as _ex:
+                _log_ost(f'[OST] Kurulum hatasi: {_ex}')
+        def _uninstall_ost():
+            threading.Thread(target=lambda: _uninstall_ost_thread(), daemon=True).start()
+        def _uninstall_ost_thread():
+            _log_ost = lambda m: window.after(0, lambda: (self.log(m), _pb_lbl.config(text=m)))
+            _log_ost('[OST] OpenSteamTool kaldiriliyor...')
+            _steam = Path('C:\\Program Files (x86)\\Steam')
+            _ost_dir = Path(_os.environ['APPDATA']) / 'SteamToolsLua' / 'OpenSteamTool'
+            try:
+                _subprocess.run(['taskkill','/f','/im','steam.exe'],
+                    startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW),
+                    capture_output=True, timeout=15)
+                for _dll in _ost_dlls:
+                    _dst = _steam / _dll
+                    if _dst.exists(): _dst.unlink(); _log_ost(f'[OST] Silindi: {_dll}')
+                    _bak = _ost_dir / f'{_dll}.backup'
+                    if _bak.exists(): _shutil.move(str(_bak), str(_dst)); _log_ost(f'[OST] Geri yuklendi: {_dll}')
+                _log_ost('[OST] Steam baslatiliyor...')
+                _subprocess.Popen([str(_steam / 'steam.exe')],
+                    startupinfo=_subprocess.STARTUPINFO(dwFlags=_subprocess.STARTF_USESHOWWINDOW))
+                window.after(0, lambda: tk.messagebox.showinfo('OpenSteamTool',
+                    'OpenSteamTool kaldirildi.\nSteam yeniden baslatildi.', parent=window))
+            except Exception as _ex:
+                _log_ost(f'[OST] Kaldirma hatasi: {_ex}')
+        AB(_trow_c, 'OST Kur', _install_ost, _btn_w, 36,
+           '#3b2d5e', '#5a3d8e', '#b088ff', '#ffffff',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+        AB(_trow_c, 'OST Kaldir', _uninstall_ost, _btn_w, 36,
+           '#5e2d3b', '#8e3d5a', '#ff88b0', '#ffffff',
+           ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+
         def _track_we(_wp):
             _list = g.get('_we_procs')
             if _list is None:
@@ -5308,6 +6189,14 @@ def install_ui_fixes(g):
         AB(_trow_d, 'Restart STM', _run_restart, _btn_w, 36,
            '#244363', '#315f8e', '#66c0f4', '#ffffff',
            ('Segoe UI', 11)).pack(side=tk.LEFT, padx=2)
+
+        # ---- Tools Row E (Fix All) ----
+        _trow_e = tk.Frame(_t_inner, bg='#152238')
+        _trow_e.pack(fill=tk.X, pady=(4, 2))
+        _fix_all_btn_w = _btn_w * 2 + 8
+        AB(_trow_e, _tr(self, 'button.fix_all'), _fix_all, _fix_all_btn_w, 42,
+           '#5a3d0e', '#8b6914', '#f0c040', '#1a1a1a',
+           ('Segoe UI Black', 12)).pack(pady=1)
 
         # ---- Save Path ----
         _sv_frame = tk.Frame(_p, bg='#0d1724')
