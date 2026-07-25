@@ -25,6 +25,7 @@ Desktop.ini
 *.swo
 
 # Temp / junk
+PROJE_DURUMU_VE_YAPI.txt
 /SteamToolsLua.py
 !bypass/SteamToolsLua.py
 SUMMARY.md
