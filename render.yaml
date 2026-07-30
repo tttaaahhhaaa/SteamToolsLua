@@ -1,0 +1,16 @@
+services:
+  - type: worker
+    name: steamtoolslua-bot
+    runtime: python
+    plan: free
+    buildCommand: pip install -r bot/requirements.txt
+    startCommand: python bot/steamtools_bot.py
+    envVars:
+      - key: DISCORD_BOT_TOKEN
+        sync: false
+      - key: STL_SECRET
+        sync: false
+      - key: STL_DOWNLOAD_URL
+        value: "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/latest"
+      - key: API_PORT
+        value: "8899"

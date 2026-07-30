@@ -1,0 +1,26 @@
+app = "steamtoolslua-bot"
+primary_region = "ams"
+
+[build]
+  dockerfile = "bot/Dockerfile"
+
+[env]
+  API_PORT = "8899"
+  STL_DOWNLOAD_URL = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/latest"
+
+[http_service]
+  internal_port = 8899
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 250
+    soft_limit = 200
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

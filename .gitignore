@@ -13,6 +13,10 @@ __pycache__/
 # Tokens / secrets
 tokens/
 .github_token
+bot/codes/
+
+# Discord bot secrets
+bot/codes/
 
 # Windows
 Thumbs.db

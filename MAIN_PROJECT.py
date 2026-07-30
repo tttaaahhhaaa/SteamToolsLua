@@ -33,8 +33,8 @@ def resource_path(name):
     return base / name
 
 # ---- Version & Update ----
-VERSION = "3.7.0"
-VERSION_NAME = "All-in-One Injector + CloudRedirect"
+VERSION = "4.0.0"
+VERSION_NAME = "All-in-One Injector + CloudRedirect + Discord Activation"
 try:
     Path(os.environ.get('APPDATA', str(Path.home())), 'SteamToolsLua', 'version.txt').write_text(VERSION)
 except: pass
@@ -45,13 +45,49 @@ DOWNLOAD_BASE = "https://github.com/tttaaahhhaaa/SteamToolsLua/releases/download
 SNAPSHOT_URL = "https://api.github.com/repos/tttaaahhhaaa/SteamToolsLua/releases?per_page=1"
 _UPDATE_CHANNEL = "stable"  # "stable" or "snapshot"
 
-# XOR-obfuscated token (key=0xAA) — not plaintext, prevents casual extraction
+# ===== Discord Bot Integration (placeholder — will be updated with real URLs) =====
+_DISCORD_API_BASE = "https://YOUR_DISCORD_BOT_URL/api"
+_ACTIVATION_API = _DISCORD_API_BASE + "/activate"
+_DISCORD_DOWNLOAD_CDN = "https://YOUR_DISCORD_CDN_URL/files"
+_DISCORD_TOOLS_URL = _DISCORD_API_BASE + "/tools"
+_ACTIVATION_FILE = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / ".activation_v2"
+
+# XOR-obfuscated token (key=0xAA) — kept for update system fallback
 _XOR_KEY = 170
 _XOR_TOKEN = [205,195,222,194,223,200,245,218,203,222,245,155,155,232,229,232,236,226,226,251,154,196,218,242,216,253,251,224,156,196,254,221,192,245,197,211,242,204,154,199,235,225,217,222,225,199,242,210,220,204,237,218,254,230,197,249,249,195,206,232,220,235,208,197,236,198,226,146,201,250,220,194,220,227,242,236,236,226,229,226,237,249,233,235,228,220,229,229,243,216,217,228,153]
 _GIT_REPO = 'tttaaahhhaaa/SteamToolsLua'
 def _get_token():
     return ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
-_ADMIN_GIST = "6f3df9ed457b97936420526d5f5a431b"
+
+def _is_activated():
+    try:
+        if _ACTIVATION_FILE.exists():
+            import hashlib
+            data = json.loads(_ACTIVATION_FILE.read_text('utf-8'))
+            hwid = ''
+            try:
+                import winreg
+                with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Cryptography") as _k:
+                    hwid = winreg.QueryValueEx(_k, "MachineGuid")[0]
+            except:
+                hwid = str(__import__('uuid').getnode())
+            if data.get('hwid_hash') == hashlib.sha256(hwid.lower().encode()).hexdigest():
+                return True
+    except:
+        pass
+    return False
+
+def _get_hwid_for_activation():
+    try:
+        import winreg
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Cryptography") as _k:
+            return winreg.QueryValueEx(_k, "MachineGuid")[0]
+    except:
+        pass
+    try:
+        return str(__import__('uuid').getnode())
+    except:
+        return "unknown"
 
 # ===== Steam Achievement Manager (SAM) integration =====
 # Ported from gibbed's SAM (C#) via ctypes / steamclient.dll vtable calling
@@ -612,6 +648,105 @@ def main():
     root = app_globals.get('root', None)
     if root is None or os.getenv('STEAMTOOLS_SMOKE_TEST') == '1':
         return
+    # ===== ACTIVATION GATE - standalone window until valid code entered =====
+    _act_file = Path(os.environ.get('APPDATA', str(Path.home()))) / "SteamToolsLua" / ".activation_v2"
+    _act_valid = False
+    try:
+        if _act_file.exists():
+            import hashlib as _hl
+            _ad = json.loads(_act_file.read_text('utf-8'))
+            _hwid_chk = ''
+            try:
+                import winreg as _wr
+                with _wr.OpenKey(_wr.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Cryptography") as _k:
+                    _hwid_chk = _wr.QueryValueEx(_k, "MachineGuid")[0]
+            except:
+                _hwid_chk = str(__import__('uuid').getnode())
+            if _ad.get('hwid_hash') == _hl.sha256(_hwid_chk.lower().encode()).hexdigest():
+                _act_expiry = _ad.get('expiry', 0)
+                if _act_expiry > int(__import__('time').time()):
+                    _act_valid = True
+    except:
+        pass
+    if not _act_valid:
+        import hashlib as _hl2
+        _gate = _tk.Toplevel(root)
+        _gate.title('SteamToolsLua')
+        _gate.geometry('480x320')
+        _gate.configure(bg='#0a0a14')
+        _gate.resizable(False, False)
+        _gate.attributes('-topmost', True)
+        _gate.protocol('WM_DELETE_WINDOW', lambda: (_gate.destroy(), root.destroy()))
+        _tk.Label(_gate, text='SteamToolsLua', fg='#b088ff', bg='#0a0a14',
+                     font=('Segoe UI', 18, 'bold')).pack(pady=(30, 4))
+        _tk.Label(_gate, text='Activation Required', fg='#f7fafc', bg='#0a0a14',
+                     font=('Segoe UI', 13, 'bold')).pack(pady=(0, 4))
+        _tk.Label(_gate, text='Get your 24-hour code from Discord: /code', fg='#686880', bg='#0a0a14',
+                     font=('Segoe UI', 10)).pack(pady=(0, 16))
+        _inp = _tk.Entry(_gate, font=('Consolas', 13), bg='#122235', fg='#f7fafc',
+                            insertbackground='#7c6fff', relief=_tk.FLAT, bd=8, justify='center', width=32)
+        _inp.pack(padx=30)
+        _inp.focus_set()
+        _err = _tk.Label(_gate, text='', fg='#f56565', bg='#0a0a14', font=('Segoe UI', 9))
+        _err.pack(pady=(6, 0))
+        _status = _tk.Label(_gate, text='', fg='#48bb78', bg='#0a0a14', font=('Segoe UI', 9))
+        _status.pack()
+        def _do_activate():
+            _code = _inp.get().strip()
+            if not _code:
+                _err.config(text='Enter your activation code')
+                return
+            _err.config(text=''); _status.config(text='Validating...')
+            def _val_task():
+                global _act_valid
+                try:
+                    _parts = _code.split('-')
+                    if len(_parts) != 4 or _parts[0] != 'STL':
+                        root.after(0, lambda: (_err.config(text='Invalid code format'), _status.config(text='')))
+                        return
+                    _uid = int(_parts[1], 16)
+                    _exp = int(_parts[2], 16)
+                    _sig = _parts[3]
+                    _payload = f"{_uid}:{_exp}"
+                    _exp_sig = __import__('hmac').new(b"stl_secret_2024_xK9mP2vL5nR7qW3j", _payload.encode(), _hl2.sha256).hexdigest()[:16]
+                    if not __import__('hmac').compare_digest(_sig, _exp_sig):
+                        root.after(0, lambda: (_err.config(text='Invalid code'), _status.config(text='')))
+                        return
+                    _now = int(__import__('time').time())
+                    if _now > _exp:
+                        root.after(0, lambda: (_err.config(text='Code expired'), _status.config(text='')))
+                        return
+                    _hwid_s = ''
+                    try:
+                        import winreg as _wr2
+                        with _wr2.OpenKey(_wr2.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Cryptography") as _k2:
+                            _hwid_s = _wr2.QueryValueEx(_k2, "MachineGuid")[0]
+                    except:
+                        _hwid_s = str(__import__('uuid').getnode())
+                    _act_file.parent.mkdir(parents=True, exist_ok=True)
+                    _act_file.write_text(json.dumps({
+                        'hwid_hash': _hl2.sha256(_hwid_s.lower().encode()).hexdigest(),
+                        'expiry': _exp,
+                        'code': _code,
+                        'activated_at': _now
+                    }), encoding='utf-8')
+                    _act_valid = True
+                    root.after(0, _gate.destroy)
+                except Exception as _ex:
+                    root.after(0, lambda: (_err.config(text=f'Error: {_ex}'), _status.config(text='')))
+            __import__('threading').Thread(target=_val_task, daemon=True).start()
+        _inp.bind('<Return>', lambda e: _do_activate())
+        _btn_f = _tk.Frame(_gate, bg='#0a0a14')
+        _btn_f.pack(pady=(14, 0))
+        _tk.Button(_btn_f, text='Activate', command=_do_activate, width=16, height=2,
+                      bg='#244363', fg='#ffffff', relief=_tk.FLAT, font=('Segoe UI', 11, 'bold'),
+                      cursor='hand2').pack()
+        _tk.Label(_gate, text='Get code: discord.gg -> /code', fg='#445566', bg='#0a0a14',
+                     font=('Segoe UI', 8)).pack(side='bottom', pady=(0, 8))
+        root.wait_window(_gate)
+        if not _act_valid:
+            return
+    # END ACTIVATION GATE
     # DPI scaling — match Windows display scale (125%, 150%, etc.)
     try:
         _dpi = ctypes.windll.user32.GetDpiForWindow(root.winfo_id())
@@ -1373,45 +1508,7 @@ def install_ui_fixes(g):
         except:
             return "unknown"
     def _log_device():
-        try:
-            import json as _json, datetime as _dt
-            _pc = os.environ.get('COMPUTERNAME', 'Unknown')
-            _hwid = _get_hwid()
-            _ip = "unknown"
-            try:
-                import requests as _req
-                _ip = _req.get('https://api.ipify.org', timeout=5).text.strip()
-            except:
-                pass
-            _now = _dt.datetime.now(_dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-            _entry = {"pc": _pc, "hwid": _hwid, "ip": _ip, "time": _now}
-            _nn = _MY_NICKNAME.get('nickname', '')
-            if _nn:
-                _entry['nickname'] = _nn
-            try:
-                import requests as _req2
-                _tk = ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
-                _r = _req2.get(f'https://api.github.com/gists/{_ADMIN_GIST}',
-                               headers={'Authorization': f'token {_tk}', 'User-Agent': 'SteamToolsLua'}, timeout=15)
-                _all_entries = []
-                if _r.status_code == 200:
-                    _fc = _r.json().get('files', {}).get('devices.json', {}).get('content', '')
-                    if _fc:
-                        try:
-                            _existing = _json.loads(_fc)
-                            if isinstance(_existing, list):
-                                _all_entries = _existing
-                        except:
-                            pass
-                _all_entries = [e for e in _all_entries if e.get('hwid') != _hwid]
-                _all_entries.append(_entry)
-                _req2.patch(f'https://api.github.com/gists/{_ADMIN_GIST}',
-                            json={"files": {"devices.json": {"content": _json.dumps(_all_entries, indent=2, ensure_ascii=False)}}},
-                            headers={'Authorization': f'token {_tk}', 'User-Agent': 'SteamToolsLua'}, timeout=15)
-            except:
-                pass
-        except:
-            pass
+        pass  # Admin panel removed — no more gist logging
 
     original_provider_guide = g.get('provider_guide')
 
@@ -4544,20 +4641,11 @@ def install_ui_fixes(g):
                 _dlg2.destroy()
                 def _save_nick(_nv):
                     try:
-                        _tk5 = ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
-                        _r6 = __import__('requests').get(f'https://api.github.com/gists/{_ADMIN_GIST}',
-                            headers={'Authorization': f'token {_tk5}', 'User-Agent': 'SteamToolsLua'}, timeout=8)
-                        _nd6 = {}
-                        if _r6.status_code == 200:
-                            _nf6 = _r6.json().get('files', {}).get('nicknames.json', {}).get('content', '')
-                            if _nf6:
-                                try: _nd6 = json.loads(_nf6)
-                                except: pass
-                        _nd6[_hw2] = {'nickname': _nv}
-                        __import__('requests').patch(f'https://api.github.com/gists/{_ADMIN_GIST}',
-                            json={"files": {"nicknames.json": {"content": json.dumps(_nd6, indent=2, ensure_ascii=False)}}},
-                            headers={'Authorization': f'token {_tk5}', 'User-Agent': 'SteamToolsLua'}, timeout=10)
                         _MY_NICKNAME['nickname'] = _nv
+                        _local_nick_file = _data_dir / '.nickname_cache'
+                        try:
+                            _local_nick_file.write_text(json.dumps({'hwid': _hw2, 'nickname': _nv}, ensure_ascii=False), encoding='utf-8')
+                        except: pass
                     except: pass
                 threading.Thread(target=_save_nick, args=(_new_val[0],), daemon=True).start()
             _entry2.bind('<Return>', lambda e: _submit2())
@@ -4728,20 +4816,11 @@ def install_ui_fixes(g):
                 _dlg2.destroy()
                 def _save_nick(_nv):
                     try:
-                        _tk5 = ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
-                        _r6 = __import__('requests').get(f'https://api.github.com/gists/{_ADMIN_GIST}',
-                            headers={'Authorization': f'token {_tk5}', 'User-Agent': 'SteamToolsLua'}, timeout=8)
-                        _nd6 = {}
-                        if _r6.status_code == 200:
-                            _nf6 = _r6.json().get('files', {}).get('nicknames.json', {}).get('content', '')
-                            if _nf6:
-                                try: _nd6 = json.loads(_nf6)
-                                except: pass
-                        _nd6[_hw2] = {'nickname': _nv}
-                        __import__('requests').patch(f'https://api.github.com/gists/{_ADMIN_GIST}',
-                            json={"files": {"nicknames.json": {"content": json.dumps(_nd6, indent=2, ensure_ascii=False)}}},
-                            headers={'Authorization': f'token {_tk5}', 'User-Agent': 'SteamToolsLua'}, timeout=10)
                         _MY_NICKNAME['nickname'] = _nv
+                        _local_nick_file = _data_dir / '.nickname_cache'
+                        try:
+                            _local_nick_file.write_text(json.dumps({'hwid': _hw2, 'nickname': _nv}, ensure_ascii=False), encoding='utf-8')
+                        except: pass
                     except: pass
                 threading.Thread(target=_save_nick, args=(_new_val[0],), daemon=True).start()
             _entry2.bind('<Return>', lambda e: _submit2())
@@ -5313,9 +5392,7 @@ def install_ui_fixes(g):
                                   'if (Test-Path $p) { Remove-Item -Path "$p\\*\\Personalization" -Recurse -Force -ErrorAction SilentlyContinue }')
                 except: pass
                 try:
-                    _run_admin_ps('reg delete "HKCU\\Software\\Valve\\Steam" /v "LastTicket" /f 2>$null; '
-                                  'reg delete "HKCU\\Software\\Valve\\Steam" /v "AccountName" /f 2>$null; '
-                                  'reg delete "HKCU\\Software\\Valve\\Steam" /v "AutoLoginUser" /f 2>$null')
+                    _run_admin_ps('reg delete "HKCU\\Software\\Valve\\Steam" /v "LastTicket" /f 2>$null')
                 except: pass
                 try:
                     _run_admin_ps('reg delete "HKLM\\SOFTWARE\\Wow6432Node\\Valve\\Steam" /v "Restart" /f 2>$null; '
@@ -5472,7 +5549,7 @@ Remove-Item $pidfile -Force -ErrorAction SilentlyContinue
                 except: pass
                 try:
                     _cfgs = _steam_root / 'config'
-                    for _f in ('loginusers.vdf', 'SteamAppData.vdf', 'config.vdf'):
+                    for _f in ('SteamAppData.vdf', 'config.vdf'):
                         _fp = _cfgs / _f
                         if _fp.exists():
                             try: _fp.unlink()
@@ -7155,89 +7232,19 @@ if __name__ == "__main__":
     _MY_NICKNAME = {'nickname': ''}
 
     def _check_ban():
-        def _task():
-            try:
-                import requests as _rq
-                _tk = ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
-                _r = _rq.get(f'https://api.github.com/gists/{_ADMIN_GIST}',
-                             headers={'Authorization': f'token {_tk}', 'User-Agent': 'SteamToolsLua'}, timeout=8)
-                if _r.status_code != 200: return
-                _data = _r.json().get('files', {}).get('blacklist.json', {}).get('content', '')
-                if not _data: return
-                _bl = json.loads(_data)
-                _bans = _bl.get('bans', [])
-                if not _bans: return
-                _pc2 = os.environ.get('COMPUTERNAME', 'Unknown').lower()
-                _hwid2 = _get_hwid().lower()
-                import datetime as _dt4
-                _now2 = _dt4.datetime.utcnow()
-                for _b in _bans:
-                    _p = _b.split(':')
-                    _bid = _p[0].lower()
-                    if _bid != _pc2 and _bid != _hwid2: continue
-                    if len(_p) <= 2:
-                        if _ROOT: _ROOT.after(0, _show_ban_popup, 'permanent', _bid)
-                        return
-                    _ds2 = _p[-1]
-                    _ts2 = ':'.join(_p[1:-1])
-                    _st = None
-                    for _fmt in ('%Y-%m-%dT%H:%M:%SZ', '%Y%m%dT%H%M%SZ'):
-                        try: _st = _dt4.datetime.strptime(_ts2, _fmt); break
-                        except: pass
-                    if _st is None:
-                        if _ROOT: _ROOT.after(0, _show_ban_popup, 'permanent', _bid); return
-                    _sc = 0
-                    _u2 = _ds2[-1]
-                    try: _n2 = int(_ds2[:-1])
-                    except:
-                        if _ROOT: _ROOT.after(0, _show_ban_popup, 'permanent', _bid); return
-                    if _u2 == 'm': _sc = _n2 * 60
-                    elif _u2 == 'h': _sc = _n2 * 3600
-                    elif _u2 == 'd': _sc = _n2 * 86400
-                    else:
-                        if _ROOT: _ROOT.after(0, _show_ban_popup, 'permanent', _bid); return
-                    _rm2 = int((_st + _dt4.timedelta(seconds=_sc) - _now2).total_seconds())
-                    if _rm2 > 0:
-                        if _ROOT: _ROOT.after(0, _show_ban_popup, 'timed', _bid, _rm2)
-                        return
-            except:
-                pass
-        threading.Thread(target=_task, daemon=True).start()
+        pass  # Gist ban system removed
 
     def _fetch_nicknames():
-        def _task():
-            try:
-                _tk2 = ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
-                _r2 = __import__('requests').get(f'https://api.github.com/gists/{_ADMIN_GIST}',
-                             headers={'Authorization': f'token {_tk2}', 'User-Agent': 'SteamToolsLua'}, timeout=8)
-                if _r2.status_code != 200: return
-                _nf = _r2.json().get('files', {}).get('nicknames.json', {}).get('content', '')
-                if not _nf: return
-                _nd = json.loads(_nf)
-                _hw = _get_hwid().lower()
-                _entry = _nd.get(_hw)
-                if _entry and _entry.get('nickname'):
-                    _MY_NICKNAME['nickname'] = _entry['nickname']
-                    threading.Thread(target=_log_device, daemon=True).start()
-            except:
-                pass
-        threading.Thread(target=_task, daemon=True).start()
+        pass  # Gist nickname sync removed — local only
 
     if _ROOT:
-        def _check_loop():
-            _check_ban()
-            _fetch_nicknames()
-            try: _ROOT.after(30000, _check_loop)
-            except: pass
-        try: _ROOT.after(5000, _check_loop)
-        except: pass
+        pass  # Periodic gist check loop removed
 
-    # ---- Startup nickname check (threaded + main-thread dialog) ----
+    # ---- Startup nickname check (local cache only) ----
     def _startup_nickname():
         def _task():
             try:
                 _hw = _get_hwid().lower()
-                # Check local cache first
                 _local_nick_file = _data_dir / '.nickname_cache'
                 if _local_nick_file.exists():
                     try:
@@ -7246,15 +7253,6 @@ if __name__ == "__main__":
                             _MY_NICKNAME['nickname'] = _cached['nickname']
                             return
                     except: pass
-                _tk4 = ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
-                _r4 = __import__('requests').get(f'https://api.github.com/gists/{_ADMIN_GIST}',
-                    headers={'Authorization': f'token {_tk4}', 'User-Agent': 'SteamToolsLua'}, timeout=8)
-                if _r4.status_code == 200:
-                    _nf4 = _r4.json().get('files', {}).get('nicknames.json', {}).get('content', '')
-                    if _nf4:
-                        _nd4 = json.loads(_nf4)
-                        if _hw in _nd4:
-                            return  # already has nickname
                 _ROOT.after(0, _ask_nickname, _hw)
             except:
                 pass
@@ -7287,30 +7285,12 @@ if __name__ == "__main__":
                     _err_lbl.config(text='Nickname bos gecilemez!')
                     return
                 _err_lbl.config(text='')
-                def _save_task():
-                    try:
-                        _tk4 = ''.join(chr(b ^ _XOR_KEY) for b in _XOR_TOKEN)
-                        _r5 = __import__('requests').get(f'https://api.github.com/gists/{_ADMIN_GIST}',
-                            headers={'Authorization': f'token {_tk4}', 'User-Agent': 'SteamToolsLua'}, timeout=8)
-                        _nd5 = {}
-                        if _r5.status_code == 200:
-                            _nf5 = _r5.json().get('files', {}).get('nicknames.json', {}).get('content', '')
-                            if _nf5:
-                                try: _nd5 = json.loads(_nf5)
-                                except: pass
-                        _nd5[_hw] = {'nickname': _nick}
-                        __import__('requests').patch(f'https://api.github.com/gists/{_ADMIN_GIST}',
-                            json={"files": {"nicknames.json": {"content": json.dumps(_nd5, indent=2, ensure_ascii=False)}}},
-                            headers={'Authorization': f'token {_tk4}', 'User-Agent': 'SteamToolsLua'}, timeout=10)
-                        _MY_NICKNAME['nickname'] = _nick
-                        _local_nick_file = _data_dir / '.nickname_cache'
-                        try:
-                            _local_nick_file.write_text(json.dumps({'hwid': _hw, 'nickname': _nick}, ensure_ascii=False), encoding='utf-8')
-                        except: pass
-                        _ROOT.after(0, _dlg.destroy)
-                    except:
-                        _ROOT.after(0, lambda: _err_lbl.config(text='Kayit hatasi, tekrar deneyin.'))
-                threading.Thread(target=_save_task, daemon=True).start()
+                _MY_NICKNAME['nickname'] = _nick
+                _local_nick_file = _data_dir / '.nickname_cache'
+                try:
+                    _local_nick_file.write_text(json.dumps({'hwid': _hw, 'nickname': _nick}, ensure_ascii=False), encoding='utf-8')
+                except: pass
+                _dlg.destroy()
             _entry.bind('<Return>', lambda e: _submit())
             AB3 = g.get('AnimatedButton', AnimatedButton)
             AB3(_dlg, 'Kaydet', _submit, 120, 34,
